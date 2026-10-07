@@ -7,8 +7,12 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { admin } from "better-auth/plugins";
 
-const configuredUrl = process.env.VERCEL_URL || process.env.BETTER_AUTH_URL;
-const formattedBaseUrl = formatBaseUrl(configuredUrl || "");
+const canonicalUrl = formatBaseUrl(process.env.BETTER_AUTH_URL || "");
+const vercelUrl = formatBaseUrl(process.env.VERCEL_URL || "");
+const productionUrl = formatBaseUrl(
+  process.env.VERCEL_PROJECT_PRODUCTION_URL || "",
+);
+const formattedBaseUrl = canonicalUrl || productionUrl || vercelUrl;
 
 const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || "development-only-secret-change-me",
@@ -20,9 +24,15 @@ const auth = betterAuth({
         protocol: "https",
       },
   trustedOrigins: [
-    ...(formattedBaseUrl ? [formattedBaseUrl] : []),
-    "http://localhost:3000",
-    "http://localhost:3001",
+    ...new Set(
+      [
+        formattedBaseUrl,
+        vercelUrl,
+        productionUrl,
+        "http://localhost:3000",
+        "http://localhost:3001",
+      ].filter((origin) => origin.length > 0),
+    ),
   ],
   database: drizzleAdapter(db, {
     provider: "pg",

@@ -1,7 +1,15 @@
 export const formatBaseUrl = (url: string) => {
-  if (url.includes("http://") || url.includes("https://")) {
-    return url;
-  }
+  const trimmed = url.trim();
+  if (!trimmed) return "";
 
-  return `https://${url}`;
+  const withProtocol =
+    trimmed.startsWith("http://") || trimmed.startsWith("https://")
+      ? trimmed
+      : `https://${trimmed}`;
+
+  try {
+    return new URL(withProtocol).origin;
+  } catch {
+    return "";
+  }
 };
