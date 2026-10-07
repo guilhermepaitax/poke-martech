@@ -1,3 +1,4 @@
+import { formatBaseUrl } from "@/lib/format-base-url";
 import { container } from "@/server/container";
 import { db } from "@/server/infrastructure/db/drizzle/client";
 import * as schema from "@/server/infrastructure/db/drizzle/schema";
@@ -7,18 +8,19 @@ import { nextCookies } from "better-auth/next-js";
 import { admin } from "better-auth/plugins";
 
 const configuredUrl = process.env.VERCEL_URL || process.env.BETTER_AUTH_URL;
+const formattedBaseUrl = formatBaseUrl(configuredUrl || "");
 
 const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || "development-only-secret-change-me",
-  baseURL: configuredUrl
-    ? configuredUrl
+  baseURL: formattedBaseUrl
+    ? formattedBaseUrl
     : {
         allowedHosts: ["localhost", "127.0.0.1"],
         fallback: "http://localhost:3000",
-        protocol: "auto",
+        protocol: "https",
       },
   trustedOrigins: [
-    ...(configuredUrl ? [configuredUrl] : []),
+    ...(formattedBaseUrl ? [formattedBaseUrl] : []),
     "http://localhost:3000",
     "http://localhost:3001",
   ],

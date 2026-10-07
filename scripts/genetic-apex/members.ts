@@ -149,7 +149,7 @@ const MEMBERS: Member[] = [
     name: "Thiago",
     trait: "dev que estraga os testes automatizados",
     stamps: ["Thi", "Thiago"],
-    spices: ["Bug", "Quebra", "Testes", "Fisioterapia"],
+    spices: ["Rensga", "Paia", "Quebra", "Testes", "Fisioterapia"],
     flavors: [
       "Passou perto da suíte e a pipeline ficou vermelha.",
       "O teste automatizado foge quando escuta o nome.",
@@ -164,7 +164,7 @@ const MEMBERS: Member[] = [
     name: "Gerhard",
     trait: "DevOps",
     stamps: ["Gerhard", "Ger"],
-    spices: ["Deploy", "Ops", "Branch"],
+    spices: ["Deploy", "Argentino", "Branch", "Moto"],
     flavors: [
       "Se passou na máquina dele, já era deploy.",
       "O changelog que se vire depois do push.",
