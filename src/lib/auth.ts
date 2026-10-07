@@ -1,12 +1,12 @@
+import { container } from "@/server/container";
+import { db } from "@/server/infrastructure/db/drizzle/client";
+import * as schema from "@/server/infrastructure/db/drizzle/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { admin } from "better-auth/plugins";
-import { container } from "@/server/container";
-import { db } from "@/server/infrastructure/db/drizzle/client";
-import * as schema from "@/server/infrastructure/db/drizzle/schema";
 
-const configuredUrl = process.env.BETTER_AUTH_URL;
+const configuredUrl = process.env.VERCEL_URL || process.env.BETTER_AUTH_URL;
 
 const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || "development-only-secret-change-me",
@@ -66,7 +66,9 @@ const auth = betterAuth({
           return { data: user };
         },
         after: async (user) => {
-          const result = await container.grantSignupBonus.execute({ userId: user.id });
+          const result = await container.grantSignupBonus.execute({
+            userId: user.id,
+          });
           if (!result.ok) {
             console.error(result.error.message);
           }
