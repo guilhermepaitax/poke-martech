@@ -1,0 +1,1 @@
+ALTER TABLE "cards" ADD COLUMN "frame" text DEFAULT 'basic' NOT NULL;

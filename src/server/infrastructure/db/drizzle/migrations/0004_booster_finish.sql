@@ -1,0 +1,1 @@
+ALTER TABLE "boosters" ADD COLUMN "finish" text DEFAULT 'mirror' NOT NULL;

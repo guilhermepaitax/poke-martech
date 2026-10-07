@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-50.4 -70.4 730.8 1020.8" preserveAspectRatio="none">
+<defs>
+<filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+  <feGaussianBlur stdDeviation="5" result="blur"/>
+  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+<linearGradient id="flameOuter" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#ffd23a" stop-opacity="0.2"/>
+  <stop offset="0.25" stop-color="#ffb02e"/>
+  <stop offset="0.7" stop-color="#ff6a1a"/>
+  <stop offset="1" stop-color="#e8340c" stop-opacity="0.9"/>
+</linearGradient>
+<linearGradient id="flameInner" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#fff6c8" stop-opacity="0.3"/>
+  <stop offset="0.45" stop-color="#ffe680"/>
+  <stop offset="1" stop-color="#ffd23a"/>
+</linearGradient>
+<radialGradient id="ember">
+  <stop offset="0" stop-color="#fffbe6"/>
+  <stop offset="0.45" stop-color="#ffd23a"/>
+  <stop offset="1" stop-color="#ff6a1a" stop-opacity="0"/>
+</radialGradient>
+<g id="flame">
+  <path fill="url(#flameOuter)" d="M50 0 C58 30 92 52 90 100 C88 138 70 160 50 160 C30 160 10 140 10 104 C10 76 28 62 34 40 C40 58 46 64 50 70 C52 48 44 24 50 0 Z"/>
+  <path fill="url(#flameInner)" d="M50 60 C56 80 74 96 72 120 C70 142 60 152 50 152 C40 152 28 142 28 122 C28 104 40 96 44 84 C46 94 50 98 52 102 C54 90 48 74 50 60 Z"/>
+</g>
+<g id="wisp">
+  <path fill="url(#flameOuter)" d="M50 0 C62 40 80 70 70 110 C64 136 56 150 50 160 C44 150 34 132 32 108 C30 80 44 50 50 0 Z"/>
+</g>
+</defs>
+<use href="#wisp" xlink:href="#wisp" opacity="0.93" transform="translate(25.9 -18.0) rotate(167.2) scale(0.43 0.72) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.77" transform="translate(86.2 -18.0) rotate(191.5) scale(0.34 0.56) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.85" transform="translate(178.8 -18.0) rotate(175.9) scale(0.49 0.82) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.86" transform="translate(219.7 -18.0) rotate(157.0) scale(0.46 0.77) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.87" transform="translate(310.6 -18.0) rotate(198.8) scale(0.34 0.57) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.94" transform="translate(371.0 -18.0) rotate(184.0) scale(0.39 0.65) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.89" transform="translate(424.9 -18.0) rotate(178.7) scale(0.46 0.77) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.81" transform="translate(515.1 -18.0) rotate(187.4) scale(0.57 0.95) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.84" transform="translate(561.2 -18.0) rotate(174.3) scale(0.46 0.77) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.90" transform="translate(648.0 18.9) rotate(253.4) scale(0.28 0.46) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.92" transform="translate(648.0 70.0) rotate(251.5) scale(0.32 0.54) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.93" transform="translate(648.0 139.7) rotate(249.0) scale(0.39 0.65) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.83" transform="translate(648.0 224.3) rotate(286.0) scale(0.53 0.88) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.78" transform="translate(648.0 312.3) rotate(262.9) scale(0.53 0.89) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.85" transform="translate(648.0 347.2) rotate(253.8) scale(0.32 0.53) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.83" transform="translate(648.0 420.6) rotate(274.5) scale(0.33 0.54) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.89" transform="translate(648.0 508.6) rotate(263.5) scale(0.43 0.71) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.76" transform="translate(648.0 592.6) rotate(270.8) scale(0.44 0.74) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.91" transform="translate(648.0 643.5) rotate(290.0) scale(0.50 0.83) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.88" transform="translate(648.0 703.4) rotate(264.6) scale(0.37 0.62) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.78" transform="translate(648.0 799.9) rotate(248.1) scale(0.26 0.44) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.78" transform="translate(648.0 823.9) rotate(262.0) scale(0.26 0.43) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.92" transform="translate(578.5 898.0) rotate(-19.9) scale(0.36 0.60) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.82" transform="translate(537.2 898.0) rotate(5.7) scale(0.29 0.48) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.95" transform="translate(475.5 898.0) rotate(-6.8) scale(0.28 0.47) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.77" transform="translate(408.1 898.0) rotate(-1.7) scale(0.40 0.67) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.78" transform="translate(330.3 898.0) rotate(-7.9) scale(0.33 0.55) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.78" transform="translate(237.3 898.0) rotate(-23.8) scale(0.55 0.92) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.95" transform="translate(199.2 898.0) rotate(2.2) scale(0.25 0.41) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.82" transform="translate(111.3 898.0) rotate(18.2) scale(0.47 0.78) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.91" transform="translate(39.9 898.0) rotate(-16.6) scale(0.49 0.82) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.95" transform="translate(-18.0 864.1) rotate(81.5) scale(0.31 0.52) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.90" transform="translate(-18.0 787.0) rotate(107.6) scale(0.51 0.84) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.76" transform="translate(-18.0 741.7) rotate(76.3) scale(0.41 0.68) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.89" transform="translate(-18.0 673.2) rotate(66.4) scale(0.33 0.55) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.95" transform="translate(-18.0 597.5) rotate(112.8) scale(0.39 0.65) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.80" transform="translate(-18.0 506.1) rotate(112.8) scale(0.36 0.60) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.93" transform="translate(-18.0 449.6) rotate(74.8) scale(0.31 0.51) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.91" transform="translate(-18.0 386.4) rotate(107.0) scale(0.40 0.66) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.91" transform="translate(-18.0 304.8) rotate(69.2) scale(0.46 0.76) translate(-50 -160)"/>
+<use href="#flame" xlink:href="#flame" opacity="0.91" transform="translate(-18.0 242.5) rotate(102.5) scale(0.40 0.66) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.83" transform="translate(-18.0 181.2) rotate(81.6) scale(0.50 0.84) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.78" transform="translate(-18.0 88.8) rotate(85.1) scale(0.55 0.92) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.91" transform="translate(-18.0 24.8) rotate(71.4) scale(0.29 0.48) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.9" transform="translate(-20.0 -20.0) rotate(119.2) scale(0.73 1.12) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.9" transform="translate(-20.0 -20.0) rotate(177.6) scale(0.68 1.05) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.9" transform="translate(-20.0 -20.0) rotate(133.5) scale(0.65 1.00) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.9" transform="translate(650.0 -20.0) rotate(-169.8) scale(0.49 0.76) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.9" transform="translate(650.0 -20.0) rotate(-111.0) scale(0.68 1.04) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.9" transform="translate(650.0 -20.0) rotate(-142.1) scale(0.76 1.17) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.9" transform="translate(650.0 900.0) rotate(-40.7) scale(0.74 1.14) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.9" transform="translate(650.0 900.0) rotate(-13.2) scale(0.55 0.84) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.9" transform="translate(650.0 900.0) rotate(-53.4) scale(0.57 0.88) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.9" transform="translate(-20.0 900.0) rotate(17.9) scale(0.66 1.01) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.9" transform="translate(-20.0 900.0) rotate(19.2) scale(0.61 0.94) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.9" transform="translate(-20.0 900.0) rotate(10.2) scale(0.75 1.16) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.68" transform="translate(234.6 245.8) rotate(10.0) scale(0.48) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.56" transform="translate(544.7 260.6) rotate(3.8) scale(0.38) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.60" transform="translate(282.1 152.3) rotate(-59.5) scale(0.45) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.71" transform="translate(300.4 336.6) rotate(6.8) scale(0.33) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.62" transform="translate(345.5 356.7) rotate(-47.3) scale(0.39) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.78" transform="translate(192.3 352.6) rotate(0.9) scale(0.39) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.70" transform="translate(541.9 240.7) rotate(13.5) scale(0.38) translate(-50 -160)"/>
+<use href="#wisp" xlink:href="#wisp" opacity="0.83" transform="translate(421.0 243.8) rotate(4.0) scale(0.37) translate(-50 -160)"/>
+<g filter="url(#glow)"><circle cx="546.3" cy="95.1" r="2.6" fill="url(#ember)"/><circle cx="275.6" cy="33.7" r="3.3" fill="url(#ember)"/><circle cx="24.6" cy="601.1" r="5.2" fill="url(#ember)"/><circle cx="585.1" cy="111.6" r="5.5" fill="url(#ember)"/><circle cx="633.1" cy="173.5" r="2.6" fill="url(#ember)"/><circle cx="541.2" cy="118.3" r="2.4" fill="url(#ember)"/><circle cx="325.6" cy="287.1" r="4.6" fill="url(#ember)"/><circle cx="274.5" cy="-18.0" r="4.9" fill="url(#ember)"/><circle cx="399.3" cy="451.7" r="3.9" fill="url(#ember)"/><circle cx="645.1" cy="714.1" r="3.1" fill="url(#ember)"/><circle cx="46.1" cy="217.2" r="5.0" fill="url(#ember)"/><circle cx="504.8" cy="221.8" r="2.1" fill="url(#ember)"/><circle cx="262.1" cy="831.0" r="3.5" fill="url(#ember)"/><circle cx="443.1" cy="369.0" r="4.3" fill="url(#ember)"/><circle cx="613.3" cy="567.8" r="6.8" fill="url(#ember)"/><circle cx="31.8" cy="778.6" r="5.2" fill="url(#ember)"/><circle cx="561.8" cy="396.1" r="6.4" fill="url(#ember)"/><circle cx="351.1" cy="845.5" r="4.4" fill="url(#ember)"/><circle cx="62.7" cy="465.6" r="3.2" fill="url(#ember)"/><circle cx="49.3" cy="118.2" r="3.2" fill="url(#ember)"/><circle cx="112.1" cy="261.3" r="6.8" fill="url(#ember)"/><circle cx="491.6" cy="240.4" r="5.5" fill="url(#ember)"/><circle cx="95.8" cy="294.6" r="3.5" fill="url(#ember)"/><circle cx="145.2" cy="-20.6" r="2.1" fill="url(#ember)"/><circle cx="349.7" cy="144.9" r="4.5" fill="url(#ember)"/><circle cx="610.7" cy="65.8" r="5.4" fill="url(#ember)"/><circle cx="643.3" cy="290.5" r="4.1" fill="url(#ember)"/><circle cx="11.8" cy="88.2" r="3.3" fill="url(#ember)"/><circle cx="478.9" cy="207.7" r="5.3" fill="url(#ember)"/><circle cx="32.3" cy="764.3" r="6.6" fill="url(#ember)"/><circle cx="431.0" cy="232.7" r="3.1" fill="url(#ember)"/><circle cx="174.2" cy="401.5" r="2.2" fill="url(#ember)"/><circle cx="636.6" cy="484.7" r="3.7" fill="url(#ember)"/><circle cx="631.8" cy="259.0" r="4.1" fill="url(#ember)"/><circle cx="-24.5" cy="327.5" r="5.4" fill="url(#ember)"/><circle cx="316.9" cy="155.8" r="3.0" fill="url(#ember)"/><circle cx="-21.8" cy="215.9" r="6.0" fill="url(#ember)"/><circle cx="246.6" cy="4.4" r="5.7" fill="url(#ember)"/><circle cx="181.8" cy="186.1" r="4.5" fill="url(#ember)"/><circle cx="462.0" cy="800.3" r="3.0" fill="url(#ember)"/><circle cx="196.7" cy="900.7" r="6.8" fill="url(#ember)"/><circle cx="467.5" cy="576.1" r="3.6" fill="url(#ember)"/><circle cx="581.7" cy="561.0" r="6.1" fill="url(#ember)"/><circle cx="527.4" cy="97.2" r="3.2" fill="url(#ember)"/><circle cx="65.4" cy="307.6" r="3.1" fill="url(#ember)"/><circle cx="437.9" cy="429.8" r="5.8" fill="url(#ember)"/><circle cx="423.4" cy="27.6" r="3.5" fill="url(#ember)"/><circle cx="146.4" cy="35.6" r="6.8" fill="url(#ember)"/><circle cx="638.7" cy="434.2" r="4.5" fill="url(#ember)"/><circle cx="-16.7" cy="22.5" r="2.9" fill="url(#ember)"/><circle cx="172.7" cy="455.7" r="3.1" fill="url(#ember)"/><circle cx="110.4" cy="894.4" r="4.1" fill="url(#ember)"/><circle cx="-13.3" cy="401.0" r="5.3" fill="url(#ember)"/><circle cx="633.5" cy="392.0" r="6.7" fill="url(#ember)"/><circle cx="117.6" cy="863.5" r="2.7" fill="url(#ember)"/><circle cx="370.4" cy="99.5" r="4.0" fill="url(#ember)"/><circle cx="623.0" cy="90.8" r="3.1" fill="url(#ember)"/><circle cx="320.9" cy="807.7" r="6.9" fill="url(#ember)"/><circle cx="132.2" cy="818.0" r="2.7" fill="url(#ember)"/><circle cx="-8.3" cy="-31.8" r="2.3" fill="url(#ember)"/><circle cx="281.5" cy="251.8" r="2.3" fill="url(#ember)"/><circle cx="-24.0" cy="678.3" r="4.0" fill="url(#ember)"/><circle cx="56.5" cy="845.2" r="6.5" fill="url(#ember)"/><circle cx="588.2" cy="240.3" r="6.4" fill="url(#ember)"/><circle cx="242.1" cy="914.1" r="5.7" fill="url(#ember)"/><circle cx="220.2" cy="371.6" r="7.0" fill="url(#ember)"/><circle cx="7.6" cy="61.5" r="6.7" fill="url(#ember)"/><circle cx="169.1" cy="854.0" r="3.6" fill="url(#ember)"/><circle cx="155.6" cy="450.4" r="2.9" fill="url(#ember)"/><circle cx="228.8" cy="873.5" r="6.7" fill="url(#ember)"/><circle cx="614.9" cy="486.8" r="5.7" fill="url(#ember)"/><circle cx="8.5" cy="660.8" r="2.2" fill="url(#ember)"/><circle cx="605.4" cy="85.8" r="5.3" fill="url(#ember)"/><circle cx="639.1" cy="212.1" r="3.9" fill="url(#ember)"/><circle cx="652.8" cy="392.4" r="3.9" fill="url(#ember)"/><circle cx="105.7" cy="51.0" r="3.7" fill="url(#ember)"/><circle cx="36.8" cy="192.1" r="2.8" fill="url(#ember)"/><circle cx="362.4" cy="808.0" r="2.0" fill="url(#ember)"/><circle cx="231.2" cy="286.2" r="3.4" fill="url(#ember)"/><circle cx="163.6" cy="884.5" r="3.8" fill="url(#ember)"/><circle cx="121.7" cy="222.4" r="6.8" fill="url(#ember)"/><circle cx="552.2" cy="794.4" r="2.6" fill="url(#ember)"/><circle cx="-3.3" cy="639.1" r="6.8" fill="url(#ember)"/><circle cx="605.4" cy="749.4" r="3.0" fill="url(#ember)"/><circle cx="636.3" cy="200.9" r="3.8" fill="url(#ember)"/><circle cx="79.8" cy="461.3" r="6.1" fill="url(#ember)"/><circle cx="615.4" cy="650.7" r="6.1" fill="url(#ember)"/><circle cx="495.2" cy="399.4" r="4.2" fill="url(#ember)"/><circle cx="1.7" cy="708.3" r="2.2" fill="url(#ember)"/><circle cx="600.7" cy="578.3" r="4.4" fill="url(#ember)"/></g>
+</svg>

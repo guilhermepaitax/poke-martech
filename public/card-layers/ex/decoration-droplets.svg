@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-50.4 -70.4 730.8 1020.8" preserveAspectRatio="none">
+<defs>
+<filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+  <feGaussianBlur stdDeviation="5" result="blur"/>
+  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+<linearGradient id="water" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#e6fbff" stop-opacity="0.95"/>
+  <stop offset="0.45" stop-color="#5cc8ff" stop-opacity="0.85"/>
+  <stop offset="1" stop-color="#1a7fd6" stop-opacity="0.9"/>
+</linearGradient>
+<linearGradient id="swirl" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+  <stop offset="0.4" stop-color="#e6fbff" stop-opacity="0.95"/>
+  <stop offset="1" stop-color="#5cc8ff" stop-opacity="0"/>
+</linearGradient>
+<g id="drop">
+  <path fill="url(#water)" stroke="#ffffff" stroke-opacity="0.7" stroke-width="3" d="M50 0 C50 0 90 60 90 95 C90 120 72 140 50 140 C28 140 10 120 10 95 C10 60 50 0 50 0 Z"/>
+  <ellipse cx="36" cy="96" rx="9" ry="16" fill="#ffffff" fill-opacity="0.85" transform="rotate(-18 36 96)"/>
+</g>
+<g id="bubble">
+  <circle cx="0" cy="0" r="10" fill="#bff3ff" fill-opacity="0.18" stroke="#e6fbff" stroke-opacity="0.9" stroke-width="1.6"/>
+  <circle cx="-3.5" cy="-3.5" r="2.4" fill="#ffffff"/>
+</g>
+</defs>
+<polyline points="-41.4 243.9 -38.4 228.6 -32.7 213.6 -24.3 198.8 -13.2 184.5 0.4 170.7 16.5 157.5 34.9 145.1 55.5 133.6 78.1 122.9 102.5 113.3 128.7 104.8 156.2 97.4 185.0 91.3 214.8 86.5 245.3 82.9 276.4 80.7 307.8 79.8 339.2 80.3 370.4 82.1 401.1 85.3 431.1 89.8 460.2 95.6 488.1 102.6" fill="none" stroke="url(#swirl)" stroke-width="10.6" stroke-linecap="round" opacity="0.8" transform="rotate(-15.8 312.1 252.4)"/>
+<polyline points="564.9 348.7 547.8 362.1 528.4 374.5 506.8 385.6 483.2 395.5 458.0 404.0 431.4 411.0 403.7 416.4 375.1 420.3 346.0 422.4 316.6 422.9 287.3 421.7 258.3 418.9 230.1 414.3 202.8 408.2 176.7 400.6 152.2 391.5 129.4 381.1 108.7 369.4 90.3 356.6 74.2 342.7 60.8 328.1 50.0 312.7 42.2 296.9" fill="none" stroke="url(#swirl)" stroke-width="5.5" stroke-linecap="round" opacity="0.8" transform="rotate(9.7 322.8 261.7)"/>
+<polyline points="526.4 421.6 511.1 426.8 495.4 431.6 479.2 435.8 462.6 439.6 445.7 442.9 428.4 445.7 410.9 447.9 393.3 449.7 375.4 450.9 357.5 451.5 339.6 451.7 321.6 451.3 303.8 450.3 286.0 448.9 268.4 446.9 251.1 444.4 234.0 441.4 217.2 437.8 200.8 433.8 184.8 429.3 169.3 424.4 154.3 418.9 139.8 413.1" fill="none" stroke="url(#swirl)" stroke-width="5.7" stroke-linecap="round" opacity="0.8" transform="rotate(1.4 343.9 268.6)"/>
+<polyline points="33.5 302.6 24.2 285.6 17.8 268.0 14.5 250.2 14.3 232.2 17.1 214.3 22.9 196.7 31.7 179.5 43.4 163.0 57.8 147.4 74.9 132.7 94.3 119.2 115.9 107.0 139.5 96.3 164.8 87.1 191.5 79.5 219.4 73.7 248.1 69.7 277.3 67.6 306.7 67.3 336.0 68.9 364.9 72.4 393.1 77.6 420.1 84.6" fill="none" stroke="url(#swirl)" stroke-width="12.0" stroke-linecap="round" opacity="0.8" transform="rotate(1.0 296.4 239.7)"/>
+<polyline points="631.5 254.1 630.0 272.2 624.5 290.1 614.9 307.6 601.5 324.4 584.4 340.3 563.8 355.1 540.0 368.7 513.3 380.8 484.1 391.3 452.7 400.1 419.5 407.0 384.9 412.0 349.5 415.0 313.6 416.0 277.7 414.9 242.3 411.7 207.9 406.6 174.8 399.5 143.6 390.6 114.5 379.9 88.0 367.7 64.5 354.0 44.2 339.1" fill="none" stroke="url(#swirl)" stroke-width="12.8" stroke-linecap="round" opacity="0.8" transform="rotate(17.0 315.0 256.5)"/>
+<polyline points="334.9 95.0 358.1 96.6 381.0 99.0 403.5 102.3 425.3 106.4 446.4 111.3 466.7 116.9 486.0 123.3 504.2 130.4 521.2 138.1 536.9 146.5 551.2 155.4 564.0 164.8 575.3 174.6 584.9 184.8 592.9 195.4 599.1 206.2 603.5 217.2 606.2 228.4 607.0 239.6 606.1 250.8 603.3 261.9 598.7 272.9 592.4 283.7" fill="none" stroke="url(#swirl)" stroke-width="9.3" stroke-linecap="round" opacity="0.8" transform="rotate(17.3 303.9 239.2)"/>
+<polyline points="579.2 181.2 590.6 192.2 600.4 203.6 608.4 215.4 614.7 227.5 619.1 239.9 621.8 252.5 622.5 265.1 621.4 277.7 618.4 290.2 613.6 302.6 607.0 314.7 598.6 326.4 588.6 337.7 576.8 348.6 563.5 358.8 548.8 368.5 532.7 377.4 515.3 385.6 496.7 393.0 477.1 399.5 456.7 405.1 435.4 409.8 413.6 413.5" fill="none" stroke="url(#swirl)" stroke-width="9.4" stroke-linecap="round" opacity="0.8" transform="rotate(24.0 342.5 263.9)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(24.5 563.0) rotate(221.9) scale(0.13) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(158.4 47.6) rotate(347.3) scale(0.25) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(630.8 685.2) rotate(136.9) scale(0.32) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(142.4 60.8) rotate(357.0) scale(0.41) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(517.1 133.7) rotate(46.3) scale(0.18) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(279.2 146.0) rotate(351.3) scale(0.17) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(198.6 246.4) rotate(294.7) scale(0.26) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(36.1 518.6) rotate(269.2) scale(0.17) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(383.9 318.1) rotate(13.5) scale(0.22) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(627.4 424.5) rotate(101.0) scale(0.28) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(564.4 138.6) rotate(47.6) scale(0.35) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(592.9 742.0) rotate(129.9) scale(0.36) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(108.6 867.8) rotate(234.2) scale(0.15) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(385.4 365.4) rotate(73.6) scale(0.34) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(1.1 879.7) rotate(189.6) scale(0.26) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(380.6 243.7) rotate(27.3) scale(0.39) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(464.9 30.2) rotate(11.5) scale(0.29) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(599.0 158.7) rotate(71.8) scale(0.36) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(158.0 388.4) rotate(319.3) scale(0.26) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(94.7 315.3) rotate(310.1) scale(0.18) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(641.9 589.1) rotate(130.1) scale(0.37) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(372.5 98.2) rotate(19.5) scale(0.34) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(-13.0 829.9) rotate(200.0) scale(0.39) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(629.9 -15.0) rotate(68.3) scale(0.41) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(302.9 659.1) rotate(185.7) scale(0.36) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(26.0 483.8) rotate(248.8) scale(0.39) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(587.3 665.3) rotate(154.5) scale(0.22) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(514.5 834.4) rotate(124.0) scale(0.25) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(441.0 821.0) rotate(165.2) scale(0.35) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(389.1 41.0) rotate(9.6) scale(0.13) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(650.7 801.0) rotate(158.7) scale(0.14) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(545.2 44.4) rotate(51.2) scale(0.17) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(-4.9 536.3) rotate(241.7) scale(0.36) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(601.1 207.9) rotate(25.8) scale(0.16) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(591.1 592.1) rotate(120.0) scale(0.34) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(581.5 275.5) rotate(82.1) scale(0.33) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(596.8 801.4) rotate(173.3) scale(0.27) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(371.5 265.6) rotate(49.4) scale(0.15) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(458.7 867.7) rotate(141.9) scale(0.28) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(89.9 393.1) rotate(267.1) scale(0.34) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(120.5 358.3) rotate(302.5) scale(0.28) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(643.0 394.8) rotate(106.2) scale(0.29) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(-3.8 794.3) rotate(208.8) scale(0.23) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(457.0 507.1) rotate(139.5) scale(0.39) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(-12.2 93.9) rotate(296.2) scale(0.38) translate(-50 -70)"/>
+<use href="#drop" xlink:href="#drop" transform="translate(-8.4 753.3) rotate(258.7) scale(0.28) translate(-50 -70)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(364.7 155.8) scale(1.10)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(317.2 540.0) scale(1.13)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(634.4 455.2) scale(0.77)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(519.8 499.7) scale(1.21)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(444.9 27.4) scale(1.19)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(256.3 874.2) scale(1.03)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(158.0 414.5) scale(1.09)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(299.0 266.3) scale(1.09)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(395.2 844.2) scale(0.77)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(505.0 -13.5) scale(1.05)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(129.4 617.8) scale(0.46)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(216.6 553.8) scale(0.71)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(472.1 81.5) scale(0.82)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(145.3 152.7) scale(0.41)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(272.0 321.9) scale(0.72)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(335.0 116.6) scale(0.97)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(404.3 571.6) scale(0.96)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(554.0 546.2) scale(0.61)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(589.0 265.0) scale(1.25)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(578.7 92.1) scale(1.00)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(469.2 211.4) scale(0.70)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(541.0 365.5) scale(0.99)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(60.5 347.6) scale(0.91)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(-13.1 155.8) scale(0.88)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(594.9 885.1) scale(0.75)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(318.9 685.3) scale(1.30)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(441.3 144.4) scale(0.98)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(47.0 0.4) scale(1.03)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(325.1 505.3) scale(1.09)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(100.4 158.6) scale(1.28)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(648.6 845.7) scale(0.42)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(16.9 869.1) scale(0.95)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(495.1 275.4) scale(1.06)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(-16.2 631.1) scale(0.63)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(98.1 396.2) scale(0.76)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(250.6 150.2) scale(0.45)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(323.5 -20.5) scale(0.58)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(403.0 349.2) scale(0.74)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(317.9 898.7) scale(0.49)"/>
+<use href="#bubble" xlink:href="#bubble" transform="translate(150.5 830.9) scale(0.63)"/>
+<g filter="url(#glow)"><circle cx="591.0" cy="487.6" r="3.4" fill="#ffffff"/><circle cx="632.8" cy="504.6" r="2.0" fill="#ffffff"/><circle cx="408.9" cy="734.2" r="1.6" fill="#ffffff"/><circle cx="381.4" cy="686.4" r="2.6" fill="#bff3ff"/><circle cx="607.7" cy="116.8" r="2.9" fill="#bff3ff"/><circle cx="89.9" cy="435.7" r="2.4" fill="#ffe680"/><circle cx="14.6" cy="863.2" r="1.6" fill="#ffe680"/><circle cx="333.2" cy="533.0" r="2.2" fill="#ffe680"/><circle cx="169.2" cy="587.4" r="2.7" fill="#bff3ff"/><circle cx="167.7" cy="645.9" r="2.4" fill="#ffe680"/><circle cx="-15.7" cy="197.7" r="2.4" fill="#ffe680"/><circle cx="81.3" cy="682.0" r="3.4" fill="#ffe680"/><circle cx="585.5" cy="676.0" r="2.8" fill="#ffffff"/><circle cx="647.6" cy="862.4" r="2.4" fill="#ffffff"/><circle cx="590.9" cy="373.0" r="2.2" fill="#ffffff"/><circle cx="636.9" cy="196.4" r="3.5" fill="#ffe680"/><circle cx="612.5" cy="651.7" r="3.5" fill="#bff3ff"/><circle cx="640.8" cy="741.0" r="3.1" fill="#ffffff"/><circle cx="53.1" cy="558.1" r="2.8" fill="#ffffff"/><circle cx="113.4" cy="14.3" r="3.3" fill="#ffe680"/><circle cx="59.4" cy="385.7" r="3.4" fill="#ffe680"/><circle cx="284.8" cy="213.9" r="3.1" fill="#bff3ff"/><circle cx="260.2" cy="704.2" r="2.2" fill="#ffffff"/><circle cx="653.6" cy="870.2" r="2.2" fill="#ffe680"/><circle cx="137.0" cy="73.0" r="1.5" fill="#bff3ff"/><circle cx="508.4" cy="558.8" r="1.5" fill="#bff3ff"/><circle cx="159.5" cy="615.9" r="3.6" fill="#ffe680"/><circle cx="597.9" cy="800.0" r="2.4" fill="#ffffff"/><circle cx="16.2" cy="222.3" r="1.6" fill="#ffffff"/><circle cx="398.9" cy="62.2" r="1.2" fill="#ffffff"/><circle cx="24.1" cy="47.0" r="3.2" fill="#ffffff"/><circle cx="349.4" cy="564.6" r="2.0" fill="#bff3ff"/><circle cx="300.4" cy="165.0" r="2.9" fill="#ffffff"/><circle cx="481.6" cy="761.8" r="3.3" fill="#bff3ff"/><circle cx="56.3" cy="733.8" r="2.3" fill="#bff3ff"/><circle cx="497.9" cy="167.4" r="2.6" fill="#bff3ff"/><circle cx="150.4" cy="734.5" r="1.9" fill="#ffffff"/><circle cx="419.5" cy="904.9" r="2.2" fill="#bff3ff"/><circle cx="265.8" cy="315.7" r="1.4" fill="#ffe680"/><circle cx="570.3" cy="39.4" r="1.7" fill="#bff3ff"/><circle cx="178.2" cy="701.8" r="2.2" fill="#ffe680"/><circle cx="119.9" cy="594.1" r="1.6" fill="#ffe680"/><circle cx="181.5" cy="653.8" r="2.0" fill="#ffe680"/><circle cx="167.3" cy="100.6" r="1.4" fill="#ffe680"/><circle cx="468.8" cy="313.0" r="3.6" fill="#bff3ff"/><circle cx="614.3" cy="832.9" r="2.9" fill="#ffe680"/><circle cx="521.2" cy="254.4" r="1.4" fill="#ffffff"/><circle cx="246.7" cy="853.1" r="1.5" fill="#ffe680"/><circle cx="143.7" cy="308.6" r="2.8" fill="#bff3ff"/><circle cx="222.0" cy="340.8" r="3.5" fill="#ffffff"/><circle cx="107.5" cy="500.6" r="2.8" fill="#ffffff"/><circle cx="342.6" cy="759.7" r="3.3" fill="#bff3ff"/><circle cx="166.3" cy="-14.1" r="2.9" fill="#ffffff"/><circle cx="417.9" cy="729.2" r="1.9" fill="#ffffff"/><circle cx="346.9" cy="713.8" r="2.3" fill="#ffffff"/><circle cx="30.4" cy="665.3" r="3.3" fill="#bff3ff"/><circle cx="32.4" cy="567.5" r="1.7" fill="#bff3ff"/><circle cx="482.2" cy="581.6" r="1.6" fill="#bff3ff"/><circle cx="124.8" cy="692.2" r="2.1" fill="#bff3ff"/><circle cx="495.1" cy="339.6" r="3.0" fill="#ffe680"/><circle cx="633.6" cy="603.8" r="3.0" fill="#bff3ff"/><circle cx="340.4" cy="650.0" r="2.8" fill="#ffe680"/><circle cx="597.4" cy="355.0" r="1.7" fill="#ffe680"/><circle cx="428.4" cy="776.0" r="3.0" fill="#ffe680"/><circle cx="410.4" cy="462.7" r="1.9" fill="#ffe680"/><circle cx="520.7" cy="365.5" r="2.6" fill="#bff3ff"/><circle cx="230.3" cy="124.1" r="2.7" fill="#ffe680"/><circle cx="15.1" cy="257.9" r="3.2" fill="#ffffff"/><circle cx="415.7" cy="702.2" r="1.4" fill="#bff3ff"/><circle cx="17.2" cy="400.8" r="1.4" fill="#bff3ff"/></g>
+</svg>

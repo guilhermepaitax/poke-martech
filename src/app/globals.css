@@ -1,26 +1,878 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f3f7f4;
+  --foreground: #173028;
+  --foreground-subtle: #4d655c;
+  --muted: #e7f0ea;
+  --muted-foreground: #6d8278;
+  --primary: #1f9d57;
+  --primary-foreground: #f7fff9;
+  --secondary: #e8f4ff;
+  --destructive: #d4534a;
+  --destructive-foreground: #fff8f7;
+  --border: #d5e4db;
+  --input: #c5d8ce;
+  --ring: #1f9d57;
+  --surface: rgb(255 255 255 / 0.32);
+  --card: #ffffff;
+  --accent: #e2a322;
+  --accent-foreground: #6a4a08;
+  --energy-grass: #2f9d57;
+  --energy-fire: #e36a3a;
+  --energy-water: #3aa0e8;
+  --energy-lightning: #d6a31a;
+  --energy-psychic: #b45ccf;
+  --energy-fighting: #c46a32;
+  --energy-darkness: #5c5670;
+  --energy-metal: #7e95a8;
+  --energy-dragon: #c9a227;
+  --energy-colorless: #8b949e;
+  --card-frame-matte: linear-gradient(
+    160deg,
+    #c3c6c9 0%,
+    #b3b7ba 55%,
+    #a6aaae 100%
+  );
+  --card-frame-satin: linear-gradient(
+    135deg,
+    #b4b8bc 0%,
+    #e6e8ea 24%,
+    #a9adb1 50%,
+    #dcdfe1 74%,
+    #9da1a5 100%
+  );
+  --card-frame-mirror: linear-gradient(
+    135deg,
+    #8d9297 0%,
+    #fbfcfc 15%,
+    #979ca1 33%,
+    #eef0f2 50%,
+    #7e8489 68%,
+    #fdfdfd 84%,
+    #a1a6ab 100%
+  );
+  --card-frame-prism: linear-gradient(
+    135deg,
+    #9fa6ae 0%,
+    #ffffff 13%,
+    #c4ccd6 27%,
+    #f6f8fa 43%,
+    #aab3bf 60%,
+    #ffffff 77%,
+    #98a1ac 100%
+  );
+  --card-plate-grass: linear-gradient(
+    90deg,
+    #3d8f45 0%,
+    #7dce55 70%,
+    #c6e89a 100%
+  );
+  --card-plate-fire: linear-gradient(
+    90deg,
+    #c2410c 0%,
+    #f26522 62%,
+    #fdba74 100%
+  );
+  --card-plate-water: linear-gradient(
+    90deg,
+    #1d6eb5 0%,
+    #3aa0e8 62%,
+    #9fd8fb 100%
+  );
+  --card-plate-lightning: linear-gradient(
+    90deg,
+    #c99208 0%,
+    #f0c014 62%,
+    #ffe56a 100%
+  );
+  --card-plate-psychic: linear-gradient(
+    90deg,
+    #8a3dad 0%,
+    #c45ad4 62%,
+    #f0b7f5 100%
+  );
+  --card-plate-fighting: linear-gradient(
+    90deg,
+    #a35220 0%,
+    #d4783a 62%,
+    #f0c09a 100%
+  );
+  --card-plate-darkness: linear-gradient(
+    90deg,
+    #3a3450 0%,
+    #6a6280 62%,
+    #b7b0c4 100%
+  );
+  --card-plate-metal: linear-gradient(
+    90deg,
+    #5d7384 0%,
+    #8ea4b4 62%,
+    #d5e2ea 100%
+  );
+  --card-plate-dragon: linear-gradient(
+    90deg,
+    #a68412 0%,
+    #d4a82a 62%,
+    #f0d98a 100%
+  );
+  --card-plate-colorless: linear-gradient(
+    90deg,
+    #c9b24a 0%,
+    #e6d36a 62%,
+    #fff1a8 100%
+  );
+  --card-ink: #171717;
+  --card-label: #434345;
+  --card-paper: #f7f7f5;
+  --card-silver: linear-gradient(180deg, #ffffff 0%, #eeeff0 48%, #cfd1d3 100%);
+  --card-silver-bar: linear-gradient(
+    90deg,
+    #b9bcbe 0%,
+    #f4f5f5 14%,
+    #ffffff 50%,
+    #eceded 84%,
+    #b3b6b8 100%
+  );
+  --card-silver-edge: #9a9ea1;
+  --card-silver-frame: linear-gradient(
+    135deg,
+    #bdbec0 0%,
+    #f9fbfa 19%,
+    #9fa3a3 65%,
+    #f5f5f5 82%,
+    #d9d9d9 100%
+  );
+  --card-silver-light: #f4f5f6;
+  --card-silver-dark: #a7abae;
+  --card-ex: #e2b340;
+  --card-ex-rule-tab: #1a1a1a;
+  --card-ex-rule-band: linear-gradient(
+    180deg,
+    #f8e7a8 0%,
+    #e6c15a 45%,
+    #c4922a 100%
+  );
+  --holo-1: #7cf4ff;
+  --holo-2: #f7c4ff;
+  --holo-3: #ffe38a;
+  --holo-4: #9dffb0;
+  --holo-red: #f80e35;
+  --holo-yellow: #eedf10;
+  --holo-green: #21e985;
+  --holo-blue: #0dbde9;
+  --holo-violet: #c929f1;
+  --sunpillar-1: hsl(2 100% 73%);
+  --sunpillar-2: hsl(53 100% 69%);
+  --sunpillar-3: hsl(93 100% 69%);
+  --sunpillar-4: hsl(176 100% 76%);
+  --sunpillar-5: hsl(228 100% 74%);
+  --sunpillar-6: hsl(283 100% 73%);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-foreground-subtle: var(--foreground-subtle);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-energy-grass: var(--energy-grass);
+  --color-energy-fire: var(--energy-fire);
+  --color-energy-water: var(--energy-water);
+  --color-energy-lightning: var(--energy-lightning);
+  --color-energy-psychic: var(--energy-psychic);
+  --color-energy-fighting: var(--energy-fighting);
+  --color-energy-darkness: var(--energy-darkness);
+  --color-energy-metal: var(--energy-metal);
+  --color-energy-dragon: var(--energy-dragon);
+  --color-energy-colorless: var(--energy-colorless);
+  --font-sans: var(--font-sora);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  min-height: 100%;
+  background: var(--background);
 }
 
 body {
-  background: var(--background);
+  min-height: 100%;
+  background:
+    radial-gradient(
+      42rem 28rem at -8% -10%,
+      color-mix(in srgb, var(--accent) 34%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      36rem 32rem at 110% 0%,
+      color-mix(in srgb, var(--energy-water) 32%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      40rem 24rem at 50% 120%,
+      color-mix(in srgb, var(--primary) 24%, transparent),
+      transparent 70%
+    );
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), sans-serif;
+}
+
+.glass {
+  background: var(--surface);
+  border: 1px solid rgb(255 255 255 / 0.8);
+  box-shadow: 0 10px 40px rgb(23 48 40 / 0.08);
+  backdrop-filter: blur(4px);
+}
+
+.glow-action {
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.energy-glow {
+  box-shadow:
+    0 16px 40px
+      color-mix(in srgb, var(--energy, var(--primary)) 38%, transparent),
+    0 2px 8px rgb(23 48 40 / 0.06);
+}
+
+.energy-glow[data-flourish] {
+  box-shadow: 0 0 36px
+    color-mix(in srgb, var(--energy, var(--primary)) 62%, transparent);
+}
+
+.energy-chip {
+  border: 1px solid rgb(255 255 255 / 0.8);
+  background: rgb(255 255 255 / 0.5);
+  color: var(--foreground-subtle);
+}
+
+.energy-chip[data-selected] {
+  border-color: color-mix(in srgb, var(--energy) 55%, white);
+  background: color-mix(in srgb, var(--energy) 20%, white);
+  color: var(--foreground);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--energy) 40%, transparent);
+}
+
+.meter-fill {
+  background: var(--energy, var(--primary));
+}
+
+.tilt-rotate {
+  transform: rotateX(var(--rotate-x, 0deg)) rotateY(var(--rotate-y, 0deg))
+    scale(calc(1 + var(--tilt-active, 0) * 0.03));
+  will-change: transform;
+}
+
+[data-slot="holo-card"],
+[data-slot="booster-pack"] {
+  --glare-strength: 0.35;
+  --sheen-strength: 0.12;
+  --holo-opacity: 0;
+}
+
+[data-slot="holo-card"][data-finish="satin"],
+[data-slot="booster-pack"][data-finish="satin"] {
+  --glare-strength: 0.5;
+  --sheen-strength: 0.4;
+  --holo-opacity: 0.6;
+}
+
+[data-slot="holo-card"][data-finish="mirror"],
+[data-slot="booster-pack"][data-finish="mirror"] {
+  --glare-strength: 0.6;
+  --sheen-strength: 0.75;
+  --holo-opacity: 0.55;
+}
+
+[data-slot="holo-card"][data-finish="prism"],
+[data-slot="booster-pack"][data-finish="prism"] {
+  --glare-strength: 0.7;
+  --sheen-strength: 1;
+  --holo-opacity: 0.62;
+}
+
+[data-slot="holo-card"][data-tilt] .tilt-rotate {
+  box-shadow: 0 calc(8px + var(--tilt-active, 0) * 18px)
+    calc(20px + var(--tilt-active, 0) * 28px)
+    color-mix(in srgb, black 32%, transparent);
+}
+
+[data-text-outline] .card-text-outline {
+  -webkit-text-stroke: 0.52cqw var(--card-paper);
+  paint-order: stroke fill;
+}
+
+.card-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    115deg,
+    transparent 30%,
+    color-mix(in srgb, white 90%, transparent) 45%,
+    color-mix(in srgb, white 30%, transparent) 51%,
+    transparent 66%
+  );
+  background-size: 300% 300%;
+  background-position: 40% 40%;
+  opacity: var(--sheen-strength);
+}
+
+[data-finish="mirror"] > .card-sheen {
+  background-image: linear-gradient(
+    115deg,
+    transparent 30%,
+    color-mix(in srgb, white 95%, transparent) 44%,
+    color-mix(in srgb, white 20%, transparent) 50%,
+    transparent 54%,
+    color-mix(in srgb, white 70%, transparent) 58%,
+    transparent 64%
+  );
+}
+
+[data-finish="prism"] > .card-sheen {
+  background-image:
+    linear-gradient(
+      115deg,
+      transparent 30%,
+      color-mix(in srgb, white 95%, transparent) 44%,
+      color-mix(in srgb, white 20%, transparent) 50%,
+      transparent 54%,
+      color-mix(in srgb, white 70%, transparent) 58%,
+      transparent 64%
+    ),
+    linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--sunpillar-1) 45%, transparent),
+      color-mix(in srgb, var(--sunpillar-2) 45%, transparent),
+      color-mix(in srgb, var(--sunpillar-3) 45%, transparent),
+      color-mix(in srgb, var(--sunpillar-4) 45%, transparent),
+      color-mix(in srgb, var(--sunpillar-5) 45%, transparent),
+      color-mix(in srgb, var(--sunpillar-6) 45%, transparent),
+      color-mix(in srgb, var(--sunpillar-1) 45%, transparent)
+    );
+  background-size:
+    300% 300%,
+    200% 200%;
+}
+
+[data-border-shine] .card-sheen {
+  background-position: calc(75% - var(--pointer-from-left, 0.7) * 50%)
+    calc(75% - var(--pointer-from-top, 0.7) * 50%);
+  opacity: calc(var(--sheen-strength) * (0.7 + var(--tilt-active, 0) * 0.5));
+}
+
+.card-glare,
+.card-holo-bars,
+.card-holo-rainbow,
+.card-holo-prism,
+.card-glitter {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.card-glare {
+  background-image: radial-gradient(
+    farthest-corner circle at var(--pointer-x, 50%) var(--pointer-y, 50%),
+    color-mix(in srgb, white 80%, transparent) 8%,
+    color-mix(in srgb, white 50%, transparent) 22%,
+    color-mix(in srgb, black 40%, transparent) 90%
+  );
+  mix-blend-mode: overlay;
+  opacity: calc(var(--glare-strength) * var(--tilt-active, 0));
+}
+
+.card-holo-bars {
+  background-image:
+    repeating-linear-gradient(
+      110deg,
+      var(--holo-violet) 0%,
+      var(--holo-blue) 3%,
+      var(--holo-green) 6%,
+      var(--holo-yellow) 9%,
+      var(--holo-red) 12%,
+      var(--holo-violet) 15%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, black 35%, transparent) 0 2px,
+      color-mix(in srgb, white 25%, transparent) 2px 4px
+    );
+  background-size:
+    400% 400%,
+    auto;
+  background-position:
+    calc((50% - var(--background-x, 50%)) * 2.6 + 50%)
+      calc((50% - var(--background-y, 50%)) * 3.5 + 50%),
+    center;
+  background-blend-mode: overlay;
+  mix-blend-mode: color-dodge;
+  filter: brightness(0.75) contrast(1.25) saturate(1.2);
+  opacity: calc(var(--holo-opacity) * (0.3 + var(--tilt-active, 0) * 0.7));
+}
+
+.card-holo-rainbow {
+  background-image: repeating-linear-gradient(
+    -30deg,
+    var(--sunpillar-1) 0%,
+    var(--sunpillar-2) 4%,
+    var(--sunpillar-3) 8%,
+    var(--sunpillar-4) 12%,
+    var(--sunpillar-5) 16%,
+    var(--sunpillar-6) 20%,
+    var(--sunpillar-1) 24%
+  );
+  background-size: 300% 300%;
+  background-position: calc(25% + var(--pointer-from-left, 0.5) * 50%)
+    calc(25% + var(--pointer-from-top, 0.5) * 50%);
+  mix-blend-mode: overlay;
+  filter: brightness(calc(0.85 + var(--pointer-from-center, 0) * 0.25))
+    contrast(1.2) saturate(1.3);
+  opacity: calc(var(--holo-opacity) * (0.35 + var(--tilt-active, 0) * 0.65));
+}
+
+.card-holo-prism {
+  background-image:
+    repeating-linear-gradient(
+      55deg,
+      var(--sunpillar-1) 0%,
+      var(--sunpillar-2) 3%,
+      var(--sunpillar-3) 6%,
+      var(--sunpillar-4) 9%,
+      var(--sunpillar-5) 12%,
+      var(--sunpillar-6) 15%,
+      var(--sunpillar-1) 18%
+    ),
+    repeating-linear-gradient(
+      45deg,
+      color-mix(in srgb, white 10%, black) 0% 1.5%,
+      color-mix(in srgb, white 35%, black) 1.5% 3%,
+      color-mix(in srgb, white 50%, black) 3% 4.5%,
+      color-mix(in srgb, white 35%, black) 4.5% 6%,
+      color-mix(in srgb, white 10%, black) 6% 7.5%
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, white 10%, black) 0% 1.5%,
+      color-mix(in srgb, white 35%, black) 1.5% 3%,
+      color-mix(in srgb, white 50%, black) 3% 4.5%,
+      color-mix(in srgb, white 35%, black) 4.5% 6%,
+      color-mix(in srgb, white 10%, black) 6% 7.5%
+    );
+  background-size:
+    400% 100%,
+    210% 210%,
+    210% 210%;
+  background-position:
+    calc((var(--background-x, 50%) - 50%) * -2.5 + 50%)
+      calc((var(--background-y, 50%) - 50%) * -2.5 + 50%),
+    calc((var(--background-x, 50%) - 50%) * 1.5 + 50%)
+      calc((var(--background-y, 50%) - 50%) * 1.5 + 50%),
+    calc((var(--background-x, 50%) - 50%) * 1.5 + 50%)
+      calc((var(--background-y, 50%) - 50%) * 1.5 + 50%);
+  background-blend-mode: hard-light, color-dodge;
+  mix-blend-mode: overlay;
+  filter: brightness(calc(0.8 + var(--pointer-from-center, 0) * 0.3))
+    contrast(1.4) saturate(1.4);
+  opacity: calc(var(--holo-opacity) * (0.35 + var(--tilt-active, 0) * 0.65));
+}
+
+.card-glitter {
+  background-image:
+    radial-gradient(circle, var(--holo-1) 0 0.6px, transparent 1.4px),
+    radial-gradient(circle, var(--holo-2) 0 0.5px, transparent 1.2px),
+    radial-gradient(circle, white 0 0.5px, transparent 1.1px);
+  background-size:
+    11px 13px,
+    17px 15px,
+    23px 19px;
+  background-position:
+    calc(var(--pointer-from-left, 0.5) * 6px)
+      calc(var(--pointer-from-top, 0.5) * 6px),
+    calc(var(--pointer-from-left, 0.5) * -8px) 3px,
+    5px calc(var(--pointer-from-top, 0.5) * -10px);
+  mix-blend-mode: color-dodge;
+  mask-image: radial-gradient(
+    farthest-corner circle at var(--pointer-x, 50%) var(--pointer-y, 50%),
+    black 0%,
+    transparent 65%
+  );
+  opacity: calc(var(--holo-opacity) * var(--tilt-active, 0));
+}
+
+[data-finish="prism"] .card-glitter {
+  background-size:
+    9px 11px,
+    13px 12px,
+    19px 16px;
+}
+
+.card-decoration {
+  position: absolute;
+  inset: calc(var(--decoration-bleed, 0%) * -1);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.card-decoration-art,
+.card-decoration-shimmer {
+  position: absolute;
+  inset: 0;
+}
+
+.card-decoration-art {
+  background-image: var(--decoration-image);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.card-decoration-shimmer {
+  background-image: repeating-linear-gradient(
+    -30deg,
+    var(--sunpillar-1) 0%,
+    var(--sunpillar-2) 5%,
+    var(--sunpillar-3) 10%,
+    var(--sunpillar-4) 15%,
+    var(--sunpillar-5) 20%,
+    var(--sunpillar-6) 25%,
+    var(--sunpillar-1) 30%
+  );
+  background-size: 300% 300%;
+  background-position: calc(25% + var(--pointer-from-left, 0.5) * 50%)
+    calc(25% + var(--pointer-from-top, 0.5) * 50%);
+  mask-image: var(--decoration-image);
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  mix-blend-mode: overlay;
+  opacity: calc(0.25 + var(--tilt-active, 0) * 0.35);
+}
+
+[data-pop-out] .card-decoration {
+  transform: translate(
+      calc((var(--pointer-from-left, 0.5) - 0.5) * 10%),
+      calc((var(--pointer-from-top, 0.5) - 0.5) * 10%)
+    )
+    scale(calc(1 + var(--tilt-active, 0) * 0.04));
+  filter: drop-shadow(
+      calc((0.5 - var(--pointer-from-left, 0.5)) * 1em)
+        calc((0.5 - var(--pointer-from-top, 0.5)) * 1em + 0.2em) 0.25em
+        color-mix(in srgb, black 35%, transparent)
+    )
+    brightness(calc(1 + var(--pointer-from-center, 0) * 0.15));
+}
+
+.card-overlay {
+  transform: translate(-50%, -50%) scale(var(--overlay-scale, 1));
+}
+
+[data-pop-out] .card-overlay {
+  transform: translate(
+      calc(-50% + (var(--pointer-from-left, 0.5) - 0.5) * 9%),
+      calc(-50% + (var(--pointer-from-top, 0.5) - 0.5) * 9%)
+    )
+    scale(calc(var(--overlay-scale, 1) * (1 + var(--tilt-active, 0) * 0.06)));
+  filter: drop-shadow(
+    calc((0.5 - var(--pointer-from-left, 0.5)) * 1.4em)
+      calc((0.5 - var(--pointer-from-top, 0.5)) * 1.4em + 0.35em)
+      calc(0.3em + var(--tilt-active, 0) * 0.35em)
+      color-mix(in srgb, black 45%, transparent)
+  );
+}
+
+[data-slot="booster-pack"] {
+  --pack-foil: var(--card-frame-mirror);
+}
+
+[data-slot="booster-pack"][data-finish="matte"] {
+  --pack-foil: var(--card-frame-matte);
+}
+
+[data-slot="booster-pack"][data-finish="satin"] {
+  --pack-foil: var(--card-frame-satin);
+}
+
+[data-slot="booster-pack"][data-finish="prism"] {
+  --pack-foil: var(--card-frame-prism);
+}
+
+.pack-body {
+  filter: drop-shadow(
+    0 calc(3cqw + var(--tilt-active, 0) * 4cqw)
+      calc(4cqw + var(--tilt-active, 0) * 5cqw)
+      color-mix(in srgb, black 30%, transparent)
+  );
+}
+
+.pack-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--pack-foil);
+}
+
+.pack-window {
+  position: absolute;
+  inset: 11.5% 0;
+  overflow: hidden;
+}
+
+.pack-art {
+  position: absolute;
+  inset: -4%;
+}
+
+[data-pop-out] .pack-art {
+  transform: translate(
+      calc((var(--pointer-from-left, 0.5) - 0.5) * 6%),
+      calc((var(--pointer-from-top, 0.5) - 0.5) * 6%)
+    )
+    scale(calc(1 + var(--tilt-active, 0) * 0.03));
+}
+
+.pack-foil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, black 75%, transparent) 0%,
+      color-mix(in srgb, white 85%, transparent) 3%,
+      transparent 10%,
+      transparent 90%,
+      color-mix(in srgb, white 80%, transparent) 97%,
+      color-mix(in srgb, black 80%, transparent) 100%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 9%,
+      color-mix(in srgb, black 60%, transparent) 10.6%,
+      color-mix(in srgb, white 70%, transparent) 12.2%,
+      transparent 17%,
+      transparent 83%,
+      color-mix(in srgb, white 60%, transparent) 87.8%,
+      color-mix(in srgb, black 60%, transparent) 89.4%,
+      transparent 91%
+    ),
+    radial-gradient(
+      ellipse 75% 45% at 50% 42%,
+      color-mix(in srgb, white 30%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 120% 70% at 50% 50%,
+      transparent 55%,
+      color-mix(in srgb, black 50%, transparent) 100%
+    );
+  mix-blend-mode: soft-light;
+}
+
+.pack-foil::before,
+.pack-foil::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: hard-light;
+  opacity: calc(0.45 + var(--tilt-active, 0) * 0.2);
+}
+
+.pack-foil::before {
+  background-image:
+    repeating-conic-gradient(
+      from 95deg at 0% 10.5%,
+      color-mix(in srgb, white 90%, transparent) 0deg 1.5deg,
+      transparent 1.5deg 7deg,
+      color-mix(in srgb, black 60%, transparent) 7deg 9deg,
+      transparent 9deg 16deg
+    ),
+    repeating-conic-gradient(
+      from 92deg at 100% 10.5%,
+      color-mix(in srgb, black 60%, transparent) 0deg 2deg,
+      transparent 2deg 8deg,
+      color-mix(in srgb, white 90%, transparent) 8deg 9.5deg,
+      transparent 9.5deg 17deg
+    );
+  background-size: 50% 100%;
+  background-position:
+    left top,
+    right top;
+  background-repeat: no-repeat;
+  mask-image:
+    radial-gradient(ellipse 34% 13% at 0% 10.5%, black, transparent),
+    radial-gradient(ellipse 34% 13% at 100% 10.5%, black, transparent);
+}
+
+.pack-foil::after {
+  background-image:
+    repeating-conic-gradient(
+      from 3deg at 0% 89.5%,
+      color-mix(in srgb, black 60%, transparent) 0deg 2deg,
+      transparent 2deg 8deg,
+      color-mix(in srgb, white 90%, transparent) 8deg 9.5deg,
+      transparent 9.5deg 17deg
+    ),
+    repeating-conic-gradient(
+      from 5deg at 100% 89.5%,
+      color-mix(in srgb, white 90%, transparent) 0deg 1.5deg,
+      transparent 1.5deg 7deg,
+      color-mix(in srgb, black 60%, transparent) 7deg 9deg,
+      transparent 9deg 16deg
+    );
+  background-size: 50% 100%;
+  background-position:
+    left top,
+    right top;
+  background-repeat: no-repeat;
+  mask-image:
+    radial-gradient(ellipse 34% 13% at 0% 89.5%, black, transparent),
+    radial-gradient(ellipse 34% 13% at 100% 89.5%, black, transparent);
+}
+
+.pack-seal {
+  position: absolute;
+  inset-inline: 0;
+  height: 9%;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      color-mix(in srgb, white 60%, transparent) 0 6%,
+      color-mix(in srgb, black 24%, transparent) 6% 12%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 1.2%,
+      color-mix(in srgb, black 8%, transparent) 1.2% 1.6%
+    ),
+    var(--pack-foil);
+}
+
+.pack-seal[data-edge="top"] {
+  top: 0;
+}
+
+.pack-seal[data-edge="bottom"] {
+  bottom: 0;
+}
+
+.pack-cap {
+  transform-origin: 100% 10%;
+}
+
+[data-ripping] .pack-cap {
+  animation: pack-tear 720ms ease-in forwards;
+}
+
+@keyframes pack-tear {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+  30% {
+    transform: translateY(-1%) rotate(-2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(18%, -40%) rotate(-22deg);
+    opacity: 0;
+  }
+}
+
+@keyframes pack-rip {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+  45% {
+    transform: rotateX(10deg) rotateY(-14deg) scale(1.05);
+  }
+  100% {
+    transform: rotateX(72deg) translateY(-30%) scale(0.86);
+    opacity: 0;
+  }
+}
+
+.pack-rip {
+  animation: pack-rip 720ms ease forwards;
+}
+
+@keyframes card-deal {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-deal {
+  animation: card-deal 420ms ease both;
+}
+
+.card-stack-item {
+  --depth: 0;
+  transform: translateY(calc(var(--depth) * -4.5%)) scale(calc(1 - var(--depth) * 0.06))
+    rotate(calc(var(--depth) * -2deg));
+  transform-origin: 50% 0%;
+  transition:
+    transform 320ms ease,
+    opacity 320ms ease;
+}
+
+.card-stack-item[data-hidden] {
+  opacity: 0;
+}
+
+.card-stack-item[data-top] {
+  transform-origin: 50% 50%;
+}
+
+.card-stack-item[data-sending] {
+  z-index: 50;
+  pointer-events: none;
+  animation: card-send 560ms cubic-bezier(0.5, 0, 0.75, 0) forwards;
+}
+
+@keyframes card-send {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+  15% {
+    transform: translateY(-2%) scale(1.03) rotate(2deg);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--fly-x, 0px), var(--fly-y, 0px)) scale(0.12) rotate(-12deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pack-rip,
+  [data-ripping] .pack-cap,
+  .card-deal,
+  .card-stack-item,
+  .card-stack-item[data-sending] {
+    animation: none;
+    transition: none;
+  }
 }
