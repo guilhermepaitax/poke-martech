@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { CardGridSkeleton, LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { EnergyChip } from "@/components/ui/energy-chip";
 import { Input } from "@/components/ui/input";
 import { Stepper } from "@/components/ui/stepper";
@@ -59,7 +60,23 @@ function DeckBuilder({ deckId }: { deckId?: string }) {
   }
 
   if (pokedex.isLoading || (deckId && existing.isLoading)) {
-    return <p className="text-foreground-subtle">Carregando deck...</p>;
+    return (
+      <LoadingScreen label="Carregando deck" className="flex flex-col gap-5">
+        <div className="flex items-end justify-between gap-3">
+          <div className="flex flex-1 flex-col gap-2">
+            <Skeleton className="h-10 w-full max-w-sm rounded-full" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <Skeleton className="h-10 w-20 rounded-full" />
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="size-8 rounded-full" />
+          <Skeleton className="size-8 rounded-full" />
+          <Skeleton className="size-8 rounded-full" />
+        </div>
+        <CardGridSkeleton />
+      </LoadingScreen>
+    );
   }
   if (deckId && existing.isError) return <p className="text-destructive">Deck não encontrado.</p>;
 

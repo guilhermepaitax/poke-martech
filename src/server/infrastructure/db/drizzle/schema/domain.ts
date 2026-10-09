@@ -1,10 +1,12 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -341,6 +343,58 @@ const battles = pgTable(
   (table) => [index("battles_user_status_idx").on(table.userId, table.status)],
 );
 
+const follows = pgTable(
+  "follows",
+  {
+    followerId: text("follower_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    followingId: text("following_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.followerId, table.followingId] }),
+    index("follows_following_id_idx").on(table.followingId),
+    check("follows_no_self", sql`${table.followerId} <> ${table.followingId}`),
+  ],
+);
+
+const tradeProposals = pgTable(
+  "trade_proposals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    fromUserId: text("from_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    toUserId: text("to_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    offeredUserCardId: uuid("offered_user_card_id")
+      .notNull()
+      .references(() => userCards.id, { onDelete: "restrict" }),
+    requestedUserCardId: uuid("requested_user_card_id")
+      .notNull()
+      .references(() => userCards.id, { onDelete: "restrict" }),
+    status: text("status").notNull().default("pending"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("trade_proposals_to_user_status_idx").on(table.toUserId, table.status),
+    index("trade_proposals_from_user_status_idx").on(table.fromUserId, table.status),
+    check("trade_proposals_no_self", sql`${table.fromUserId} <> ${table.toUserId}`),
+    check(
+      "trade_proposals_status",
+      sql`${table.status} in ('pending', 'accepted', 'rejected', 'cancelled')`,
+    ),
+  ],
+);
+
 const cardsRelations = relations(cards, ({ many }) => ({
   attacks: many(cardAttacks),
 }));
@@ -367,10 +421,12 @@ export {
   cards,
   cardsRelations,
   coinLedger,
+  follows,
   packOpeningCards,
   packOpenings,
   pokemonTypes,
   rarityWeights,
+  tradeProposals,
   userCards,
   wallets,
 };

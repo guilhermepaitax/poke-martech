@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useFeatureFlag } from "@/components/feature-flags/use-feature-flags";
 import { useProfile } from "@/hooks/use-profile";
 import { authClient } from "@/lib/auth-client";
@@ -58,6 +59,7 @@ function AppShell({ role, username, children }: AppShellProps) {
       active: pathname.startsWith("/pokedex"),
       target: "pokedex",
     },
+    { href: "/trocas", label: "Trocas", active: pathname.startsWith("/trocas") },
     { href: profileHref, label: "Perfil", active: pathname === profileHref },
     ...(role === "admin"
       ? [
@@ -93,10 +95,10 @@ function AppShell({ role, username, children }: AppShellProps) {
             ))}
           </nav>
           <div className={cn("ml-auto flex items-center gap-2")}>
-            <p className="rounded-full bg-accent/15 px-3 py-1 text-sm font-semibold text-amber-600 flex items-center">
-              {profile.data ? `${profile.data.coins} moedas` : "..."}
-              <Coins className="size-5 ml-1 text-amber-600" />
-            </p>
+            <div className="flex items-center rounded-full bg-accent/15 px-3 py-1 text-sm font-semibold text-amber-600">
+              {profile.data ? `${profile.data.coins} moedas` : <Skeleton className="h-4 w-16" />}
+              <Coins className="ml-1 size-5 text-amber-600" />
+            </div>
             <Button
               size="sm"
               onClick={() => {

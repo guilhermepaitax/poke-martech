@@ -303,7 +303,7 @@ dev do time
 - HP: 70 | Recuo: 1 | Fraqueza: DevOps +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Calvassauro carrega Bulbasaur e o jeito de Mago, dev careca. Raspa a cabeça e o build, milagrosamente, passa. Recuar Calvassauro custa 1, e Mago reclama de cada energia.
+- Flavor: Calvassauro carrega Bulbasaur e o jeito de Mago, dev careca. O brilho da careca já derrubou duas dailies. Recuar Calvassauro custa 1, e Mago reclama de cada energia.
 - Ataques:
 - **Brincadeira Chicote de Vinha** — dano 40 — custo Careca ×1, IA ×1
   - Texto: Sem texto de efeito.
@@ -337,7 +337,7 @@ Traços de Mago: Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem
 - HP: 90 | Recuo: 2 | Fraqueza: DevOps +20
 - Evolui de: `a1-001-calvassauro`
 - Foto: nenhuma
-- Flavor: Carecassauro é Ivysaur depois que Mago mexeu no código. A careca reflete o monitor e o code review perde o foco. Os 90 de HP de Carecassauro dão para o meio do turno.
+- Flavor: Carecassauro é Ivysaur depois que Mago mexeu no código. Sem um fio de cabelo, sobra espaço para mais um import. Os 90 de HP de Carecassauro dão para o meio do turno.
 - Ataques:
 - **Brincadeira Folha Navalha** — dano 60 — custo Careca ×1, IA ×2
   - Texto: Sem texto de efeito.
@@ -371,7 +371,7 @@ Traços de Mago: Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem
 - HP: 160 | Recuo: 3 | Fraqueza: DevOps +20
 - Evolui de: `a1-002-carecassauro`
 - Foto: nenhuma
-- Flavor: Venusaur entrou no time com Mago e saiu chamado Magossauro. O brilho da careca já derrubou duas dailies. Magossauro chegou no último estágio e esse merge não tem volta.
+- Flavor: Venusaur entrou no time com Mago e saiu chamado Magossauro. Azul brue é sua cor favorita Magossauro chegou no último estágio e esse merge não tem volta.
 - Ataques:
 - **Calvo Megadreno** — dano 80 — custo Careca ×2, IA ×2
   - Texto: Cure 30 de dano deste Pokémon.
@@ -406,7 +406,7 @@ Traços de Mago: Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem
 - HP: 190 | Recuo: 3 | Fraqueza: DevOps +20
 - Evolui de: `a1-002-carecassauro`
 - Foto: nenhuma
-- Flavor: No lugar de Venusaur ex, Mago deixou Magossauro ex no repositório. Sem um fio de cabelo, sobra espaço para mais um import. Magossauro ex chegou no último estágio e esse merge não tem volta.
+- Flavor: No lugar de Venusaur ex, Mago deixou Magossauro ex no repositório. O problema dele são as brrincadeiras Magossauro ex chegou no último estágio e esse merge não tem volta.
 - Ataques:
 - **Careca Folha Navalha** — dano 60 — custo Careca ×1, IA ×2
   - Texto: Sem texto de efeito.
@@ -613,7 +613,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 120 | Recuo: 1 | Fraqueza: DevOps +20
 - Evolui de: `a1-009-gabuna`
 - Foto: nenhuma
-- Flavor: Beedrill entrou no time com Gabi e saiu chamado Gabrill. A juba chega na sala primeiro que a pessoa. O golpe Cabelo Ferrão Afiado saiu de Beedrill e ficou com a cara de Gabi.
+- Flavor: Beedrill entrou no time com Gabi e saiu chamado Gabrill. Recusa pair programming com quem reflete a luz. O golpe Cabelo Ferrão Afiado saiu de Beedrill e ficou com a cara de Gabi.
 - Ataques:
 - **Cabelo Ferrão Afiado** — dano 70 — custo Careca ×1
   - Texto: Sem texto de efeito.
@@ -647,7 +647,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 60 | Recuo: 1 | Fraqueza: DevOps +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Paitaxish é Oddish depois que Paitax mexeu no código. Desce pro submundo como quem abre o terminal. O golpe Papai Investida saiu de Oddish e ficou com a cara de Paitax.
+- Flavor: Paitaxish é Oddish depois que Paitax mexeu no código. Opa, bom dia! Pessoal O golpe Papai Investida saiu de Oddish e ficou com a cara de Paitax.
 - Ataques:
 - **Papai Investida** — dano 20 — custo Careca ×1
   - Texto: Sem texto de efeito.
@@ -681,7 +681,7 @@ Traços de Paitax: Capuz, sombras e um ar de quem frequenta o submundo depois do
 - HP: 80 | Recuo: 2 | Fraqueza: DevOps +20
 - Evolui de: `a1-011-paitaxish`
 - Foto: nenhuma
-- Flavor: Paioom carrega Gloom e o jeito de Paitax, dev frequentador do submundo. Conhece o corredor sem luz melhor que o próprio repositório. O golpe Submundo Babar saiu de Gloom e ficou com a cara de Paitax.
+- Flavor: Paioom carrega Gloom e o jeito de Paitax, dev frequentador do submundo. Tá bom, não tá? O golpe Submundo Babar saiu de Gloom e ficou com a cara de Paitax.
 - Ataques:
 - **Submundo Babar** — dano 40 — custo Careca ×1, IA ×1
   - Texto: Sem texto de efeito.
@@ -715,7 +715,7 @@ Traços de Paitax: Capuz, sombras e um ar de quem frequenta o submundo depois do
 - HP: 140 | Recuo: 3 | Fraqueza: DevOps +20
 - Evolui de: `a1-012-paioom`
 - Foto: nenhuma
-- Flavor: No lugar de Vileplume, Paitax deixou Papaiplume no repositório. Volta do submundo com um bug novo e zero explicação. Papaiplume chegou no último estágio e esse merge não tem volta.
+- Flavor: No lugar de Vileplume, Paitax deixou Papaiplume no repositório. Dizem que vivia no submundo, mas não se tem provas Papaiplume chegou no último estágio e esse merge não tem volta.
 - Ataques:
 - **Papai Aroma Calmante** — dano 80 — custo Careca ×2, IA ×1
   - Texto: O Pokémon Ativo do oponente agora está Adormecido.
@@ -749,7 +749,7 @@ Traços de Paitax: Capuz, sombras e um ar de quem frequenta o submundo depois do
 - HP: 70 | Recuo: 1 | Fraqueza: DevOps +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Paras entrou no time com João e saiu chamado Jãoras. A franja não desmancha nem quando o servidor cai. O tipo Planta ficou. O resto virou coisa de dev do submundo que ama franjudas.
+- Flavor: Paras entrou no time com João e saiu chamado Jãoras. De dia dev, de noite caminhoneiro O tipo Planta ficou. O resto virou coisa de dev do submundo que ama franjudas.
 - Ataques:
 - **Submundo Arranhão** — dano 30 — custo Careca ×1, IA ×1
   - Texto: Sem texto de efeito.
@@ -783,7 +783,7 @@ Traços de João: Franja marcada cobrindo a testa, clima de submundo e um sorris
 - HP: 120 | Recuo: 2 | Fraqueza: DevOps +20
 - Evolui de: `a1-014-jaoras`
 - Foto: nenhuma
-- Flavor: Joãosect é Parasect depois que João mexeu no código. No submundo a franja continua impecável. Os 120 de HP de Joãosect dão para o meio do turno.
+- Flavor: Joãosect é Parasect depois que João mexeu no código. No submundo, não pode ver uma franja Os 120 de HP de Joãosect dão para o meio do turno.
 - Ataques:
 - **Franja Talho** — dano 80 — custo Careca ×2, IA ×1
   - Texto: Sem texto de efeito.
@@ -885,7 +885,7 @@ Traços de Doug: Olhar sonhador de futuro pai, energia paternal, como se já car
 - HP: 60 | Recuo: 1 | Fraqueza: DevOps +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Bellsprout entrou no time com Bellotti e saiu chamado Bellotinhosprout. Ri sozinho no review e chama isso de documentação. Com só 60 de HP, qualquer bug já derruba Bellotinhosprout.
+- Flavor: Bellsprout entrou no time com Bellotti e saiu chamado Bellotinhosprout. Cria uma música nova para cada bug Com só 60 de HP, qualquer bug já derruba Bellotinhosprout.
 - Ataques:
 - **Música Chicote de Vinha** — dano 20 — custo Careca ×1
   - Texto: Sem texto de efeito.
@@ -987,7 +987,7 @@ Traços de Bellotti: Jeito de dev backend contando uma piada sem graça, meio so
 - HP: 50 | Recuo: 1 | Fraqueza: DevOps +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Exeggcute entrou no time com Wilson e saiu chamado Wilsongcute. Mickey no chaveiro, checklist na outra mão. O tipo Planta ficou. O resto virou coisa de QA que gosta de BYD e do Mickey.
+- Flavor: Exeggcute entrou no time com Wilson e saiu chamado Wilsongcute. Rei dos testes automatizados O tipo Planta ficou. O resto virou coisa de QA que gosta de BYD e do Mickey.
 - Ataques:
 - **Teste Bomba de Semente** — dano 20 — custo Careca ×1
   - Texto: Sem texto de efeito.
@@ -1021,7 +1021,7 @@ Traços de Wilson: Orelhas redondas de Mickey e um detalhe de carro BYD, postura
 - HP: 130 | Recuo: 3 | Fraqueza: DevOps +20
 - Evolui de: `a1-021-wilsongcute`
 - Foto: nenhuma
-- Flavor: No lugar de Exeggutor, Wilson deixou Wilgutor no repositório. Reprova a história e oferece carona no BYD. Recuar Wilgutor custa 3, e Wilson reclama de cada energia.
+- Flavor: No lugar de Exeggutor, Wilson deixou Wilgutor no repositório. Adora fazer um deploy e ficar parado no trânsito. Recuar Wilgutor custa 3, e Wilson reclama de cada energia.
 - Ataques:
 - **QA Pisoteio** — dano 30 — custo Careca ×1
   - Texto: Jogue uma moeda. Se sair cara, este ataque causa 30 de dano a mais.
@@ -1055,7 +1055,7 @@ Traços de Wilson: Orelhas redondas de Mickey e um detalhe de carro BYD, postura
 - HP: 160 | Recuo: 3 | Fraqueza: DevOps +20
 - Evolui de: `a1-021-wilsongcute`
 - Foto: nenhuma
-- Flavor: Wilgutor ex carrega Exeggutor ex e o jeito de Wilson, QA que gosta de BYD e do Mickey. O relatório de QA vem com orelha redonda no canto. O tipo Planta ficou. O resto virou coisa de QA que gosta de BYD e do Mickey.
+- Flavor: Wilgutor ex carrega Exeggutor ex e o jeito de Wilson, QA que gosta de BYD e do Mickey. Abre o bug, estaciona o BYD e ainda fala do Mickey. O tipo Planta ficou. O resto virou coisa de QA que gosta de BYD e do Mickey.
 - Ataques:
 - **Mickey Balanço Tropical** — dano 40 — custo Careca ×1
   - Texto: Jogue uma moeda. Se sair cara, este ataque causa 40 de dano a mais.
@@ -1123,9 +1123,9 @@ Traços de Julia: Postura de QA com olhar desconfiado, como se todo dev fosse um
 - HP: 70 | Recuo: 1 | Fraqueza: DevOps +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Scyther entrou no time com Thiago e saiu chamado Thiher. Não quebra de propósito. O resultado é o mesmo. Recuar Thiher custa 1, e Thiago reclama de cada energia.
+- Flavor: Scyther entrou no time com Thiago e saiu chamado Thiher. Rensgaaa! O teste quebrou! Recuar Thiher custa 1, e Thiago reclama de cada energia.
 - Ataques:
-- **Fisioterapia Foice Afiada** — dano 30 — custo Careca ×1
+- **Quebra Foice Afiada** — dano 30 — custo Careca ×1
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -1395,7 +1395,7 @@ Traços de Tauan: Dev do time, fone no pescoço e moletom, no meio do fluxo sem 
 - HP: 60 | Recuo: 1 | Fraqueza: UX/UI +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Antoniomander é Charmander depois que Mago mexeu no código. A careca reflete o monitor e o code review perde o foco. O tipo Fogo ficou. O resto virou coisa de dev careca.
+- Flavor: Antoniomander é Charmander depois que Mago mexeu no código. O problema dele são as brrincadeiras O tipo Fogo ficou. O resto virou coisa de dev careca.
 - Ataques:
 - **Brincadeira Brasa** — dano 30 — custo DevOps ×1
   - Texto: Descarte 1 Energia DevOps deste Pokémon.
@@ -1429,9 +1429,9 @@ Traços de Mago: Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem
 - HP: 90 | Recuo: 2 | Fraqueza: UX/UI +20
 - Evolui de: `a1-033-antoniomander`
 - Foto: nenhuma
-- Flavor: Carecameleon carrega Charmeleon e o jeito de Mago, dev careca. Raspa a cabeça e o build, milagrosamente, passa. Recuar Carecameleon custa 2, e Mago reclama de cada energia.
+- Flavor: Carecameleon carrega Charmeleon e o jeito de Mago, dev careca. Azul brue é sua cor favorita Recuar Carecameleon custa 2, e Mago reclama de cada energia.
 - Ataques:
-- **Liso Garras de Fogo** — dano 60 — custo DevOps ×1, IA ×2
+- **Brue Garras de Fogo** — dano 60 — custo DevOps ×1, IA ×2
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -1463,7 +1463,7 @@ Traços de Mago: Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem
 - HP: 150 | Recuo: 2 | Fraqueza: UX/UI +20
 - Evolui de: `a1-034-carecameleon`
 - Foto: nenhuma
-- Flavor: No lugar de Charizard, Mago deixou Antonioizard no repositório. Sem um fio de cabelo, sobra espaço para mais um import. O golpe Calvo Giro de Fogo saiu de Charizard e ficou com a cara de Mago.
+- Flavor: No lugar de Charizard, Mago deixou Antonioizard no repositório. A careca reflete o monitor e o code review perde o foco. O golpe Calvo Giro de Fogo saiu de Charizard e ficou com a cara de Mago.
 - Ataques:
 - **Calvo Giro de Fogo** — dano 150 — custo DevOps ×2, IA ×2
   - Texto: Descarte 2 Energias DevOps deste Pokémon.
@@ -1498,7 +1498,7 @@ Traços de Mago: Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem
 - HP: 180 | Recuo: 2 | Fraqueza: UX/UI +20
 - Evolui de: `a1-034-carecameleon`
 - Foto: nenhuma
-- Flavor: Charizard ex entrou no time com Mago e saiu chamado Antonioizard ex. O brilho da careca já derrubou duas dailies. Recuar Antonioizard ex custa 2, e Mago reclama de cada energia.
+- Flavor: Charizard ex entrou no time com Mago e saiu chamado Antonioizard ex. Raspa a cabeça e o build, milagrosamente, passa. Recuar Antonioizard ex custa 2, e Mago reclama de cada energia.
 - Ataques:
 - **Calvo Talho** — dano 60 — custo DevOps ×1, IA ×2
   - Texto: Sem texto de efeito.
@@ -1637,7 +1637,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 130 | Recuo: 2 | Fraqueza: UX/UI +20
 - Evolui de: `a1-039-gabilithe`
 - Foto: nenhuma
-- Flavor: No lugar de Arcanine, Gabi deixou Gabinine no repositório. Recusa pair programming com quem reflete a luz. Arcanine já evoluiu uma vez e o review ficou mais rígido.
+- Flavor: No lugar de Arcanine, Gabi deixou Gabinine no repositório. Se aparece uma careca, bufa antes mesmo do oi. Arcanine já evoluiu uma vez e o review ficou mais rígido.
 - Ataques:
 - **Peladofobia Investida Quente** — dano 100 — custo DevOps ×2, IA ×1
   - Texto: Este Pokémon também sofre 20 de dano.
@@ -1671,7 +1671,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 150 | Recuo: 2 | Fraqueza: UX/UI +20
 - Evolui de: `a1-039-gabilithe`
 - Foto: nenhuma
-- Flavor: Gabinine ex carrega Arcanine ex e o jeito de Gabi, dev que odeia carecas. O cabelo volumoso é escudo e argumento. Arcanine ex já evoluiu uma vez e o review ficou mais rígido.
+- Flavor: Gabinine ex carrega Arcanine ex e o jeito de Gabi, dev que odeia carecas. Se aparece uma careca, bufa antes mesmo do oi. Arcanine ex já evoluiu uma vez e o review ficou mais rígido.
 - Ataques:
 - **Anti Careca Ímpeto Infernal** — dano 120 — custo DevOps ×2, IA ×1
   - Texto: Este Pokémon também sofre 20 de dano.
@@ -1705,7 +1705,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 60 | Recuo: 1 | Fraqueza: UX/UI +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Paitaxyta é Ponyta depois que Paitax mexeu no código. Desce pro submundo como quem abre o terminal. Com só 60 de HP, qualquer bug já derruba Paitaxyta.
+- Flavor: Paitaxyta é Ponyta depois que Paitax mexeu no código. Opa, bom dia! Pessoal Com só 60 de HP, qualquer bug já derruba Paitaxyta.
 - Ataques:
 - **Papai Labareda** — dano 20 — custo DevOps ×1
   - Texto: Sem texto de efeito.
@@ -1739,7 +1739,7 @@ Traços de Paitax: Capuz, sombras e um ar de quem frequenta o submundo depois do
 - HP: 100 | Recuo: 1 | Fraqueza: UX/UI +20
 - Evolui de: `a1-042-paitaxyta`
 - Foto: nenhuma
-- Flavor: Rapidash entrou no time com Paitax e saiu chamado Papaitaxdash. A sombra entra na daily antes do dono. Rapidash já evoluiu uma vez e o review ficou mais rígido.
+- Flavor: Rapidash entrou no time com Paitax e saiu chamado Papaitaxdash. Volta do submundo com um bug novo e zero explicação. Rapidash já evoluiu uma vez e o review ficou mais rígido.
 - Ataques:
 - **Submundo Juba de Fogo** — dano 40 — custo DevOps ×1
   - Texto: Sem texto de efeito.
@@ -1876,7 +1876,7 @@ Traços de Doug: Olhar sonhador de futuro pai, energia paternal, como se já car
 - HP: 140 | Recuo: 2 | Fraqueza: Full Stack +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Moltres ex entrou no time com Bellotti e saiu chamado Bellotinhores. Ri sozinho no review e chama isso de documentação. Recuar Bellotinhores custa 2, e Bellotti reclama de cada energia.
+- Flavor: Moltres ex entrou no time com Bellotti e saiu chamado Bellotinhores. Cria uma música nova para cada bug Recuar Bellotinhores custa 2, e Bellotti reclama de cada energia.
 - Ataques:
 - **Música Dança Infernal** — dano — — custo DevOps ×1
   - Texto: Jogue 3 moedas. Pegue Energias DevOps da sua Zona de Energia iguais ao número de caras e anexe aos seus Pokémon DevOps no Banco como quiser.
@@ -1913,7 +1913,7 @@ Traços de Bellotti: Jeito de dev backend contando uma piada sem graça, meio so
 - HP: 80 | Recuo: 1 | Fraqueza: UX/UI +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: No lugar de Heatmor, Wilson deixou Wilmor no repositório. Reprova a história e oferece carona no BYD. Heatmor ainda está no básico, do jeito que saiu da primeira versão.
+- Flavor: No lugar de Heatmor, Wilson deixou Wilmor no repositório. Abre o bug, estaciona o BYD e ainda fala do Mickey. Heatmor ainda está no básico, do jeito que saiu da primeira versão.
 - Ataques:
 - **QA Combustão** — dano 30 — custo DevOps ×1
   - Texto: Sem texto de efeito.
@@ -2015,9 +2015,9 @@ Traços de Julia: Postura de QA com olhar desconfiado, como se todo dev fosse um
 - HP: 60 | Recuo: 1 | Fraqueza: UX/UI +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Thiagolipede é Sizzlipede depois que Thiago mexeu no código. Passou perto da suíte e a pipeline ficou vermelha. Recuar Thiagolipede custa 1, e Thiago reclama de cada energia.
+- Flavor: Thiagolipede é Sizzlipede depois que Thiago mexeu no código. O teste automatizado foge quando escuta o nome. Recuar Thiagolipede custa 1, e Thiago reclama de cada energia.
 - Ataques:
-- **Bug Roer** — dano 10 — custo IA ×1
+- **Testes Roer** — dano 10 — custo IA ×1
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -2049,9 +2049,9 @@ Traços de Thiago: Cercado de testes quebrados e um CI vermelho, ar de quem não
 - HP: 130 | Recuo: 3 | Fraqueza: UX/UI +20
 - Evolui de: `a1-051-thiagolipede`
 - Foto: nenhuma
-- Flavor: Thiiskorch carrega Centiskorch e o jeito de Thiago, dev que estraga os testes automatizados. O teste automatizado foge quando escuta o nome. O tipo Fogo ficou. O resto virou coisa de dev que estraga os testes automatizados.
+- Flavor: Thiiskorch carrega Centiskorch e o jeito de Thiago, dev que estraga os testes automatizados. Não quebra de propósito. O resultado é o mesmo. O tipo Fogo ficou. O resto virou coisa de dev que estraga os testes automatizados.
 - Ataques:
-- **Quebra Rajada de Fogo** — dano 130 — custo DevOps ×1, IA ×3
+- **Rensga Rajada de Fogo** — dano 130 — custo DevOps ×1, IA ×3
   - Texto: Descarte 1 Energia DevOps deste Pokémon.
   - Batalha: Descarte 1 Energia deste Pokémon.
 
@@ -2083,9 +2083,9 @@ Traços de Thiago: Cercado de testes quebrados e um CI vermelho, ar de quem não
 - HP: 60 | Recuo: 1 | Fraqueza: Full Stack +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: No lugar de Squirtle, Gerhard deixou Gerrtle no repositório. Sobe sexta à noite e chama isso de estabilidade. O golpe Ops Pistola d'Água saiu de Squirtle e ficou com a cara de Gerhard.
+- Flavor: No lugar de Squirtle, Gerhard deixou Gerrtle no repositório. Sobe sexta à noite e chama isso de estabilidade. O golpe Branch Pistola d'Água saiu de Squirtle e ficou com a cara de Gerhard.
 - Ataques:
-- **Ops Pistola d'Água** — dano 20 — custo UX/UI ×1
+- **Branch Pistola d'Água** — dano 20 — custo UX/UI ×1
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -2119,7 +2119,7 @@ Traços de Gerhard: Headset, terminal aberto e a calma de quem sobe deploy no fi
 - Foto: nenhuma
 - Flavor: Wartortle entrou no time com Gerhard e saiu chamado Gerhardortle. Pipeline verde é opinião. Produção é fato. Wartortle já evoluiu uma vez e o review ficou mais rígido.
 - Ataques:
-- **Deploy Onda** — dano 40 — custo UX/UI ×1, IA ×1
+- **Moto Onda** — dano 40 — custo UX/UI ×1, IA ×1
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -2151,9 +2151,9 @@ Traços de Gerhard: Headset, terminal aberto e a calma de quem sobe deploy no fi
 - HP: 150 | Recuo: 3 | Fraqueza: Full Stack +20
 - Evolui de: `a1-054-gerhardortle`
 - Foto: nenhuma
-- Flavor: Gertoise é Blastoise depois que Gerhard mexeu no código. Se passou na máquina dele, já era deploy. O golpe Ops Jato d'Água saiu de Blastoise e ficou com a cara de Gerhard.
+- Flavor: Gertoise é Blastoise depois que Gerhard mexeu no código. Se passou na máquina dele, já era deploy. O golpe Deploy Jato d'Água saiu de Blastoise e ficou com a cara de Gerhard.
 - Ataques:
-- **Ops Jato d'Água** — dano 80 — custo UX/UI ×1, IA ×1
+- **Deploy Jato d'Água** — dano 80 — custo UX/UI ×1, IA ×1
   - Texto: Se este Pokémon tiver pelo menos 2 Energias UX/UI extras, este ataque causa 60 de dano a mais.
   - Batalha: Sem efeito mecânico.
 
@@ -2188,10 +2188,10 @@ Traços de Gerhard: Headset, terminal aberto e a calma de quem sobe deploy no fi
 - Foto: nenhuma
 - Flavor: Gertoise ex carrega Blastoise ex e o jeito de Gerhard, DevOps. O changelog que se vire depois do push. Gertoise ex chegou no último estágio e esse merge não tem volta.
 - Ataques:
-- **Branch Surfar** — dano 40 — custo UX/UI ×1, IA ×1
+- **Argentino Surfar** — dano 40 — custo UX/UI ×1, IA ×1
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
-- **Branch Hidro Bazuca** — dano 100 — custo UX/UI ×2, IA ×1
+- **Argentino Hidro Bazuca** — dano 100 — custo UX/UI ×2, IA ×1
   - Texto: Se este Pokémon tiver pelo menos 2 Energias UX/UI extras, este ataque causa 60 de dano a mais.
   - Batalha: Sem efeito mecânico.
 
@@ -2461,7 +2461,7 @@ Traços de Tauan: Dev do time, fone no pescoço e moletom, no meio do fluxo sem 
 - HP: 80 | Recuo: 2 | Fraqueza: Full Stack +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Calvaeel é Seel depois que Mago mexeu no código. A careca reflete o monitor e o code review perde o foco. Recuar Calvaeel custa 2, e Mago reclama de cada energia.
+- Flavor: Calvaeel é Seel depois que Mago mexeu no código. O problema dele são as brrincadeiras Recuar Calvaeel custa 2, e Mago reclama de cada energia.
 - Ataques:
 - **Brincadeira Cabeçada** — dano 30 — custo IA ×2
   - Texto: Sem texto de efeito.
@@ -2495,7 +2495,7 @@ Traços de Mago: Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem
 - HP: 120 | Recuo: 3 | Fraqueza: Full Stack +20
 - Evolui de: `a1-064-calvaeel`
 - Foto: nenhuma
-- Flavor: Dewgong entrou no time com Mago e saiu chamado Carecaong. O brilho da careca já derrubou duas dailies. O golpe Calvo Surfar saiu de Dewgong e ficou com a cara de Mago.
+- Flavor: Dewgong entrou no time com Mago e saiu chamado Carecaong. Azul brue é sua cor favorita O golpe Calvo Surfar saiu de Dewgong e ficou com a cara de Mago.
 - Ataques:
 - **Calvo Surfar** — dano 90 — custo UX/UI ×3
   - Texto: Sem texto de efeito.
@@ -2529,7 +2529,7 @@ Traços de Mago: Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem
 - HP: 60 | Recuo: 1 | Fraqueza: Full Stack +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: No lugar de Shellder, Rafa deixou Raflder no repositório. Invoca o sapo antes de abrir o pull request. Shellder ainda está no básico, do jeito que saiu da primeira versão.
+- Flavor: No lugar de Shellder, Rafa deixou Raflder no repositório. Sempre anda com um agente de segurança acompanhando Shellder ainda está no básico, do jeito que saiu da primeira versão.
 - Ataques:
 - **Rafa Tapa de Língua** — dano 20 — custo UX/UI ×1
   - Texto: Sem texto de efeito.
@@ -2597,7 +2597,7 @@ Traços de Rafa: Cabelo branco de eremita, marcas vermelhas no rosto e um jeito 
 - HP: 70 | Recuo: 2 | Fraqueza: Full Stack +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Gabibby é Krabby depois que Gabi mexeu no código. Se aparece uma careca, bufa antes mesmo do oi. Recuar Gabibby custa 2, e Gabi reclama de cada energia.
+- Flavor: Gabibby é Krabby depois que Gabi mexeu no código. Recusa pair programming com quem reflete a luz. Recuar Gabibby custa 2, e Gabi reclama de cada energia.
 - Ataques:
 - **Cabelo Agarrão** — dano 40 — custo UX/UI ×1, IA ×1
   - Texto: Sem texto de efeito.
@@ -2631,7 +2631,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 120 | Recuo: 3 | Fraqueza: Full Stack +20
 - Evolui de: `a1-068-gabibby`
 - Foto: nenhuma
-- Flavor: Kingler entrou no time com Gabi e saiu chamado Gabler. A juba chega na sala primeiro que a pessoa. O golpe Cabelo Nocaute saiu de Kingler e ficou com a cara de Gabi.
+- Flavor: Kingler entrou no time com Gabi e saiu chamado Gabler. Recusa pair programming com quem reflete a luz. O golpe Cabelo Nocaute saiu de Kingler e ficou com a cara de Gabi.
 - Ataques:
 - **Cabelo Nocaute** — dano 80 — custo UX/UI ×2, IA ×1
   - Texto: Jogue 2 moedas. Se as duas forem cara, este ataque causa 80 de dano a mais.
@@ -2665,7 +2665,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 60 | Recuo: 1 | Fraqueza: Full Stack +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Paisea carrega Horsea e o jeito de Paitax, dev frequentador do submundo. Conhece o corredor sem luz melhor que o próprio repositório. O tipo Água ficou. O resto virou coisa de dev frequentador do submundo.
+- Flavor: Paisea carrega Horsea e o jeito de Paitax, dev frequentador do submundo. Tá bom, não tá? O tipo Água ficou. O resto virou coisa de dev frequentador do submundo.
 - Ataques:
 - **Papai Pistola d'Água** — dano 20 — custo UX/UI ×1
   - Texto: Sem texto de efeito.
@@ -2699,7 +2699,7 @@ Traços de Paitax: Capuz, sombras e um ar de quem frequenta o submundo depois do
 - HP: 70 | Recuo: 1 | Fraqueza: Full Stack +20
 - Evolui de: `a1-070-paisea`
 - Foto: nenhuma
-- Flavor: No lugar de Seadra, Paitax deixou Papaidra no repositório. Volta do submundo com um bug novo e zero explicação. O golpe Papai Flecha d'Água saiu de Seadra e ficou com a cara de Paitax.
+- Flavor: No lugar de Seadra, Paitax deixou Papaidra no repositório. Dizem que vivia no submundo, mas não se tem provas O golpe Papai Flecha d'Água saiu de Seadra e ficou com a cara de Paitax.
 - Ataques:
 - **Papai Flecha d'Água** — dano — — custo UX/UI ×2, IA ×1
   - Texto: Este ataque causa 50 de dano a 1 Pokémon do oponente.
@@ -2733,7 +2733,7 @@ Traços de Paitax: Capuz, sombras e um ar de quem frequenta o submundo depois do
 - HP: 60 | Recuo: 1 | Fraqueza: Full Stack +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Goldeen entrou no time com João e saiu chamado Jãoeen. A franja não desmancha nem quando o servidor cai. Goldeen ainda está no básico, do jeito que saiu da primeira versão.
+- Flavor: Goldeen entrou no time com João e saiu chamado Jãoeen. De dia dev, de noite caminhoneiro Goldeen ainda está no básico, do jeito que saiu da primeira versão.
 - Ataques:
 - **Submundo Tombo** — dano 10 — custo IA ×1
   - Texto: Sem texto de efeito.
@@ -2767,7 +2767,7 @@ Traços de João: Franja marcada cobrindo a testa, clima de submundo e um sorris
 - HP: 100 | Recuo: 1 | Fraqueza: Full Stack +20
 - Evolui de: `a1-072-jaoeen`
 - Foto: nenhuma
-- Flavor: Joãoing é Seaking depois que João mexeu no código. No submundo a franja continua impecável. Os 100 de HP de Joãoing dão para o meio do turno.
+- Flavor: Joãoing é Seaking depois que João mexeu no código. No submundo, não pode ver uma franja Os 100 de HP de Joãoing dão para o meio do turno.
 - Ataques:
 - **Franja Chifre Arriscado** — dano 80 — custo UX/UI ×1
   - Texto: Jogue uma moeda. Se sair coroa, este ataque não faz nada.
@@ -2971,7 +2971,7 @@ Traços de Bellotti: Jeito de dev backend contando uma piada sem graça, meio so
 - HP: 100 | Recuo: 2 | Fraqueza: Full Stack +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: No lugar de Lapras, Wilson deixou Wilras no repositório. Reprova a história e oferece carona no BYD. O golpe QA Jato d'Água saiu de Lapras e ficou com a cara de Wilson.
+- Flavor: No lugar de Lapras, Wilson deixou Wilras no repositório. Adora fazer um deploy e ficar parado no trânsito. O golpe QA Jato d'Água saiu de Lapras e ficou com a cara de Wilson.
 - Ataques:
 - **QA Jato d'Água** — dano 20 — custo UX/UI ×1
   - Texto: Se este Pokémon tiver pelo menos 3 Energias UX/UI extras, este ataque causa 70 de dano a mais.
@@ -3108,9 +3108,9 @@ Traços de Julia: Postura de QA com olhar desconfiado, como se todo dev fosse um
 - HP: 100 | Recuo: 1 | Fraqueza: Full Stack +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Articuno entrou no time com Thiago e saiu chamado Thicuno. Não quebra de propósito. O resultado é o mesmo. Os 100 de HP de Thicuno dão para o meio do turno.
+- Flavor: Articuno entrou no time com Thiago e saiu chamado Thicuno. Rensgaaa! O teste quebrou! Os 100 de HP de Thicuno dão para o meio do turno.
 - Ataques:
-- **Fisioterapia Raio de Gelo** — dano 60 — custo UX/UI ×2, IA ×1
+- **Testes Raio de Gelo** — dano 60 — custo UX/UI ×2, IA ×1
   - Texto: Jogue uma moeda. Se sair cara, o Pokémon Ativo do oponente agora está Paralisado.
   - Batalha: Jogue uma moeda. Se sair cara, o Pokémon Ativo do oponente agora está Paralisado.
 
@@ -3452,7 +3452,7 @@ Traços de Rafa: Cabelo branco de eremita, marcas vermelhas no rosto e um jeito 
 - HP: 90 | Recuo: 1 | Fraqueza: Testes Automatizados +20
 - Evolui de: `a1-092-rafanom`
 - Foto: nenhuma
-- Flavor: No lugar de Frosmoth, Rafa deixou Rafmoth no repositório. Invoca o sapo antes de abrir o pull request. O tipo Água ficou. O resto virou coisa de dev virado em Jiraiya.
+- Flavor: No lugar de Frosmoth, Rafa deixou Rafmoth no repositório. Sempre anda com um agente de segurança acompanhando O tipo Água ficou. O resto virou coisa de dev virado em Jiraiya.
 - Ataques:
 - **Agente Neve em Pó** — dano 40 — custo UX/UI ×1, IA ×1
   - Texto: O Pokémon Ativo do oponente agora está Adormecido.
@@ -3486,7 +3486,7 @@ Traços de Rafa: Cabelo branco de eremita, marcas vermelhas no rosto e um jeito 
 - HP: 60 | Recuo: 1 | Fraqueza: QA +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Pikachu entrou no time com Gabi e saiu chamado Gabchu. A juba chega na sala primeiro que a pessoa. O tipo Raio ficou. O resto virou coisa de dev que odeia carecas.
+- Flavor: Pikachu entrou no time com Gabi e saiu chamado Gabchu. O cabelo volumoso é escudo e argumento. O tipo Raio ficou. O resto virou coisa de dev que odeia carecas.
 - Ataques:
 - **Cabelo Roer** — dano 20 — custo Full Stack ×1
   - Texto: Sem texto de efeito.
@@ -3554,7 +3554,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 120 | Recuo: 1 | Fraqueza: QA +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Paichu carrega Pikachu ex e o jeito de Paitax, dev frequentador do submundo. Conhece o corredor sem luz melhor que o próprio repositório. Os 120 de HP de Paichu dão para o meio do turno.
+- Flavor: Paichu carrega Pikachu ex e o jeito de Paitax, dev frequentador do submundo. Tá bom, não tá? Os 120 de HP de Paichu dão para o meio do turno.
 - Ataques:
 - **Papai Circuito** — dano 30 — custo Full Stack ×2
   - Texto: Este ataque causa 30 de dano para cada Pokémon Full Stack seu no Banco.
@@ -3622,7 +3622,7 @@ Traços de João: Franja marcada cobrindo a testa, clima de submundo e um sorris
 - HP: 80 | Recuo: 2 | Fraqueza: QA +20
 - Evolui de: `a1-097-joaoemite`
 - Foto: nenhuma
-- Flavor: Magneton entrou no time com João e saiu chamado Jãoeton. A franja não desmancha nem quando o servidor cai. O tipo Raio ficou. O resto virou coisa de dev do submundo que ama franjudas.
+- Flavor: Magneton entrou no time com João e saiu chamado Jãoeton. De dia dev, de noite caminhoneiro O tipo Raio ficou. O resto virou coisa de dev do submundo que ama franjudas.
 - Ataques:
 - **Submundo Ataque Giratório** — dano 60 — custo Full Stack ×1, IA ×3
   - Texto: Sem texto de efeito.
@@ -3758,7 +3758,7 @@ Traços de Bellotti: Jeito de dev backend contando uma piada sem graça, meio so
 - HP: 90 | Recuo: 1 | Fraqueza: QA +20
 - Evolui de: `a1-208-bellotinhovee`
 - Foto: nenhuma
-- Flavor: Jolteon entrou no time com Bellotti e saiu chamado Bellotinhoeon. Ri sozinho no review e chama isso de documentação. O golpe Música Míssil Agulha saiu de Jolteon e ficou com a cara de Bellotti.
+- Flavor: Jolteon entrou no time com Bellotti e saiu chamado Bellotinhoeon. Cria uma música nova para cada bug O golpe Música Míssil Agulha saiu de Jolteon e ficou com a cara de Bellotti.
 - Ataques:
 - **Música Míssil Agulha** — dano — — custo Full Stack ×1, IA ×1
   - Texto: Jogue 4 moedas. Este ataque causa 40 de dano para cada cara.
@@ -3864,7 +3864,7 @@ Traços de Julia: Postura de QA com olhar desconfiado, como se todo dev fosse um
 - HP: 60 | Recuo: 1 | Fraqueza: QA +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: No lugar de Blitzle, Thiago deixou Thiagozle no repositório. Um refactor inocente e o CI pede demissão. O golpe Testes Chute Zap saiu de Blitzle e ficou com a cara de Thiago.
+- Flavor: No lugar de Blitzle, Thiago deixou Thiagozle no repositório. O teste automatizado foge quando escuta o nome. O golpe Testes Chute Zap saiu de Blitzle e ficou com a cara de Thiago.
 - Ataques:
 - **Testes Chute Zap** — dano 20 — custo Full Stack ×1
   - Texto: Sem texto de efeito.
@@ -3898,9 +3898,9 @@ Traços de Thiago: Cercado de testes quebrados e um CI vermelho, ar de quem não
 - HP: 90 | Recuo: 1 | Fraqueza: QA +20
 - Evolui de: `a1-105-thiagozle`
 - Foto: nenhuma
-- Flavor: Zebstrika entrou no time com Thiago e saiu chamado Thitrika. Não quebra de propósito. O resultado é o mesmo. O golpe Fisioterapia Lança do Trovão saiu de Zebstrika e ficou com a cara de Thiago.
+- Flavor: Zebstrika entrou no time com Thiago e saiu chamado Thitrika. Rensgaaa! O teste quebrou! O golpe Testes Lança do Trovão saiu de Zebstrika e ficou com a cara de Thiago.
 - Ataques:
-- **Fisioterapia Lança do Trovão** — dano — — custo Full Stack ×1
+- **Testes Lança do Trovão** — dano — — custo Full Stack ×1
   - Texto: Este ataque causa 30 de dano a 1 Pokémon do oponente.
   - Batalha: Sem efeito mecânico.
 
@@ -3968,7 +3968,7 @@ Traços de Gerhard: Headset, terminal aberto e a calma de quem sobe deploy no fi
 - Foto: nenhuma
 - Flavor: Gerhardktrik carrega Eelektrik e o jeito de Gerhard, DevOps. O changelog que se vire depois do push. Eelektrik já evoluiu uma vez e o review ficou mais rígido.
 - Ataques:
-- **Ops Raio na Cabeça** — dano 40 — custo Full Stack ×1
+- **Argentino Raio na Cabeça** — dano 40 — custo Full Stack ×1
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -4002,7 +4002,7 @@ Traços de Gerhard: Headset, terminal aberto e a calma de quem sobe deploy no fi
 - Foto: nenhuma
 - Flavor: No lugar de Eelektross, Gerhard deixou Gerktross no repositório. Sobe sexta à noite e chama isso de estabilidade. O tipo Raio ficou. O resto virou coisa de DevOps.
 - Ataques:
-- **Ops Presa Trovejante** — dano 80 — custo Full Stack ×2, IA ×1
+- **Branch Presa Trovejante** — dano 80 — custo Full Stack ×2, IA ×1
   - Texto: Jogue uma moeda. Se sair cara, o Pokémon Ativo do oponente agora está Paralisado.
   - Batalha: Jogue uma moeda. Se sair cara, o Pokémon Ativo do oponente agora está Paralisado.
 
@@ -4204,7 +4204,7 @@ Traços de Tauan: Dev do time, fone no pescoço e moletom, no meio do fluxo sem 
 - HP: 60 | Recuo: 1 | Fraqueza: Backend +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Abra entrou no time com Mago e saiu chamado Calvabra. O brilho da careca já derrubou duas dailies. O tipo Psíquico ficou. O resto virou coisa de dev careca.
+- Flavor: Abra entrou no time com Mago e saiu chamado Calvabra. Azul brue é sua cor favorita O tipo Psíquico ficou. O resto virou coisa de dev careca.
 - Ataques:
 - **Brincadeira Teleporte** — dano — — custo IA ×1
   - Texto: Troque este Pokémon por 1 dos seus Pokémon no Banco.
@@ -4238,7 +4238,7 @@ Traços de Mago: Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem
 - HP: 80 | Recuo: 1 | Fraqueza: Backend +20
 - Evolui de: `a1-115-calvabra`
 - Foto: nenhuma
-- Flavor: No lugar de Kadabra, Mago deixou Antoniobra no repositório. Sem um fio de cabelo, sobra espaço para mais um import. O tipo Psíquico ficou. O resto virou coisa de dev careca.
+- Flavor: No lugar de Kadabra, Mago deixou Antoniobra no repositório. O problema dele são as brrincadeiras O tipo Psíquico ficou. O resto virou coisa de dev careca.
 - Ataques:
 - **Brincadeira Super-raio Psi** — dano 60 — custo Frontend ×1, IA ×2
   - Texto: Sem texto de efeito.
@@ -4374,7 +4374,7 @@ Traços de Rafa: Cabelo branco de eremita, marcas vermelhas no rosto e um jeito 
 - HP: 60 | Recuo: 1 | Fraqueza: Backend +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Gastly entrou no time com Gabi e saiu chamado Gabtly. A juba chega na sala primeiro que a pessoa. O golpe Peladofobia Gás Sufocante saiu de Gastly e ficou com a cara de Gabi.
+- Flavor: Gastly entrou no time com Gabi e saiu chamado Gabtly. O cabelo volumoso é escudo e argumento. O golpe Peladofobia Gás Sufocante saiu de Gastly e ficou com a cara de Gabi.
 - Ataques:
 - **Peladofobia Gás Sufocante** — dano 20 — custo Frontend ×1
   - Texto: Sem texto de efeito.
@@ -4442,7 +4442,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 130 | Recuo: 2 | Fraqueza: Backend +20
 - Evolui de: `a1-121-gabiter`
 - Foto: nenhuma
-- Flavor: Gabgar carrega Gengar e o jeito de Gabi, dev que odeia carecas. O cabelo volumoso é escudo e argumento. O tipo Psíquico ficou. O resto virou coisa de dev que odeia carecas.
+- Flavor: Gabgar carrega Gengar e o jeito de Gabi, dev que odeia carecas. Se aparece uma careca, bufa antes mesmo do oi. O tipo Psíquico ficou. O resto virou coisa de dev que odeia carecas.
 - Ataques:
 - **Peladofobia Incomodar** — dano 50 — custo Frontend ×1
   - Texto: O oponente não pode usar cartas de Apoiador da mão durante o próximo turno dele.
@@ -4510,7 +4510,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 70 | Recuo: 2 | Fraqueza: Backend +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Drowzee entrou no time com Paitax e saiu chamado Papaitaxzee. A sombra entra na daily antes do dono. Recuar Papaitaxzee custa 2, e Paitax reclama de cada energia.
+- Flavor: Drowzee entrou no time com Paitax e saiu chamado Papaitaxzee. Volta do submundo com um bug novo e zero explicação. Recuar Papaitaxzee custa 2, e Paitax reclama de cada energia.
 - Ataques:
 - **Paitax Resmungo** — dano 30 — custo Frontend ×1, IA ×1
   - Texto: Sem texto de efeito.
@@ -4544,7 +4544,7 @@ Traços de Paitax: Capuz, sombras e um ar de quem frequenta o submundo depois do
 - HP: 100 | Recuo: 2 | Fraqueza: Backend +20
 - Evolui de: `a1-124-papaitaxzee`
 - Foto: nenhuma
-- Flavor: Paitaxpno é Hypno depois que Paitax mexeu no código. Desce pro submundo como quem abre o terminal. Os 100 de HP de Paitaxpno dão para o meio do turno.
+- Flavor: Paitaxpno é Hypno depois que Paitax mexeu no código. Opa, bom dia! Pessoal Os 100 de HP de Paitaxpno dão para o meio do turno.
 - Ataques:
 - **Papai Socopsíquico** — dano 50 — custo Frontend ×2, IA ×1
   - Texto: Sem texto de efeito.
@@ -4646,7 +4646,7 @@ Traços de Doug: Olhar sonhador de futuro pai, energia paternal, como se já car
 - HP: 120 | Recuo: 2 | Fraqueza: Backend +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Mewtwo entrou no time com Bellotti e saiu chamado Bellotwo. Ri sozinho no review e chama isso de documentação. Recuar Bellotwo custa 2, e Bellotti reclama de cada energia.
+- Flavor: Mewtwo entrou no time com Bellotti e saiu chamado Bellotwo. Cria uma música nova para cada bug Recuar Bellotwo custa 2, e Bellotti reclama de cada energia.
 - Ataques:
 - **Música Rajada Potente** — dano 120 — custo Frontend ×2, IA ×2
   - Texto: Descarte 2 Energias Frontend deste Pokémon.
@@ -4820,9 +4820,9 @@ Traços de Julia: Postura de QA com olhar desconfiado, como se todo dev fosse um
 - HP: 60 | Recuo: 1 | Fraqueza: Backend +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Woobat entrou no time com Thiago e saiu chamado Thibat. Não quebra de propósito. O resultado é o mesmo. Com só 60 de HP, qualquer bug já derruba Thibat.
+- Flavor: Woobat entrou no time com Thiago e saiu chamado Thibat. Passou perto da suíte e a pipeline ficou vermelha. Com só 60 de HP, qualquer bug já derruba Thibat.
 - Ataques:
-- **Fisioterapia Roer** — dano 10 — custo IA ×1
+- **Paia Roer** — dano 10 — custo IA ×1
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -4854,7 +4854,7 @@ Traços de Thiago: Cercado de testes quebrados e um CI vermelho, ar de quem não
 - HP: 90 | Recuo: 1 | Fraqueza: Backend +20
 - Evolui de: `a1-133-thibat`
 - Foto: nenhuma
-- Flavor: No lugar de Swoobat, Thiago deixou Thiagobat no repositório. Um refactor inocente e o CI pede demissão. Os 90 de HP de Thiagobat dão para o meio do turno.
+- Flavor: No lugar de Swoobat, Thiago deixou Thiagobat no repositório. Passou perto da suíte e a pipeline ficou vermelha. Os 90 de HP de Thiagobat dão para o meio do turno.
 - Ataques:
 - **Testes Selo Cardíaco** — dano 60 — custo Frontend ×1, IA ×1
   - Texto: Sem texto de efeito.
@@ -4890,7 +4890,7 @@ Traços de Thiago: Cercado de testes quebrados e um CI vermelho, ar de quem não
 - Foto: nenhuma
 - Flavor: Gerhardett carrega Golett e o jeito de Gerhard, DevOps. O changelog que se vire depois do push. Golett ainda está no básico, do jeito que saiu da primeira versão.
 - Ataques:
-- **Branch Megassoci** — dano 50 — custo Frontend ×1, IA ×2
+- **Argentino Megassoci** — dano 50 — custo Frontend ×1, IA ×2
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -4922,9 +4922,9 @@ Traços de Gerhard: Headset, terminal aberto e a calma de quem sobe deploy no fi
 - HP: 140 | Recuo: 4 | Fraqueza: Backend +20
 - Evolui de: `a1-135-gerhardett`
 - Foto: nenhuma
-- Flavor: Gerurk é Golurk depois que Gerhard mexeu no código. Se passou na máquina dele, já era deploy. O golpe Branch Lariat Duplo saiu de Golurk e ficou com a cara de Gerhard.
+- Flavor: Gerurk é Golurk depois que Gerhard mexeu no código. Se passou na máquina dele, já era deploy. O golpe Deploy Lariat Duplo saiu de Golurk e ficou com a cara de Gerhard.
 - Ataques:
-- **Branch Lariat Duplo** — dano — — custo Frontend ×2, IA ×2
+- **Deploy Lariat Duplo** — dano — — custo Frontend ×2, IA ×2
   - Texto: Jogue 2 moedas. Este ataque causa 100 de dano para cada cara.
   - Batalha: Jogue 2 moedas. Este ataque causa 100 de dano a mais para cada cara.
 
@@ -5194,7 +5194,7 @@ Traços de Mago: Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem
 - HP: 100 | Recuo: 2 | Fraqueza: Frontend +20
 - Evolui de: `a1-143-calvahop`
 - Foto: nenhuma
-- Flavor: Magooke carrega Machoke e o jeito de Mago, dev careca. Raspa a cabeça e o build, milagrosamente, passa. O tipo Luta ficou. O resto virou coisa de dev careca.
+- Flavor: Magooke carrega Machoke e o jeito de Mago, dev careca. Azul brue é sua cor favorita O tipo Luta ficou. O resto virou coisa de dev careca.
 - Ataques:
 - **Tooltip Força** — dano 50 — custo QA ×2
   - Texto: Sem texto de efeito.
@@ -5262,7 +5262,7 @@ Traços de Mago: Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem
 - HP: 180 | Recuo: 3 | Fraqueza: Frontend +20
 - Evolui de: `a1-144-magooke`
 - Foto: nenhuma
-- Flavor: Machamp ex entrou no time com Mago e saiu chamado Antonioamp ex. O brilho da careca já derrubou duas dailies. Recuar Antonioamp ex custa 3, e Mago reclama de cada energia.
+- Flavor: Machamp ex entrou no time com Mago e saiu chamado Antonioamp ex. Raspa a cabeça e o build, milagrosamente, passa. Recuar Antonioamp ex custa 3, e Mago reclama de cada energia.
 - Ataques:
 - **Calvo Megassoci** — dano 120 — custo QA ×3
   - Texto: Sem texto de efeito.
@@ -5364,7 +5364,7 @@ Traços de Rafa: Cabelo branco de eremita, marcas vermelhas no rosto e um jeito 
 - HP: 160 | Recuo: 4 | Fraqueza: Careca +20
 - Evolui de: `a1-148-jirayaeler`
 - Foto: nenhuma
-- Flavor: No lugar de Golem, Rafa deixou Rafalem no repositório. Invoca o sapo antes de abrir o pull request. Recuar Rafalem custa 4, e Rafa reclama de cada energia.
+- Flavor: No lugar de Golem, Rafa deixou Rafalem no repositório. Sempre anda com um agente de segurança acompanhando Recuar Rafalem custa 4, e Rafa reclama de cada energia.
 - Ataques:
 - **Jiraya Gume Duplo** — dano 150 — custo QA ×1, IA ×3
   - Texto: Este Pokémon também sofre 50 de dano.
@@ -5398,7 +5398,7 @@ Traços de Rafa: Cabelo branco de eremita, marcas vermelhas no rosto e um jeito 
 - HP: 110 | Recuo: 4 | Fraqueza: Careca +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Gabinix é Onix depois que Gabi mexeu no código. Se aparece uma careca, bufa antes mesmo do oi. O golpe Anti Careca Esmagar saiu de Onix e ficou com a cara de Gabi.
+- Flavor: Gabinix é Onix depois que Gabi mexeu no código. O cabelo volumoso é escudo e argumento. O golpe Anti Careca Esmagar saiu de Onix e ficou com a cara de Gabi.
 - Ataques:
 - **Anti Careca Esmagar** — dano 70 — custo QA ×3
   - Texto: Sem texto de efeito.
@@ -5432,7 +5432,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 60 | Recuo: 1 | Fraqueza: Careca +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Cubone entrou no time com Paitax e saiu chamado Papaitaxone. A sombra entra na daily antes do dono. Com só 60 de HP, qualquer bug já derruba Papaitaxone.
+- Flavor: Cubone entrou no time com Paitax e saiu chamado Papaitaxone. Volta do submundo com um bug novo e zero explicação. Com só 60 de HP, qualquer bug já derruba Papaitaxone.
 - Ataques:
 - **Submundo Rosnado** — dano — — custo IA ×1
   - Texto: Durante o próximo turno do oponente, os ataques do Pokémon Ativo dele causam -20 de dano.
@@ -5466,7 +5466,7 @@ Traços de Paitax: Capuz, sombras e um ar de quem frequenta o submundo depois do
 - HP: 100 | Recuo: 1 | Fraqueza: Careca +20
 - Evolui de: `a1-151-papaitaxone`
 - Foto: nenhuma
-- Flavor: No lugar de Marowak, Paitax deixou Papaiwak no repositório. Volta do submundo com um bug novo e zero explicação. Recuar Papaiwak custa 1, e Paitax reclama de cada energia.
+- Flavor: No lugar de Marowak, Paitax deixou Papaiwak no repositório. Dizem que vivia no submundo, mas não se tem provas Recuar Papaiwak custa 1, e Paitax reclama de cada energia.
 - Ataques:
 - **Papai Paulada Óssea** — dano 40 — custo QA ×1
   - Texto: Sem texto de efeito.
@@ -5500,7 +5500,7 @@ Traços de Paitax: Capuz, sombras e um ar de quem frequenta o submundo depois do
 - HP: 140 | Recuo: 1 | Fraqueza: Careca +20
 - Evolui de: `a1-151-papaitaxone`
 - Foto: nenhuma
-- Flavor: Papaiwak ex carrega Marowak ex e o jeito de Paitax, dev frequentador do submundo. Conhece o corredor sem luz melhor que o próprio repositório. O tipo Luta ficou. O resto virou coisa de dev frequentador do submundo.
+- Flavor: Papaiwak ex carrega Marowak ex e o jeito de Paitax, dev frequentador do submundo. Tá bom, não tá? O tipo Luta ficou. O resto virou coisa de dev frequentador do submundo.
 - Ataques:
 - **Paitax Ossomerangue** — dano — — custo QA ×2
   - Texto: Jogue 2 moedas. Este ataque causa 80 de dano para cada cara.
@@ -5534,7 +5534,7 @@ Traços de Paitax: Capuz, sombras e um ar de quem frequenta o submundo depois do
 - HP: 80 | Recuo: 1 | Fraqueza: Frontend +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Joãoonlee é Hitmonlee depois que João mexeu no código. No submundo a franja continua impecável. Os 80 de HP de Joãoonlee dão para o meio do turno.
+- Flavor: Joãoonlee é Hitmonlee depois que João mexeu no código. No submundo, não pode ver uma franja Os 80 de HP de Joãoonlee dão para o meio do turno.
 - Ataques:
 - **Franja Chute Alongado** — dano — — custo QA ×1
   - Texto: Este ataque causa 30 de dano a 1 Pokémon no Banco do oponente.
@@ -5670,7 +5670,7 @@ Traços de Bellotti: Jeito de dev backend contando uma piada sem graça, meio so
 - HP: 90 | Recuo: 1 | Fraqueza: Careca +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Wiluto é Kabuto depois que Wilson mexeu no código. Abre o bug, estaciona o BYD e ainda fala do Mickey. Os 90 de HP de Wiluto dão para o meio do turno.
+- Flavor: Wiluto é Kabuto depois que Wilson mexeu no código. Pra quem puder e quiser, ele tem uma carona no BYD Os 90 de HP de Wiluto dão para o meio do turno.
 - Ajuste de estágio: Na origem evolui de Dome Fossil, que não entra nesta lista. A carta fica Básica para poder ser jogada.
 - Ataques:
 - **Byd Ataque de Concha** — dano 40 — custo QA ×1
@@ -5705,7 +5705,7 @@ Traços de Wilson: Orelhas redondas de Mickey e um detalhe de carro BYD, postura
 - HP: 140 | Recuo: 1 | Fraqueza: Careca +20
 - Evolui de: `a1-158-wiluto`
 - Foto: nenhuma
-- Flavor: Kabutops entrou no time com Wilson e saiu chamado Wilsontops. Mickey no chaveiro, checklist na outra mão. Recuar Wilsontops custa 1, e Wilson reclama de cada energia.
+- Flavor: Kabutops entrou no time com Wilson e saiu chamado Wilsontops. O relatório de QA vem com orelha redonda no canto. Recuar Wilsontops custa 1, e Wilson reclama de cada energia.
 - Ataques:
 - **Teste Sanguessuga** — dano 50 — custo QA ×1
   - Texto: Cure deste Pokémon a mesma quantidade de dano que você causou ao Pokémon Ativo do oponente.
@@ -5807,9 +5807,9 @@ Traços de Julia: Postura de QA com olhar desconfiado, como se todo dev fosse um
 - HP: 80 | Recuo: 2 | Fraqueza: Frontend +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Thibopus carrega Clobbopus e o jeito de Thiago, dev que estraga os testes automatizados. O teste automatizado foge quando escuta o nome. O golpe Quebra Soco de Punho saiu de Clobbopus e ficou com a cara de Thiago.
+- Flavor: Thibopus carrega Clobbopus e o jeito de Thiago, dev que estraga os testes automatizados. Rensgaaa! O teste quebrou! O golpe Paia Soco de Punho saiu de Clobbopus e ficou com a cara de Thiago.
 - Ataques:
-- **Quebra Soco de Punho** — dano 30 — custo QA ×1, IA ×1
+- **Paia Soco de Punho** — dano 30 — custo QA ×1, IA ×1
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -5841,7 +5841,7 @@ Traços de Thiago: Cercado de testes quebrados e um CI vermelho, ar de quem não
 - HP: 130 | Recuo: 3 | Fraqueza: Frontend +20
 - Evolui de: `a1-162-thibopus`
 - Foto: nenhuma
-- Flavor: No lugar de Grapploct, Thiago deixou Thiagoploct no repositório. Um refactor inocente e o CI pede demissão. O tipo Luta ficou. O resto virou coisa de dev que estraga os testes automatizados.
+- Flavor: No lugar de Grapploct, Thiago deixou Thiagoploct no repositório. O teste automatizado foge quando escuta o nome. O tipo Luta ficou. O resto virou coisa de dev que estraga os testes automatizados.
 - Ataques:
 - **Testes Empurrão** — dano 70 — custo QA ×2, IA ×1
   - Texto: Mande o Pokémon Ativo do oponente para o Banco. (O oponente escolhe o novo Ativo.)
@@ -5877,7 +5877,7 @@ Traços de Thiago: Cercado de testes quebrados e um CI vermelho, ar de quem não
 - Foto: nenhuma
 - Flavor: Ekans entrou no time com Gerhard e saiu chamado Gerhardans. Pipeline verde é opinião. Produção é fato. Recuar Gerhardans custa 1, e Gerhard reclama de cada energia.
 - Ataques:
-- **Deploy Mordida** — dano 20 — custo Backend ×1
+- **Moto Mordida** — dano 20 — custo Backend ×1
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -5909,9 +5909,9 @@ Traços de Gerhard: Headset, terminal aberto e a calma de quem sobe deploy no fi
 - HP: 100 | Recuo: 2 | Fraqueza: QA +20
 - Evolui de: `a1-164-gerhardans`
 - Foto: nenhuma
-- Flavor: Gerbok é Arbok depois que Gerhard mexeu no código. Se passou na máquina dele, já era deploy. O golpe Ops Encurralar saiu de Arbok e ficou com a cara de Gerhard.
+- Flavor: Gerbok é Arbok depois que Gerhard mexeu no código. Se passou na máquina dele, já era deploy. O golpe Deploy Encurralar saiu de Arbok e ficou com a cara de Gerhard.
 - Ataques:
-- **Ops Encurralar** — dano 60 — custo Backend ×1, IA ×1
+- **Deploy Encurralar** — dano 60 — custo Backend ×1, IA ×1
   - Texto: Durante o próximo turno do oponente, o Pokémon Ativo dele não pode recuar.
   - Batalha: Sem efeito mecânico.
 
@@ -6215,7 +6215,7 @@ Traços de Tauan: Dev do time, fone no pescoço e moletom, no meio do fluxo sem 
 - HP: 70 | Recuo: 3 | Fraqueza: QA +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: No lugar de Grimer, Mago deixou Calvamer no repositório. Sem um fio de cabelo, sobra espaço para mais um import. O tipo Escuridão ficou. O resto virou coisa de dev careca.
+- Flavor: No lugar de Grimer, Mago deixou Calvamer no repositório. A careca reflete o monitor e o code review perde o foco. O tipo Escuridão ficou. O resto virou coisa de dev careca.
 - Ataques:
 - **Careca Gás Venenoso** — dano 10 — custo Backend ×1
   - Texto: O Pokémon Ativo do oponente agora está Envenenado.
@@ -6249,7 +6249,7 @@ Traços de Mago: Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem
 - HP: 130 | Recuo: 3 | Fraqueza: QA +20
 - Evolui de: `a1-174-calvamer`
 - Foto: nenhuma
-- Flavor: Carecauk carrega Muk e o jeito de Mago, dev careca. Raspa a cabeça e o build, milagrosamente, passa. O tipo Escuridão ficou. O resto virou coisa de dev careca.
+- Flavor: Carecauk carrega Muk e o jeito de Mago, dev careca. O brilho da careca já derrubou duas dailies. O tipo Escuridão ficou. O resto virou coisa de dev careca.
 - Ataques:
 - **Brincadeira Venenochoque** — dano 70 — custo Backend ×2, IA ×1
   - Texto: Se o Pokémon Ativo do oponente estiver Envenenado, este ataque causa 50 de dano a mais.
@@ -6385,7 +6385,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 50 | Recuo: 1 | Fraqueza: DevOps +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Paiiard carrega Pawniard e o jeito de Paitax, dev frequentador do submundo. Conhece o corredor sem luz melhor que o próprio repositório. O tipo Metal ficou. O resto virou coisa de dev frequentador do submundo.
+- Flavor: Paiiard carrega Pawniard e o jeito de Paitax, dev frequentador do submundo. Tá bom, não tá? O tipo Metal ficou. O resto virou coisa de dev frequentador do submundo.
 - Ataques:
 - **Paitax Perfurar** — dano 30 — custo Testes Automatizados ×1
   - Texto: Sem texto de efeito.
@@ -6419,7 +6419,7 @@ Traços de Paitax: Capuz, sombras e um ar de quem frequenta o submundo depois do
 - HP: 90 | Recuo: 1 | Fraqueza: DevOps +20
 - Evolui de: `a1-179-paiiard`
 - Foto: nenhuma
-- Flavor: Paiarp carrega Bisharp e o jeito de Paitax, dev frequentador do submundo. Conhece o corredor sem luz melhor que o próprio repositório. Os 90 de HP de Paiarp dão para o meio do turno.
+- Flavor: Paiarp carrega Bisharp e o jeito de Paitax, dev frequentador do submundo. Tá bom, não tá? Os 90 de HP de Paiarp dão para o meio do turno.
 - Ataques:
 - **Submundo Garra de Metal** — dano 70 — custo Testes Automatizados ×2
   - Texto: Sem texto de efeito.
@@ -6487,7 +6487,7 @@ Traços de João: Franja marcada cobrindo a testa, clima de submundo e um sorris
 - HP: 130 | Recuo: 3 | Fraqueza: DevOps +20
 - Evolui de: `a1-181-joaotan`
 - Foto: nenhuma
-- Flavor: Melmetal entrou no time com João e saiu chamado Jãoetal. A franja não desmancha nem quando o servidor cai. O tipo Metal ficou. O resto virou coisa de dev do submundo que ama franjudas.
+- Flavor: Melmetal entrou no time com João e saiu chamado Jãoetal. De dia dev, de noite caminhoneiro O tipo Metal ficou. O resto virou coisa de dev do submundo que ama franjudas.
 - Ataques:
 - **Submundo Impacto Pesado** — dano 120 — custo Testes Automatizados ×3, IA ×1
   - Texto: Sem texto de efeito.
@@ -6623,7 +6623,7 @@ Traços de Doug: Olhar sonhador de futuro pai, energia paternal, como se já car
 - HP: 60 | Recuo: 1 | Fraqueza: Full Stack +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Pidgey entrou no time com Bellotti e saiu chamado Bellotinhogey. Ri sozinho no review e chama isso de documentação. Recuar Bellotinhogey custa 1, e Bellotti reclama de cada energia.
+- Flavor: Pidgey entrou no time com Bellotti e saiu chamado Bellotinhogey. Cria uma música nova para cada bug Recuar Bellotinhogey custa 1, e Bellotti reclama de cada energia.
 - Ataques:
 - **Música Lufada** — dano 10 — custo IA ×1
   - Texto: Sem texto de efeito.
@@ -6725,7 +6725,7 @@ Traços de Bellotti: Jeito de dev backend contando uma piada sem graça, meio so
 - HP: 40 | Recuo: 1 | Fraqueza: QA +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: No lugar de Rattata, Wilson deixou Wilata no repositório. Reprova a história e oferece carona no BYD. Recuar Wilata custa 1, e Wilson reclama de cada energia.
+- Flavor: No lugar de Rattata, Wilson deixou Wilata no repositório. O relatório de QA vem com orelha redonda no canto. Recuar Wilata custa 1, e Wilson reclama de cada energia.
 - Ataques:
 - **QA Roer** — dano 20 — custo IA ×1
   - Texto: Sem texto de efeito.
@@ -6759,7 +6759,7 @@ Traços de Wilson: Orelhas redondas de Mickey e um detalhe de carro BYD, postura
 - HP: 80 | Recuo: 1 | Fraqueza: QA +20
 - Evolui de: `a1-189-wilata`
 - Foto: nenhuma
-- Flavor: Wilcate é Raticate depois que Wilson mexeu no código. Abre o bug, estaciona o BYD e ainda fala do Mickey. Raticate já evoluiu uma vez e o review ficou mais rígido.
+- Flavor: Wilcate é Raticate depois que Wilson mexeu no código. Pra quem puder e quiser, ele tem uma carona no BYD Raticate já evoluiu uma vez e o review ficou mais rígido.
 - Ataques:
 - **Byd Mordida** — dano 40 — custo IA ×1
   - Texto: Sem texto de efeito.
@@ -6863,7 +6863,7 @@ Traços de Julia: Postura de QA com olhar desconfiado, como se todo dev fosse um
 - Foto: nenhuma
 - Flavor: Thilypuff carrega Jigglypuff e o jeito de Thiago, dev que estraga os testes automatizados. O teste automatizado foge quando escuta o nome. Recuar Thilypuff custa 1, e Thiago reclama de cada energia.
 - Ataques:
-- **Quebra Pancada** — dano 30 — custo IA ×2
+- **Fisioterapia Pancada** — dano 30 — custo IA ×2
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -6895,9 +6895,9 @@ Traços de Thiago: Cercado de testes quebrados e um CI vermelho, ar de quem não
 - HP: 100 | Recuo: 2 | Fraqueza: QA +20
 - Evolui de: `a1-193-thilypuff`
 - Foto: nenhuma
-- Flavor: Thiagolytuff é Wigglytuff depois que Thiago mexeu no código. Passou perto da suíte e a pipeline ficou vermelha. Os 100 de HP de Thiagolytuff dão para o meio do turno.
+- Flavor: Thiagolytuff é Wigglytuff depois que Thiago mexeu no código. O teste automatizado foge quando escuta o nome. Os 100 de HP de Thiagolytuff dão para o meio do turno.
 - Ataques:
-- **Bug Hipervoz** — dano 60 — custo IA ×2
+- **Paia Hipervoz** — dano 60 — custo IA ×2
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -6929,9 +6929,9 @@ Traços de Thiago: Cercado de testes quebrados e um CI vermelho, ar de quem não
 - HP: 140 | Recuo: 2 | Fraqueza: QA +20
 - Evolui de: `a1-193-thilypuff`
 - Foto: nenhuma
-- Flavor: Wigglytuff ex entrou no time com Thiago e saiu chamado Thiagolytuff ex. Não quebra de propósito. O resultado é o mesmo. O golpe Fisioterapia Canção Sonolenta saiu de Wigglytuff ex e ficou com a cara de Thiago.
+- Flavor: Wigglytuff ex entrou no time com Thiago e saiu chamado Thiagolytuff ex. Passou perto da suíte e a pipeline ficou vermelha. O golpe Paia Canção Sonolenta saiu de Wigglytuff ex e ficou com a cara de Thiago.
 - Ataques:
-- **Fisioterapia Canção Sonolenta** — dano 80 — custo IA ×3
+- **Paia Canção Sonolenta** — dano 80 — custo IA ×3
   - Texto: O Pokémon Ativo do oponente agora está Adormecido.
   - Batalha: O Pokémon Ativo do oponente agora está Adormecido.
 
@@ -6997,9 +6997,9 @@ Traços de Gerhard: Headset, terminal aberto e a calma de quem sobe deploy no fi
 - HP: 90 | Recuo: 1 | Fraqueza: QA +20
 - Evolui de: `a1-196-gerwth`
 - Foto: nenhuma
-- Flavor: Gerhardian carrega Persian e o jeito de Gerhard, DevOps. O changelog que se vire depois do push. O golpe Deploy Garra Sombria saiu de Persian e ficou com a cara de Gerhard.
+- Flavor: Gerhardian carrega Persian e o jeito de Gerhard, DevOps. O changelog que se vire depois do push. O golpe Argentino Garra Sombria saiu de Persian e ficou com a cara de Gerhard.
 - Ataques:
-- **Deploy Garra Sombria** — dano 40 — custo IA ×2
+- **Argentino Garra Sombria** — dano 40 — custo IA ×2
   - Texto: Jogue uma moeda. Se sair cara, descarte 1 carta aleatória da mão do oponente.
   - Batalha: Sem efeito mecânico.
 
@@ -7167,7 +7167,7 @@ Traços de Tauan: Dev do time, fone no pescoço e moletom, no meio do fluxo sem 
 - HP: 120 | Recuo: 3 | Fraqueza: QA +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: No lugar de Chansey, Mago deixou Calvasey no repositório. Sem um fio de cabelo, sobra espaço para mais um import. O golpe Careca Tapinha saiu de Chansey e ficou com a cara de Mago.
+- Flavor: No lugar de Chansey, Mago deixou Calvasey no repositório. O problema dele são as brrincadeiras O golpe Careca Tapinha saiu de Chansey e ficou com a cara de Mago.
 - Ataques:
 - **Careca Tapinha** — dano 60 — custo IA ×3
   - Texto: Sem texto de efeito.
@@ -7235,7 +7235,7 @@ Traços de Rafa: Cabelo branco de eremita, marcas vermelhas no rosto e um jeito 
 - HP: 100 | Recuo: 2 | Fraqueza: QA +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Gabiros é Tauros depois que Gabi mexeu no código. Se aparece uma careca, bufa antes mesmo do oi. O tipo Incolor ficou. O resto virou coisa de dev que odeia carecas.
+- Flavor: Gabiros é Tauros depois que Gabi mexeu no código. O cabelo volumoso é escudo e argumento. O tipo Incolor ficou. O resto virou coisa de dev que odeia carecas.
 - Ataques:
 - **Peladofobia Chifrada** — dano 50 — custo IA ×2
   - Texto: Sem texto de efeito.
@@ -7269,7 +7269,7 @@ Traços de Gabi: Cabelo enorme e cheio, expressão de quem não tolera careca po
 - HP: 70 | Recuo: 1 | Fraqueza: QA +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Ditto entrou no time com Paitax e saiu chamado Papaitaxtto. A sombra entra na daily antes do dono. Recuar Papaitaxtto custa 1, e Paitax reclama de cada energia.
+- Flavor: Ditto entrou no time com Paitax e saiu chamado Papaitaxtto. Volta do submundo com um bug novo e zero explicação. Recuar Papaitaxtto custa 1, e Paitax reclama de cada energia.
 - Ataques:
 - **Paitax Copiar Tudo** — dano — — custo IA ×1
   - Texto: Escolha 1 ataque de um Pokémon do oponente e use-o como este ataque. Se este Pokémon não tiver a Energia necessária, este ataque não faz nada.
@@ -7405,7 +7405,7 @@ Traços de Bellotti: Jeito de dev backend contando uma piada sem graça, meio so
 - HP: 50 | Recuo: 1 | Fraqueza: QA +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: Porygon entrou no time com Wilson e saiu chamado Wilsongon. Mickey no chaveiro, checklist na outra mão. Recuar Wilsongon custa 1, e Wilson reclama de cada energia.
+- Flavor: Porygon entrou no time com Wilson e saiu chamado Wilsongon. Abre o bug, estaciona o BYD e ainda fala do Mickey. Recuar Wilsongon custa 1, e Wilson reclama de cada energia.
 - Ataques:
 - **Teste Afiar** — dano 20 — custo IA ×1
   - Texto: Sem texto de efeito.
@@ -7474,9 +7474,9 @@ Traços de Julia: Postura de QA com olhar desconfiado, como se todo dev fosse um
 - HP: 150 | Recuo: 4 | Fraqueza: QA +20
 - Evolui de: —
 - Foto: nenhuma
-- Flavor: No lugar de Snorlax, Thiago deixou Thiagolax no repositório. Um refactor inocente e o CI pede demissão. O golpe Testes Rolamento saiu de Snorlax e ficou com a cara de Thiago.
+- Flavor: No lugar de Snorlax, Thiago deixou Thiagolax no repositório. Um refactor inocente e o CI pede demissão. O golpe Rensga Rolamento saiu de Snorlax e ficou com a cara de Thiago.
 - Ataques:
-- **Testes Rolamento** — dano 70 — custo IA ×4
+- **Rensga Rolamento** — dano 70 — custo IA ×4
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -7510,7 +7510,7 @@ Traços de Thiago: Cercado de testes quebrados e um CI vermelho, ar de quem não
 - Foto: nenhuma
 - Flavor: Minccino entrou no time com Gerhard e saiu chamado Gerhardcino. Pipeline verde é opinião. Produção é fato. Minccino ainda está no básico, do jeito que saiu da primeira versão.
 - Ataques:
-- **Branch Tapa de Cauda** — dano 20 — custo IA ×1
+- **Moto Tapa de Cauda** — dano 20 — custo IA ×1
   - Texto: Sem texto de efeito.
   - Batalha: Sem efeito mecânico.
 
@@ -7544,7 +7544,7 @@ Traços de Gerhard: Headset, terminal aberto e a calma de quem sobe deploy no fi
 - Foto: nenhuma
 - Flavor: Gercino é Cinccino depois que Gerhard mexeu no código. Se passou na máquina dele, já era deploy. Os 90 de HP de Gercino dão para o meio do turno.
 - Ataques:
-- **Branch Fazer a Onda** — dano 30 — custo IA ×3
+- **Deploy Fazer a Onda** — dano 30 — custo IA ×3
   - Texto: Este ataque causa 30 de dano para cada Pokémon seu no Banco.
   - Batalha: Sem efeito mecânico.
 

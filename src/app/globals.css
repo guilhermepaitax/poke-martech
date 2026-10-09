@@ -236,6 +236,32 @@ body {
   backdrop-filter: blur(4px);
 }
 
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--foreground) 8%, white);
+}
+
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, white 72%, transparent),
+    transparent
+  );
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 .glow-action {
   box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 35%, transparent);
 }
@@ -871,7 +897,8 @@ body {
   [data-ripping] .pack-cap,
   .card-deal,
   .card-stack-item,
-  .card-stack-item[data-sending] {
+  .card-stack-item[data-sending],
+  .skeleton-shimmer::after {
     animation: none;
     transition: none;
   }

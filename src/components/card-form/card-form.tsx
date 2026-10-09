@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { HoloCard } from "@/components/holo-card/holo-card";
 import { CardZoomDialog } from "@/components/holo-card/card-zoom-dialog";
 import { Button } from "@/components/ui/button";
+import { FormPanelSkeleton, LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { Disclosure } from "@/components/ui/disclosure";
 import { EnergyChip } from "@/components/ui/energy-chip";
 import { ImageDropzone } from "@/components/ui/image-dropzone";
@@ -20,7 +21,14 @@ import { frameOptions, rarityOptions, stageOptions, useCardForm } from "./use-ca
 
 function CardForm({ cardId }: { cardId?: string }) {
   const form = useCardForm(cardId);
-  if (form.isLoading) return <p className="text-foreground-subtle">Carregando carta...</p>;
+  if (form.isLoading) {
+    return (
+      <LoadingScreen label="Carregando carta" className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <FormPanelSkeleton fields={6} />
+        <Skeleton className="mx-auto aspect-[63/88] w-full max-w-72 rounded-[4%]" />
+      </LoadingScreen>
+    );
+  }
   if (form.isMissing) return <p className="text-destructive">Carta não encontrada.</p>;
   const values = form.form;
 

@@ -23,9 +23,19 @@ import { CreateCard } from "@/server/application/use-cases/create-card";
 import { GetAdminCard } from "@/server/application/use-cases/get-admin-card";
 import { GetBooster } from "@/server/application/use-cases/get-booster";
 import { GetCard } from "@/server/application/use-cases/get-card";
+import { AcceptTrade } from "@/server/application/use-cases/accept-trade";
+import { CancelTrade } from "@/server/application/use-cases/cancel-trade";
+import { CreateTrade } from "@/server/application/use-cases/create-trade";
+import { FollowUser } from "@/server/application/use-cases/follow-user";
 import { GetMyProfile } from "@/server/application/use-cases/get-my-profile";
 import { GetOpening } from "@/server/application/use-cases/get-opening";
 import { GetPublicProfile } from "@/server/application/use-cases/get-public-profile";
+import { ListFollowers } from "@/server/application/use-cases/list-followers";
+import { ListFollowing } from "@/server/application/use-cases/list-following";
+import { ListTradableCards } from "@/server/application/use-cases/list-tradable-cards";
+import { ListTrades } from "@/server/application/use-cases/list-trades";
+import { RejectTrade } from "@/server/application/use-cases/reject-trade";
+import { UnfollowUser } from "@/server/application/use-cases/unfollow-user";
 import { GrantSignupBonus } from "@/server/application/use-cases/grant-signup-bonus";
 import { ListAdminCards } from "@/server/application/use-cases/list-admin-cards";
 import { ListBoosters } from "@/server/application/use-cases/list-boosters";
@@ -54,10 +64,12 @@ import {
   DrizzleOpeningRepository,
   DrizzlePackPurchaseRepository,
 } from "@/server/infrastructure/db/drizzle/repositories/drizzle-pack-repository";
+import { DrizzleFollowRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-follow-repository";
 import {
   DrizzlePokedexRepository,
   DrizzleProfileRepository,
 } from "@/server/infrastructure/db/drizzle/repositories/drizzle-profile-repository";
+import { DrizzleTradeRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-trade-repository";
 import { DrizzleRarityRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-rarity-repository";
 import { DrizzleWalletRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-wallet-repository";
 import { OpenAiImageGenerator } from "@/server/infrastructure/services/openai-image-generator";
@@ -72,6 +84,8 @@ const rarities = new DrizzleRarityRepository();
 const wallets = new DrizzleWalletRepository();
 const profiles = new DrizzleProfileRepository();
 const pokedex = new DrizzlePokedexRepository();
+const follows = new DrizzleFollowRepository();
+const trades = new DrizzleTradeRepository();
 const purchases = new DrizzlePackPurchaseRepository();
 const openings = new DrizzleOpeningRepository();
 const storage = new R2Storage();
@@ -85,8 +99,18 @@ const images = new OpenAiImageGenerator();
 
 const container = {
   grantSignupBonus: new GrantSignupBonus(wallets),
-  getMyProfile: new GetMyProfile(profiles),
-  getPublicProfile: new GetPublicProfile(profiles, pokedex),
+  getMyProfile: new GetMyProfile(profiles, follows, trades),
+  getPublicProfile: new GetPublicProfile(profiles, pokedex, follows),
+  followUser: new FollowUser(profiles, follows),
+  unfollowUser: new UnfollowUser(profiles, follows),
+  listFollowers: new ListFollowers(profiles, follows),
+  listFollowing: new ListFollowing(profiles, follows),
+  createTrade: new CreateTrade(trades),
+  listTrades: new ListTrades(trades),
+  listTradableCards: new ListTradableCards(trades),
+  acceptTrade: new AcceptTrade(trades),
+  rejectTrade: new RejectTrade(trades),
+  cancelTrade: new CancelTrade(trades),
   listPokedex: new ListPokedex(pokedex),
   listPokemonTypes: new ListPokemonTypes(pokemonTypes),
   getCard: new GetCard(cards),

@@ -22,10 +22,12 @@ export {
   cards,
   cardsRelations,
   coinLedger,
+  follows,
   packOpeningCards,
   packOpenings,
   pokemonTypes,
   rarityWeights,
+  tradeProposals,
   userCards,
   wallets,
 } from "@/server/infrastructure/db/drizzle/schema/domain";

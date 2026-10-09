@@ -4,6 +4,7 @@ import { useState } from "react";
 import { RARITY_LABELS, type Rarity } from "@/lib/value-objects/card";
 import { useRarities, useSaveRarities } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
+import { LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { Stepper } from "@/components/ui/stepper";
 import type { RarityWeight } from "@/types/catalog";
 
@@ -13,7 +14,20 @@ function RarityForm() {
   const [draft, setDraft] = useState<RarityWeight[] | null>(null);
   const form = draft ?? rarities.data ?? [];
 
-  if (rarities.isLoading) return <p className="text-foreground-subtle">Carregando raridades...</p>;
+  if (rarities.isLoading) {
+    return (
+      <LoadingScreen label="Carregando raridades" className="glass flex max-w-xl flex-col gap-5 rounded-3xl p-5">
+        <Skeleton className="h-8 w-56" />
+        <Skeleton className="h-4 w-full" />
+        {Array.from({ length: 6 }, (_, index) => (
+          <div key={index} className="flex items-center justify-between gap-3">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-8 w-28 rounded-full" />
+          </div>
+        ))}
+      </LoadingScreen>
+    );
+  }
   if (rarities.isError) return <p className="text-destructive">Não foi possível carregar os pesos.</p>;
 
   return (

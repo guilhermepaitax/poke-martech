@@ -2,6 +2,7 @@ import type { CardDecorationId } from "@/lib/card-decorations";
 import type { AttackEffect } from "@/lib/value-objects/attack-effect";
 import type { CardFrame, EnergyType, Finish, Rarity, Stage } from "@/lib/value-objects/card";
 import type { GenerationItemStatus, GenerationStatus } from "@/lib/value-objects/card-generation";
+import type { TradeStatus } from "@/lib/value-objects/trade";
 
 type CardArtwork = {
   imageX: number;
@@ -131,7 +132,33 @@ type RecentCard = {
   card: CardFace;
 };
 
-type Profile = {
+type ProfileLink = {
+  username: string;
+  name: string;
+};
+
+type TradeCardPreview = {
+  cardId: string;
+  name: string;
+  number: number;
+  imageUrl: string | null;
+};
+
+type TradeProposalView = {
+  id: string;
+  status: TradeStatus;
+  createdAt: string;
+  from: ProfileLink;
+  to: ProfileLink;
+  offered: TradeCardPreview;
+  requested: TradeCardPreview;
+};
+
+type TradableCard = TradeCardPreview & {
+  freeCount: number;
+};
+
+type ProfileBase = {
   id: string;
   username: string;
   name: string;
@@ -141,12 +168,26 @@ type Profile = {
   recentCards: RecentCard[];
 };
 
+type Profile = ProfileBase & {
+  followerCount: number;
+  followingCount: number;
+  pendingTrades: TradeProposalView[];
+};
+
+type PublicPokedexEntry = PokedexEntry & {
+  viewerOwns: boolean;
+};
+
 type PublicProfile = {
   username: string;
   name: string;
   image: string | null;
   bio: string;
-  pokedex: PokedexEntry[];
+  isSelf: boolean;
+  isFollowing: boolean;
+  followerCount: number;
+  followingCount: number;
+  pokedex: PublicPokedexEntry[];
 };
 
 type RarityWeight = {
@@ -218,7 +259,14 @@ export type {
   PokedexEntry,
   PokemonType,
   Profile,
+  ProfileBase,
+  ProfileLink,
+  PublicPokedexEntry,
   PublicProfile,
   RarityWeight,
   RecentCard,
+  TradableCard,
+  TradeCardPreview,
+  TradeProposalView,
+  TradeStatus,
 };

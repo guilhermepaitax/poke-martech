@@ -1,13 +1,16 @@
 "use client";
 
 import { HoloCard } from "@/components/holo-card/holo-card";
+import { TradeProposalList } from "@/components/trades/trade-proposal-list";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { CardGridSkeleton, LoadingScreen, ProposalSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { useProfile } from "@/hooks/use-profile";
 import { formatCardNumber } from "@/lib/card-number";
 import { cn } from "@/lib/utils";
-import { Coins } from "lucide-react";
+import { ArrowLeftRight, Coins, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -26,8 +29,32 @@ function HomeDashboard() {
   const router = useRouter();
   const [username, setUsername] = useState("");
 
-  if (profile.isLoading)
-    return <p className="text-foreground-subtle">Carregando...</p>;
+  if (profile.isLoading) {
+    return (
+      <LoadingScreen label="Carregando" className="flex flex-col gap-8">
+        <div>
+          <Skeleton className="h-10 w-56" />
+          <Skeleton className="mt-3 h-6 w-32" />
+          <div className="mt-4 flex gap-2">
+            <Skeleton className="h-9 w-28 rounded-full" />
+            <Skeleton className="h-9 w-24 rounded-full" />
+          </div>
+        </div>
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-6 w-48" />
+          <ProposalSkeleton />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-36 rounded-3xl" />
+          <Skeleton className="h-36 rounded-3xl" />
+        </div>
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-6 w-64" />
+          <CardGridSkeleton count={4} />
+        </div>
+      </LoadingScreen>
+    );
+  }
   if (profile.isError || !profile.data) {
     return (
       <p className="text-destructive">Não foi possível carregar o perfil.</p>
@@ -49,7 +76,48 @@ function HomeDashboard() {
         <p className="text-sm text-foreground-subtle">
           Saldo para abrir pacotes na loja.
         </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link
+            href={`/u/${me.username}`}
+            className="glass rounded-full px-4 py-2 text-sm text-foreground-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <span className="font-semibold text-foreground">
+              {me.followerCount}
+            </span>{" "}
+            {me.followerCount === 1 ? "seguidor" : "seguidores"}
+          </Link>
+          <Link
+            href={`/u/${me.username}`}
+            className="glass rounded-full px-4 py-2 text-sm text-foreground-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <span className="font-semibold text-foreground">
+              {me.followingCount}
+            </span>{" "}
+            seguindo
+          </Link>
+        </div>
       </div>
+      <section className="flex flex-col gap-3">
+        <div className="flex items-end justify-between gap-3">
+          <h2 className="text-lg font-semibold">Propostas recebidas</h2>
+          <Link
+            href="/trocas"
+            className="text-sm font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Ver trocas
+          </Link>
+        </div>
+        {me.pendingTrades.length === 0 ? (
+          <EmptyState
+            placement="section"
+            icon={ArrowLeftRight}
+            title="Nenhuma proposta esperando você"
+            description="As trocas que outros treinadores enviarem aparecem aqui, prontas para aceitar ou recusar."
+          />
+        ) : (
+          <TradeProposalList proposals={me.pendingTrades} box="incoming" />
+        )}
+      </section>
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -66,7 +134,7 @@ function HomeDashboard() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Outro treinador</CardTitle>
+            <CardTitle>Buscar outro treinador</CardTitle>
           </CardHeader>
           <CardContent>
             <form
@@ -91,9 +159,17 @@ function HomeDashboard() {
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Últimas cartas desbloqueadas</h2>
         {me.recentCards.length === 0 ? (
-          <p className="text-sm text-foreground-subtle">
-            Nenhuma carta ainda. Passe na loja.
-          </p>
+          <EmptyState
+            placement="section"
+            icon={Sparkles}
+            title="Nenhuma carta ainda"
+            description="Abra um pacote na loja para a primeira carta entrar na sua coleção."
+            action={
+              <Link href="/loja" className={buttonVariants()}>
+                Ir para a loja
+              </Link>
+            }
+          />
         ) : (
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {me.recentCards.map((card) => (

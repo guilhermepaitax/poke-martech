@@ -2,6 +2,7 @@
 
 import { Booster3D } from "@/components/booster-3d/booster-3d";
 import { Button } from "@/components/ui/button";
+import { FormPanelSkeleton, LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { Disclosure } from "@/components/ui/disclosure";
 import { ImageDropzone } from "@/components/ui/image-dropzone";
 import { Input, Label, Textarea } from "@/components/ui/input";
@@ -19,8 +20,14 @@ import {
 
 function BoosterForm({ boosterId }: { boosterId?: string }) {
   const form = useBoosterForm(boosterId);
-  if (form.isLoading)
-    return <p className="text-foreground-subtle">Carregando pacote...</p>;
+  if (form.isLoading) {
+    return (
+      <LoadingScreen label="Carregando pacote" className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_16rem]">
+        <FormPanelSkeleton fields={5} />
+        <Skeleton className="mx-auto aspect-[2/3] w-full max-w-64 rounded-2xl" />
+      </LoadingScreen>
+    );
+  }
   if (form.isMissing)
     return <p className="text-destructive">Pacote não encontrado.</p>;
   const values = form.form;

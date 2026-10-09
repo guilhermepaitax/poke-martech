@@ -1,25 +1,66 @@
 "use client";
 
-import Link from "next/link";
 import { HoloCard } from "@/components/holo-card/holo-card";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { EnergyChip } from "@/components/ui/energy-chip";
 import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
+import { useInfiniteSlice } from "@/hooks/use-infinite-slice";
 import { formatCardNumber } from "@/lib/card-number";
+import { cn } from "@/lib/utils";
 import type { PokedexEntry } from "@/types/catalog";
+import { BookOpen, Search } from "lucide-react";
+import Link from "next/link";
 import { UndiscoveredCard } from "./undiscovered-card";
 import { usePokedexFilters } from "./use-pokedex-filters";
+
+type GridEntry = PokedexEntry & { viewerOwns?: boolean };
 
 function PokedexGrid({
   entries,
   ownedOnly = false,
+  markMissing = false,
+  emptyPlacement = "section",
+  onPropose,
 }: {
-  entries: PokedexEntry[];
+  entries: GridEntry[];
   ownedOnly?: boolean;
+  markMissing?: boolean;
+  emptyPlacement?: "fill" | "section";
+  onPropose?: (entry: GridEntry) => void;
 }) {
-  const listed = ownedOnly ? entries.filter((entry) => entry.ownedCount > 0) : entries;
+  const listed = ownedOnly
+    ? entries.filter((entry) => entry.ownedCount > 0)
+    : entries;
+  const ownership = new Map(
+    entries.map((entry) => [entry.id, entry.viewerOwns]),
+  );
   const filters = usePokedexFilters(listed);
-  const progress = filters.total === 0 ? 0 : (filters.owned / filters.total) * 100;
+  const {
+    visible: shown,
+    hasMore,
+    sentinelRef,
+  } = useInfiniteSlice(filters.visible);
+  const progress =
+    filters.total === 0 ? 0 : (filters.owned / filters.total) * 100;
+
+  if (listed.length === 0) {
+    return (
+      <EmptyState
+        placement={emptyPlacement}
+        icon={BookOpen}
+        title={
+          ownedOnly ? "Nenhuma carta na coleção" : "Nenhuma carta publicada"
+        }
+        description={
+          ownedOnly
+            ? "As cartas que este treinador já obteve aparecem nesta grade."
+            : "Quando uma carta for publicada no catálogo, ela entra na Pokédex."
+        }
+      />
+    );
+  }
 
   return (
     <div data-slot="pokedex-grid" className="flex flex-col gap-5">
@@ -33,7 +74,10 @@ function PokedexGrid({
             {filters.owned} de {filters.total} cartas
           </p>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/70">
-            <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
+            <div
+              className="h-full rounded-full bg-primary"
+              style={{ width: `${progress}%` }}
+            />
           </div>
         </div>
       )}
@@ -74,36 +118,68 @@ function PokedexGrid({
           ]}
         />
       </div>
-      {listed.length === 0 ? (
-        <p className="text-foreground-subtle">
-          {ownedOnly ? "Nenhuma carta obtida." : "Nenhuma carta publicada."}
-        </p>
-      ) : filters.visible.length === 0 ? (
-        <p className="text-foreground-subtle">Nenhuma carta com esse filtro.</p>
+      {filters.visible.length === 0 ? (
+        <EmptyState
+          placement="section"
+          icon={Search}
+          title="Nenhuma carta com esse filtro"
+          description="Tente outro nome, tipo ou ordem. A coleção continua inteira por baixo da busca."
+        />
       ) : (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {filters.visible.map((entry) => (
-            <li key={entry.id}>
-              {entry.card ? (
-                <Link
-                  href={`/pokedex/${entry.id}`}
-                  className="flex h-full flex-col gap-2 rounded-[4%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <HoloCard {...entry.card} />
-                  <p className="text-center text-sm font-semibold tabular-nums text-foreground-subtle">
-                    {formatCardNumber(entry.number)}
-                  </p>
-                  <p className="text-center text-sm text-foreground-subtle">
-                    {entry.ownedCount} {entry.ownedCount === 1 ? "cópia" : "cópias"}
-                  </p>
-                </Link>
-              ) : (
-                <UndiscoveredCard number={entry.number} />
-              )}
-            </li>
-          ))}
+          {shown.map((entry) => {
+            const missing = markMissing && ownership.get(entry.id) === false;
+            return (
+              <li key={entry.id} className="flex flex-col gap-2">
+                {entry.card ? (
+                  <>
+                    <Link
+                      href={`/pokedex/${entry.id}`}
+                      className="flex flex-col gap-2 rounded-[4%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <div className={cn(missing && "opacity-20 grayscale")}>
+                        <HoloCard {...entry.card} />
+                      </div>
+                      <p className="text-center text-sm font-semibold tabular-nums text-foreground-subtle">
+                        {formatCardNumber(entry.number)}
+                      </p>
+                      <p className="text-center text-sm text-foreground-subtle">
+                        {entry.ownedCount}{" "}
+                        {entry.ownedCount === 1 ? "cópia" : "cópias"}
+                      </p>
+                    </Link>
+                    {missing ? (
+                      <p className="text-center text-sm text-foreground-subtle">
+                        Você não tem
+                      </p>
+                    ) : null}
+                    {onPropose ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onPropose(entry)}
+                      >
+                        Propor troca
+                      </Button>
+                    ) : null}
+                  </>
+                ) : (
+                  <UndiscoveredCard number={entry.number} />
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
+      {hasMore ? (
+        <p
+          ref={sentinelRef}
+          data-slot="pokedex-scroll-sentinel"
+          className="text-center text-sm text-foreground-subtle"
+        >
+          Role para ver mais
+        </p>
+      ) : null}
     </div>
   );
 }

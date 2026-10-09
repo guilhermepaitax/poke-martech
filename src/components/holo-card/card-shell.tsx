@@ -20,7 +20,7 @@ function CardShell({
     <div
       data-slot="card-shell"
       data-finish={finish}
-      className="absolute inset-0 flex flex-col overflow-hidden rounded-[6%] p-[3.5%] text-[4.5cqw] backface-hidden"
+      className="absolute inset-0 flex flex-col overflow-hidden rounded-[4%] p-[3.5%] text-[4.5cqw] backface-hidden"
       style={{ background: `var(--card-frame-${finish})` }}
     >
       <div aria-hidden className="card-sheen" />

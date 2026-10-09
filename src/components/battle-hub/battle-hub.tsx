@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ListSkeleton, LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { useBattleDecks } from "@/hooks/use-battle-decks";
 import { useBattleHub, useStartBattle } from "@/hooks/use-battle";
 import { DIFFICULTY_LABELS } from "@/lib/value-objects/battle";
 import { cn } from "@/lib/utils";
-import { Swords } from "lucide-react";
+import { Layers, Swords } from "lucide-react";
 
 function BattleHub() {
   const hub = useBattleHub();
@@ -21,7 +23,34 @@ function BattleHub() {
   const selectedDeck = deckId || decks.data?.[0]?.id || "";
   const selectedOpponent = opponentId || hub.data?.opponents[0]?.id || "";
 
-  if (hub.isLoading || decks.isLoading) return <p className="text-foreground-subtle">Carregando o ginásio...</p>;
+  if (hub.isLoading || decks.isLoading) {
+    return (
+      <LoadingScreen label="Carregando o ginásio" className="flex flex-col gap-6">
+        <div className="flex items-end justify-between gap-3">
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-9 w-56" />
+          </div>
+          <Skeleton className="h-10 w-28 rounded-full" />
+        </div>
+        <Skeleton className="h-6 w-48" />
+        <div className="grid gap-3 sm:grid-cols-2">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div key={index} className="glass flex items-center gap-3 rounded-3xl p-3">
+              <Skeleton className="size-14 shrink-0 rounded-full" />
+              <div className="flex flex-1 flex-col gap-2">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <Skeleton className="h-6 w-24" />
+        <ListSkeleton count={3} thumb="none" lines={1} />
+        <Skeleton className="h-10 w-28 rounded-full" />
+      </LoadingScreen>
+    );
+  }
   if (hub.isError) return <p className="text-destructive">Não foi possível carregar as batalhas.</p>;
 
   return (
@@ -79,7 +108,12 @@ function BattleHub() {
             ))}
           </ul>
         ) : (
-          <p className="text-foreground-subtle">Nenhum adversário disponível no momento.</p>
+          <EmptyState
+            placement="section"
+            icon={Swords}
+            title="Nenhum adversário no ginásio"
+            description="Os treinadores ativos cadastrados no admin aparecem aqui para uma batalha casual."
+          />
         )}
       </section>
       <section className="flex flex-col gap-3">
@@ -104,7 +138,17 @@ function BattleHub() {
             ))}
           </ul>
         ) : (
-          <p className="text-foreground-subtle">Monte um deck de 20 cartas para batalhar.</p>
+          <EmptyState
+            placement="section"
+            icon={Layers}
+            title="Nenhum deck pronto"
+            description="Monte um deck de 20 cartas da sua coleção para começar uma batalha."
+            action={
+              <Link href="/batalha/decks/novo" className={buttonVariants()}>
+                Novo deck
+              </Link>
+            }
+          />
         )}
       </section>
       {start.error ? <p className="text-sm text-destructive">{start.error.message}</p> : null}

@@ -191,12 +191,19 @@ const forfeitBattleSchema = z.object({
   version: z.number().int().min(0),
 });
 
+const createTradeSchema = z.object({
+  targetUsername: z.string().trim().min(1),
+  requestedCardId: z.string().uuid(),
+  offeredCardId: z.string().uuid(),
+});
+
 export {
   battleDeckSchema,
   battleOpponentSchema,
   boosterSchema,
   cardGenerationSchema,
   cardSchema,
+  createTradeSchema,
   forfeitBattleSchema,
   rarityWeightsSchema,
   startBattleSchema,

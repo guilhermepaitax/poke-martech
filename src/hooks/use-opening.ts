@@ -24,4 +24,4 @@ function usePublicProfile(username: string) {
   });
 }
 
-export { useOpening, usePublicProfile };
+export { publicProfileKeys, useOpening, usePublicProfile };

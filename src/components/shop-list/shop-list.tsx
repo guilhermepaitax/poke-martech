@@ -2,21 +2,41 @@
 
 import { Booster3D } from "@/components/booster-3d/booster-3d";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState, screenColumnClass } from "@/components/ui/empty-state";
+import { LoadingScreen, ShopGridSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { useBoosters } from "@/hooks/use-boosters";
+import { cn } from "@/lib/utils";
 import { FINISH_LABELS, RARITY_LABELS } from "@/lib/value-objects/card";
+import { Package } from "lucide-react";
 import Link from "next/link";
 
 function ShopList() {
   const boosters = useBoosters();
 
-  if (boosters.isLoading)
-    return <p className="text-foreground-subtle">Carregando loja...</p>;
+  if (boosters.isLoading) {
+    return (
+      <LoadingScreen label="Carregando loja" className="flex flex-col gap-6">
+        <Skeleton className="h-10 w-24" />
+        <ShopGridSkeleton />
+      </LoadingScreen>
+    );
+  }
   if (boosters.isError)
     return (
       <p className="text-destructive">Não foi possível carregar a loja.</p>
     );
   if (!boosters.data?.length) {
-    return <p className="text-foreground-subtle">Nenhum pacote à venda.</p>;
+    return (
+      <div data-slot="shop-list" className={cn(screenColumnClass, "gap-6")}>
+        <h1 className="text-4xl font-semibold tracking-tight">Loja</h1>
+        <EmptyState
+          placement="fill"
+          icon={Package}
+          title="Nenhum pacote à venda"
+          description="Quando um pacote estiver ativo no catálogo, ele aparece aqui para você abrir."
+        />
+      </div>
+    );
   }
 
   return (

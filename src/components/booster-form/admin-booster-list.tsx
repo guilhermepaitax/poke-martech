@@ -1,24 +1,45 @@
 "use client";
 
 import Link from "next/link";
+import { Package } from "lucide-react";
 import { FINISH_LABELS, RARITY_LABELS } from "@/lib/value-objects/card";
 import { useAdminBoosters } from "@/hooks/use-admin";
 import { Booster3D } from "@/components/booster-3d/booster-3d";
 import { buttonVariants } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ListSkeleton, LoadingScreen, Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 function AdminBoosterList() {
   const boosters = useAdminBoosters();
-  if (boosters.isLoading) return <p className="text-foreground-subtle">Carregando pacotes...</p>;
+  if (boosters.isLoading) {
+    return (
+      <LoadingScreen label="Carregando pacotes" className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-3">
+          <Skeleton className="h-9 w-32" />
+          <Skeleton className="h-10 w-32 rounded-full" />
+        </div>
+        <ListSkeleton count={4} thumb="pack" />
+      </LoadingScreen>
+    );
+  }
   if (boosters.isError) return <p className="text-destructive">Não foi possível carregar os pacotes.</p>;
+  const items = boosters.data ?? [];
   return (
-    <div data-slot="admin-booster-list" className="flex flex-col gap-4">
+    <div
+      data-slot="admin-booster-list"
+      className={cn(
+        "flex flex-col gap-4",
+        items.length === 0 && "min-h-[calc(100dvh-16rem)] md:min-h-[calc(100dvh-13rem)]",
+      )}
+    >
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold tracking-tight">Pacotes</h1>
         <Link href="/admin/boosters/novo" className={buttonVariants()}>Novo pacote</Link>
       </div>
-      {boosters.data?.length ? (
+      {items.length ? (
         <ul className="flex flex-col gap-2">
-          {boosters.data.map((booster) => (
+          {items.map((booster) => (
             <li key={booster.id}>
               <Link href={`/admin/boosters/${booster.id}`} className="glass flex items-center gap-3 rounded-3xl px-3 py-3">
                 <Booster3D
@@ -45,7 +66,17 @@ function AdminBoosterList() {
           ))}
         </ul>
       ) : (
-        <p className="text-foreground-subtle">Nenhum pacote cadastrado.</p>
+        <EmptyState
+          placement="fill"
+          icon={Package}
+          title="Nenhum pacote cadastrado"
+          description="Monte um pacote com preço, estoque e as cartas que podem sair na abertura."
+          action={
+            <Link href="/admin/boosters/novo" className={buttonVariants()}>
+              Novo pacote
+            </Link>
+          }
+        />
       )}
     </div>
   );

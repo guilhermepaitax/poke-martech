@@ -19,6 +19,7 @@ interface SelectFieldProps {
 function SelectField({ value, onValueChange, options, placeholder, ariaLabel }: SelectFieldProps) {
   return (
     <Select.Root
+      items={options}
       value={value}
       onValueChange={(next) => {
         if (typeof next === "string") onValueChange(next);

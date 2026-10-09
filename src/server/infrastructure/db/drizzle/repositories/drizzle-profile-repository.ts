@@ -12,10 +12,10 @@ import {
   wallets,
 } from "@/server/infrastructure/db/drizzle/schema";
 import { evolutionOriginsFor, toCardFace } from "@/server/infrastructure/db/drizzle/to-card-face";
-import type { PokedexEntry, Profile } from "@/types/catalog";
+import type { PokedexEntry, ProfileBase } from "@/types/catalog";
 
 class DrizzleProfileRepository implements ProfileRepository {
-  async findByUserId(userId: string): Promise<Profile | null> {
+  async findByUserId(userId: string): Promise<ProfileBase | null> {
     const rows = await db
       .select({
         id: user.id,
@@ -112,6 +112,14 @@ class DrizzlePokedexRepository implements PokedexRepository {
       if (!face) return [];
       return [{ id: row.card.id, number: row.card.number, ownedCount: row.ownedCount, card: face }];
     });
+  }
+
+  async ownedCardIds(userId: string): Promise<string[]> {
+    const rows = await db
+      .selectDistinct({ cardId: userCards.cardId })
+      .from(userCards)
+      .where(eq(userCards.userId, userId));
+    return rows.map((row) => row.cardId);
   }
 }
 

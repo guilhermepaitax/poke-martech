@@ -14,12 +14,14 @@ const MEMBERS: Member[] = [
     name: "Mago",
     trait: "dev careca",
     stamps: ["Calva", "Careca", "Mago", "Antonio", "Calvo"],
-    spices: ["Calvo", "Careca", "Liso", "Brincadeira", "Tooltip"],
+    spices: ["Calvo", "Careca", "Brue", "Brincadeira", "Tooltip"],
     flavors: [
       "A careca reflete o monitor e o code review perde o foco.",
       "Raspa a cabeça e o build, milagrosamente, passa.",
       "Sem um fio de cabelo, sobra espaço para mais um import.",
       "O brilho da careca já derrubou duas dailies.",
+      "O problema dele são as brrincadeiras",
+      "Azul brue é sua cor favorita",
     ],
     visual:
       "Cabeça lisa e brilhante, sem um fio de cabelo, postura de quem vive no editor.",
@@ -33,7 +35,7 @@ const MEMBERS: Member[] = [
     flavors: [
       "Virado em um Jiraiya",
       "Cabelo branco, pose de sapo e um pergaminho no lugar do README.",
-      "Invoca o sapo antes de abrir o pull request.",
+      "Sempre anda com um agente de segurança acompanhando",
       "Treina no telhado e commita quando o sol apaga.",
     ],
     visual:
@@ -49,7 +51,6 @@ const MEMBERS: Member[] = [
       "Se aparece uma careca, bufa antes mesmo do oi.",
       "O cabelo volumoso é escudo e argumento.",
       "Recusa pair programming com quem reflete a luz.",
-      "A juba chega na sala primeiro que a pessoa.",
     ],
     visual:
       "Cabelo enorme e cheio, expressão de quem não tolera careca por perto.",
@@ -61,10 +62,10 @@ const MEMBERS: Member[] = [
     stamps: ["Pai", "Paitax", "Papaitax", "Papai"],
     spices: ["Submundo", "Paitax", "Papai"],
     flavors: [
-      "Desce pro submundo como quem abre o terminal.",
-      "Conhece o corredor sem luz melhor que o próprio repositório.",
+      "Opa, bom dia! Pessoal",
+      "Tá bom, não tá?",
+      "Dizem que vivia no submundo, mas não se tem provas",
       "Volta do submundo com um bug novo e zero explicação.",
-      "A sombra entra na daily antes do dono.",
     ],
     visual:
       "Capuz, sombras e um ar de quem frequenta o submundo depois do expediente.",
@@ -76,10 +77,10 @@ const MEMBERS: Member[] = [
     stamps: ["Jão", "João"],
     spices: ["Franja", "Submundo"],
     flavors: [
-      "No submundo a franja continua impecável.",
+      "No submundo, não pode ver uma franja",
       "Prioridade número um: a franja. O deploy que espere.",
       "Coleciona franjudas do mesmo jeito que fecha ticket.",
-      "A franja não desmancha nem quando o servidor cai.",
+      "De dia dev, de noite caminhoneiro",
     ],
     visual:
       "Franja marcada cobrindo a testa, clima de submundo e um sorriso de quem gosta de franjudas.",
@@ -109,7 +110,7 @@ const MEMBERS: Member[] = [
       "A piada sem graça chega antes do response.",
       "O backend aguenta. A mesa, nem sempre.",
       "Conta o trocadilho e o endpoint devolve 500.",
-      "Ri sozinho no review e chama isso de documentação.",
+      "Cria uma música nova para cada bug",
     ],
     visual:
       "Jeito de dev backend contando uma piada sem graça, meio sorriso, zero plateia.",
@@ -123,8 +124,9 @@ const MEMBERS: Member[] = [
     flavors: [
       "Abre o bug, estaciona o BYD e ainda fala do Mickey.",
       "O relatório de QA vem com orelha redonda no canto.",
-      "Reprova a história e oferece carona no BYD.",
-      "Mickey no chaveiro, checklist na outra mão.",
+      "Adora fazer um deploy e ficar parado no trânsito.",
+      "Rei dos testes automatizados",
+      "Pra quem puder e quiser, ele tem uma carona no BYD",
     ],
     visual:
       "Orelhas redondas de Mickey e um detalhe de carro BYD, postura de QA.",
@@ -155,6 +157,7 @@ const MEMBERS: Member[] = [
       "O teste automatizado foge quando escuta o nome.",
       "Um refactor inocente e o CI pede demissão.",
       "Não quebra de propósito. O resultado é o mesmo.",
+      "Rensgaaa! O teste quebrou!",
     ],
     visual:
       "Cercado de testes quebrados e um CI vermelho, ar de quem não fez por mal.",

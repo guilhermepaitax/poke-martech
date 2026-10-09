@@ -3,6 +3,7 @@
 import { Booster3D } from "@/components/booster-3d/booster-3d";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { useBooster, useOpenBooster } from "@/hooks/use-boosters";
 import { useProfile } from "@/hooks/use-profile";
 import { RARITY_LABELS } from "@/lib/value-objects/card";
@@ -16,8 +17,21 @@ function BoosterDetail({ slug }: { slug: string }) {
   const router = useRouter();
   const [confirm, setConfirm] = useState(false);
 
-  if (booster.isLoading)
-    return <p className="text-foreground-subtle">Carregando pacote...</p>;
+  if (booster.isLoading) {
+    return (
+      <LoadingScreen label="Carregando pacote" className="grid items-start gap-8 md:grid-cols-[16rem_1fr]">
+        <Skeleton className="mx-auto aspect-[2/3] w-full max-w-64 rounded-2xl" />
+        <div className="glass flex flex-col gap-4 rounded-3xl p-6">
+          <Skeleton className="h-10 w-2/3" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-4/5" />
+          <Skeleton className="h-9 w-32" />
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-10 w-28 rounded-full" />
+        </div>
+      </LoadingScreen>
+    );
+  }
   if (booster.isError || !booster.data) {
     return <p className="text-destructive">Pacote não encontrado.</p>;
   }
@@ -50,15 +64,17 @@ function BoosterDetail({ slug }: { slug: string }) {
         <p className="text-3xl font-semibold tabular-nums text-yellow-500">
           {item.price} moedas
         </p>
-        <p className="text-sm text-foreground-subtle">
-          {!balanceReady
-            ? "Carregando saldo..."
-            : soldOut
+        {!balanceReady ? (
+          <Skeleton className="h-4 w-40" />
+        ) : (
+          <p className="text-sm text-foreground-subtle">
+            {soldOut
               ? "Este pacote acabou."
               : poor
                 ? `Faltam ${missing} moedas. Você tem ${coins}.`
                 : `Você tem ${coins} moedas.`}
-        </p>
+          </p>
+        )}
         <p>{item.cardsPerPack} cartas por pacote</p>
         <p className="text-sm text-foreground-subtle">
           {item.stock == null

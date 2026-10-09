@@ -4,13 +4,28 @@ import Image from "next/image";
 import Link from "next/link";
 import { RotateCcw } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { CardGridSkeleton, LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { CardGenerationItem } from "./card-generation-item";
 import { CardGenerationStatus } from "./card-generation-status";
 import { useCardGenerationProgress } from "./use-card-generation-progress";
 
 function CardGenerationProgress({ generationId }: { generationId: string }) {
   const progress = useCardGenerationProgress(generationId);
-  if (progress.isLoading) return <p className="text-foreground-subtle">Carregando geração...</p>;
+  if (progress.isLoading) {
+    return (
+      <LoadingScreen label="Carregando geração" className="flex flex-col gap-6">
+        <div className="glass flex flex-col gap-4 rounded-3xl p-5 sm:flex-row sm:items-center">
+          <Skeleton className="size-20 shrink-0 rounded-2xl" />
+          <div className="flex flex-1 flex-col gap-2">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+        <CardGridSkeleton count={4} />
+      </LoadingScreen>
+    );
+  }
   if (progress.isMissing || !progress.detail) return <p className="text-destructive">Geração não encontrada.</p>;
   const detail = progress.detail;
 

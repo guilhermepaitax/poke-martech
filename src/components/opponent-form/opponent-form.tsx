@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { FormPanelSkeleton, LoadingScreen } from "@/components/ui/skeleton";
 import { EnergyChip } from "@/components/ui/energy-chip";
 import { ImageDropzone } from "@/components/ui/image-dropzone";
 import { Input, Label, Textarea } from "@/components/ui/input";
@@ -14,8 +15,13 @@ import { difficultyOptions, useOpponentForm } from "./use-opponent-form";
 
 function OpponentForm({ opponentId }: { opponentId?: string }) {
   const form = useOpponentForm(opponentId);
-  if (form.isLoading)
-    return <p className="text-foreground-subtle">Carregando adversário...</p>;
+  if (form.isLoading) {
+    return (
+      <LoadingScreen label="Carregando adversário">
+        <FormPanelSkeleton fields={5} />
+      </LoadingScreen>
+    );
+  }
   if (form.isMissing)
     return <p className="text-destructive">Adversário não encontrado.</p>;
   const values = form.form;

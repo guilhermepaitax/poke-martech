@@ -1,5 +1,6 @@
 import type { Actor } from "@/server/application/actor";
 import { requireUser } from "@/server/application/authorize";
+import type { FollowRepository } from "@/server/application/contracts/repositories/follow-repository";
 import type {
   PokedexRepository,
   ProfileRepository,
@@ -12,6 +13,7 @@ class GetPublicProfile {
   constructor(
     private readonly profiles: ProfileRepository,
     private readonly pokedex: PokedexRepository,
+    private readonly follows: FollowRepository,
   ) {}
 
   async execute(
@@ -22,15 +24,24 @@ class GetPublicProfile {
     if (!auth.ok) return auth;
     const profile = await this.profiles.findPublicByUsername(input.username.toLowerCase());
     if (!profile) return err(new NotFoundError("Perfil"));
-    const entries = (await this.pokedex.listForUser(profile.id)).filter(
-      (entry) => entry.ownedCount > 0,
-    );
+    const entries = (await this.pokedex.listForUser(profile.id)).filter((entry) => entry.ownedCount > 0);
+    const isSelf = profile.id === auth.value.id;
+    const owned = isSelf ? null : new Set(await this.pokedex.ownedCardIds(auth.value.id));
+    const counts = await this.follows.counts(profile.id);
+    const isFollowing = isSelf ? false : await this.follows.isFollowing(auth.value.id, profile.id);
     return success({
       username: profile.username,
       name: profile.name,
       image: profile.image,
       bio: profile.bio,
-      pokedex: entries,
+      isSelf,
+      isFollowing,
+      followerCount: counts.followers,
+      followingCount: counts.following,
+      pokedex: entries.map((entry) => ({
+        ...entry,
+        viewerOwns: isSelf || (owned?.has(entry.id) ?? false),
+      })),
     });
   }
 }
