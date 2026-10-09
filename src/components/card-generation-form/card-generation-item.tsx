@@ -1,21 +1,24 @@
 import Link from "next/link";
 import { HoloCard } from "@/components/holo-card/holo-card";
+import { withReturnTo } from "@/lib/return-path";
 import { cn } from "@/lib/utils";
 import type { CardGenerationItemView } from "@/types/catalog";
 
 interface CardGenerationItemProps {
   item: CardGenerationItemView;
   active: boolean;
+  returnTo: string;
 }
 
-function CardGenerationItem({ item, active }: CardGenerationItemProps) {
+function CardGenerationItem({ item, active, returnTo }: CardGenerationItemProps) {
   const card = item.card;
+  const href = card ? withReturnTo(`/admin/cartas/${card.id}`, returnTo) : "";
 
   return (
     <li data-slot="card-generation-item" className="flex flex-col gap-2">
       {card ? (
         <Link
-          href={`/admin/cartas/${card.id}`}
+          href={href}
           className="rounded-[4%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <HoloCard
@@ -59,7 +62,7 @@ function CardGenerationItem({ item, active }: CardGenerationItemProps) {
       )}
       <div className="flex flex-col gap-0.5 text-center text-sm text-foreground-subtle">
         {card ? (
-          <Link href={`/admin/cartas/${card.id}`} className="font-semibold text-foreground hover:underline">
+          <Link href={href} className="font-semibold text-foreground hover:underline">
             Revisar {card.name}
           </Link>
         ) : null}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RARITY_LABELS, type Rarity } from "@/lib/value-objects/card";
+import { errorDescription, useToast } from "@/components/ui/toaster";
 import { useRarities, useSaveRarities } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
 import { LoadingScreen, Skeleton } from "@/components/ui/skeleton";
@@ -11,6 +12,7 @@ import type { RarityWeight } from "@/types/catalog";
 function RarityForm() {
   const rarities = useRarities();
   const save = useSaveRarities();
+  const { pushToast } = useToast();
   const [draft, setDraft] = useState<RarityWeight[] | null>(null);
   const form = draft ?? rarities.data ?? [];
 
@@ -36,7 +38,19 @@ function RarityForm() {
       className="glass flex max-w-xl flex-col gap-5 rounded-3xl p-5"
       onSubmit={(event) => {
         event.preventDefault();
-        save.mutate(form, { onSuccess: () => setDraft(null) });
+        save.mutate(form, {
+          onSuccess: () => {
+            setDraft(null);
+            pushToast({ tone: "success", title: "Pesos salvos" });
+          },
+          onError: (error) => {
+            pushToast({
+              tone: "error",
+              title: "Não foi possível salvar os pesos",
+              description: errorDescription(error),
+            });
+          },
+        });
       }}
     >
       <div>
@@ -57,7 +71,6 @@ function RarityForm() {
           />
         </div>
       ))}
-      {save.isError ? <p className="text-sm text-destructive">{save.error.message}</p> : null}
       <div className="flex gap-2">
         <Button type="submit" disabled={save.isPending || draft === null}>Salvar</Button>
         <Button variant="outline" onClick={() => setDraft(null)} disabled={draft === null || save.isPending}>

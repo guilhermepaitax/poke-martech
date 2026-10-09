@@ -7,7 +7,9 @@ import { EnergyChip } from "@/components/ui/energy-chip";
 import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { useInfiniteSlice } from "@/hooks/use-infinite-slice";
+import { useListLocation } from "@/hooks/use-list-location";
 import { formatCardNumber } from "@/lib/card-number";
+import { withReturnTo } from "@/lib/return-path";
 import { cn } from "@/lib/utils";
 import type { PokedexEntry } from "@/types/catalog";
 import { BookOpen, Search } from "lucide-react";
@@ -37,6 +39,7 @@ function PokedexGrid({
     entries.map((entry) => [entry.id, entry.viewerOwns]),
   );
   const filters = usePokedexFilters(listed);
+  const here = useListLocation();
   const {
     visible: shown,
     hasMore,
@@ -134,7 +137,7 @@ function PokedexGrid({
                 {entry.card ? (
                   <>
                     <Link
-                      href={`/pokedex/${entry.id}`}
+                      href={withReturnTo(`/pokedex/${entry.id}`, here)}
                       className="flex flex-col gap-2 rounded-[4%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <div className={cn(missing && "opacity-20 grayscale")}>

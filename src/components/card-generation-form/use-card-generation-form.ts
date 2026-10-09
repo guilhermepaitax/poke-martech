@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useReturnTo } from "@/hooks/use-list-location";
+import { withReturnTo } from "@/lib/return-path";
+import { errorDescription, useToast } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useStartCardGeneration } from "@/hooks/use-admin";
 import { optimizeImage } from "@/lib/image-processing";
@@ -12,6 +15,8 @@ const DEFAULT_COUNT = 3;
 
 function useCardGenerationForm() {
   const router = useRouter();
+  const returnTo = useReturnTo("/admin/cartas");
+  const { pushToast } = useToast();
   const start = useStartCardGeneration();
   const [personName, setPersonName] = useState("");
   const [personDescription, setPersonDescription] = useState("");
@@ -78,7 +83,19 @@ function useCardGenerationForm() {
         sourceUrls,
         count: usesLinks ? null : count,
       },
-      { onSuccess: (result) => router.push(`/admin/cartas/gerar/${result.id}`) },
+      {
+        onSuccess: (result) => {
+          pushToast({ tone: "success", title: "Geração iniciada" });
+          router.push(withReturnTo(`/admin/cartas/gerar/${result.id}`, returnTo));
+        },
+        onError: (error) => {
+          pushToast({
+            tone: "error",
+            title: "Não foi possível iniciar a geração",
+            description: errorDescription(error),
+          });
+        },
+      },
     );
   }
 

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { CardSummary } from "@/types/catalog";
 import {
+  adminCardFiltersFromSearch,
+  adminCardListHref,
   filterAdminCards,
   formatAdminCardCount,
   hasActiveAdminCardFilters,
@@ -73,5 +75,25 @@ describe("admin card filter helpers", () => {
     expect(formatAdminCardCount(3, 3)).toBe("3 cartas");
     expect(formatAdminCardCount(1, 1)).toBe("1 carta");
     expect(formatAdminCardCount(1, 3)).toBe("1 de 3 cartas");
+  });
+
+  it("reads and writes filters in the query string", () => {
+    const params = new URLSearchParams("q=evoli&status=draft&tipo=ux-ui&raridade=rare&pagina=2");
+    expect(adminCardFiltersFromSearch(params)).toEqual({
+      filters: { name: "evoli", status: "draft", energyType: "ux-ui", rarity: "rare" },
+      page: 2,
+    });
+    expect(adminCardFiltersFromSearch(new URLSearchParams("status=nope&pagina=0")).filters.status).toBe("all");
+    expect(
+      adminCardListHref("/admin/cartas", new URLSearchParams(), {
+        name: "evoli",
+        status: "draft",
+        energyType: "ux-ui",
+        rarity: "rare",
+      }, 2),
+    ).toBe("/admin/cartas?q=evoli&status=draft&tipo=ux-ui&raridade=rare&pagina=2");
+    expect(adminCardListHref("/admin/cartas", new URLSearchParams("q=pikachu"), filters, 1)).toBe(
+      "/admin/cartas",
+    );
   });
 });

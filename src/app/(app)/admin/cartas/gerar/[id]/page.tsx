@@ -1,9 +1,11 @@
+import { BackLink } from "@/components/ui/back-link";
 import { CardGenerationProgress } from "@/components/card-generation-form/card-generation-progress";
 
 export default async function CardGenerationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return (
     <div className="flex flex-col gap-4">
+      <BackLink fallback="/admin/cartas" />
       <h1 className="text-2xl font-semibold">Geração de cartas</h1>
       <CardGenerationProgress generationId={id} />
     </div>

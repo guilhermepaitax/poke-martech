@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useReturnTo } from "@/hooks/use-list-location";
+import { errorDescription, useToast } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useAdminBooster, useAdminCards, useSaveBooster } from "@/hooks/use-admin";
 import { optimizeImage } from "@/lib/image-processing";
@@ -25,6 +27,8 @@ const emptyBooster: BoosterInput = {
 
 function useBoosterForm(boosterId?: string) {
   const router = useRouter();
+  const returnTo = useReturnTo("/admin/boosters");
+  const { pushToast } = useToast();
   const existing = useAdminBooster(boosterId ?? "");
   const catalog = useAdminCards();
   const save = useSaveBooster(boosterId);
@@ -87,9 +91,17 @@ function useBoosterForm(boosterId?: string) {
 
   function saveForm() {
     save.mutate(form, {
-      onSuccess: (result) => {
+      onSuccess: () => {
         setDraft(null);
-        router.push(`/admin/boosters/${result.id}`);
+        pushToast({ tone: "success", title: "Pacote salvo" });
+        router.push(returnTo);
+      },
+      onError: (error) => {
+        pushToast({
+          tone: "error",
+          title: "Não foi possível salvar o pacote",
+          description: errorDescription(error),
+        });
       },
     });
   }

@@ -22,6 +22,8 @@ import type {
   CardInput,
   CardSummary,
 } from "@/types/catalog";
+import { useReturnTo } from "@/hooks/use-list-location";
+import { errorDescription, useToast } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -100,6 +102,8 @@ function toInput(card: CardInput): CardInput {
 
 function useCardForm(cardId?: string) {
   const router = useRouter();
+  const returnTo = useReturnTo("/admin/cartas");
+  const { pushToast } = useToast();
   const types = usePokemonTypes();
   const existing = useAdminCard(cardId ?? "");
   const catalog = useAdminCards();
@@ -228,18 +232,32 @@ function useCardForm(cardId?: string) {
         update(portrait);
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha no upload.";
       setUploadError({
         target: "imageUrl",
-        message: error instanceof Error ? error.message : "Falha no upload.",
+        message,
+      });
+      pushToast({
+        tone: "error",
+        title: "Não foi possível salvar a carta",
+        description: message,
       });
       return;
     } finally {
       setOptimizing(false);
     }
     save.mutate(payload, {
-      onSuccess: (result) => {
+      onSuccess: () => {
         setDraft(null);
-        router.push(`/admin/cartas/${result.id}`);
+        pushToast({ tone: "success", title: "Carta salva" });
+        router.push(returnTo);
+      },
+      onError: (error) => {
+        pushToast({
+          tone: "error",
+          title: "Não foi possível salvar a carta",
+          description: errorDescription(error),
+        });
       },
     });
   }

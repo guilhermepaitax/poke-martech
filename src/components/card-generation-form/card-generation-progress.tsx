@@ -1,8 +1,10 @@
 "use client";
 
+import { RotateCcw } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { RotateCcw } from "lucide-react";
+import { useListLocation, useReturnTo } from "@/hooks/use-list-location";
+import { withReturnTo } from "@/lib/return-path";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CardGridSkeleton, LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { CardGenerationItem } from "./card-generation-item";
@@ -11,6 +13,8 @@ import { useCardGenerationProgress } from "./use-card-generation-progress";
 
 function CardGenerationProgress({ generationId }: { generationId: string }) {
   const progress = useCardGenerationProgress(generationId);
+  const here = useListLocation();
+  const listHref = useReturnTo("/admin/cartas");
   if (progress.isLoading) {
     return (
       <LoadingScreen label="Carregando geração" className="flex flex-col gap-6">
@@ -54,12 +58,11 @@ function CardGenerationProgress({ generationId }: { generationId: string }) {
               Tentar novamente
             </Button>
           ) : null}
-          <Link href="/admin/cartas/gerar" className={buttonVariants({ variant: "outline" })}>
+          <Link href={withReturnTo("/admin/cartas/gerar", listHref)} className={buttonVariants({ variant: "outline" })}>
             Nova geração
           </Link>
         </div>
       </div>
-      {progress.retryError ? <p className="text-sm text-destructive">{progress.retryError.message}</p> : null}
       {progress.active ? (
         <p className="text-sm text-foreground-subtle">
           A IA está criando as cartas. Isso pode levar alguns minutos; você pode sair desta página.
@@ -67,7 +70,7 @@ function CardGenerationProgress({ generationId }: { generationId: string }) {
       ) : null}
       <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {detail.items.map((item) => (
-          <CardGenerationItem key={item.id} item={item} active={progress.active} />
+          <CardGenerationItem key={item.id} item={item} active={progress.active} returnTo={here} />
         ))}
       </ul>
       {detail.doneCount > 0 ? (

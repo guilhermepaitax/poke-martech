@@ -1,3 +1,4 @@
+import { hrefWithQuery } from "@/lib/search-href";
 import { isEnergyType, isRarity, type EnergyType, type Rarity } from "@/lib/value-objects/card";
 import type { CardSummary } from "@/types/catalog";
 
@@ -64,7 +65,46 @@ function parseRarityFilter(value: string): AdminCardFilterState["rarity"] | null
   return isRarity(value) ? value : null;
 }
 
+function parsePage(value: string | null) {
+  if (!value) return 1;
+  const page = Number(value);
+  if (!Number.isInteger(page) || page < 1) return 1;
+  return page;
+}
+
+function adminCardFiltersFromSearch(params: URLSearchParams) {
+  const status = params.get("status");
+  const energyType = parseEnergyTypeFilter(params.get("tipo") ?? "all");
+  const rarity = parseRarityFilter(params.get("raridade") ?? "all");
+  return {
+    filters: {
+      name: params.get("q") ?? "",
+      status: status && isCardListStatus(status) ? status : "all",
+      energyType: energyType ?? "all",
+      rarity: rarity ?? "all",
+    } satisfies AdminCardFilterState,
+    page: parsePage(params.get("pagina")),
+  };
+}
+
+function adminCardListHref(
+  pathname: string,
+  current: URLSearchParams,
+  filters: AdminCardFilterState,
+  page: number,
+) {
+  return hrefWithQuery(pathname, current, {
+    q: filters.name || null,
+    status: filters.status === "all" ? null : filters.status,
+    tipo: filters.energyType === "all" ? null : filters.energyType,
+    raridade: filters.rarity === "all" ? null : filters.rarity,
+    pagina: page > 1 ? String(page) : null,
+  });
+}
+
 export {
+  adminCardFiltersFromSearch,
+  adminCardListHref,
   DEFAULT_ADMIN_CARD_FILTERS,
   filterAdminCards,
   formatAdminCardCount,

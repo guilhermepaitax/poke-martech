@@ -1,19 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeftRight } from "lucide-react";
 import { EmptyState, screenColumnClass } from "@/components/ui/empty-state";
 import { ProposalSkeleton } from "@/components/ui/skeleton";
 import { SegmentedControl } from "@/components/ui/segmented-control";
+import { hrefWithQuery } from "@/lib/search-href";
 import { useTrades } from "@/hooks/use-social";
 import { cn } from "@/lib/utils";
 import { TradeProposalList } from "./trade-proposal-list";
 
 function TradeBoard() {
-  const [box, setBox] = useState<"incoming" | "outgoing">("incoming");
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const box = searchParams.get("caixa") === "outgoing" ? "outgoing" : "incoming";
   const trades = useTrades(box);
 
   const empty = trades.data?.length === 0;
+
+  function setBox(value: string) {
+    router.replace(
+      hrefWithQuery(pathname, searchParams, { caixa: value === "outgoing" ? "outgoing" : null }),
+      { scroll: false },
+    );
+  }
 
   return (
     <div
@@ -29,7 +40,7 @@ function TradeBoard() {
       <SegmentedControl
         ariaLabel="Caixa de propostas"
         value={box}
-        onValueChange={(value) => setBox(value as "incoming" | "outgoing")}
+        onValueChange={setBox}
         options={[
           { value: "incoming", label: "Recebidas" },
           { value: "outgoing", label: "Enviadas" },

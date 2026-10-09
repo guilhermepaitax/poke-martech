@@ -278,7 +278,6 @@ function CardForm({ cardId }: { cardId?: string }) {
             <Textarea id="flavor" value={values.flavorText} onChange={(event) => form.update({ flavorText: event.target.value })} />
           </div>
         </Disclosure>
-        {form.error ? <p className="text-sm text-destructive">{form.error.message}</p> : null}
         <Button type="submit" disabled={form.isPending || !form.isDirty}>
           {form.optimizing ? "Otimizando imagem..." : "Salvar carta"}
         </Button>

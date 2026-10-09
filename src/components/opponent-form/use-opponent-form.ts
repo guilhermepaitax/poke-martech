@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useReturnTo } from "@/hooks/use-list-location";
+import { errorDescription, useToast } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useAdminCards, useAdminOpponent, useSaveOpponent } from "@/hooks/use-admin";
 import { deriveEnergyTypes, MAX_COPIES } from "@/lib/battle/deck-rules";
@@ -26,6 +28,8 @@ const emptyOpponent: BattleOpponentInput = {
 
 function useOpponentForm(opponentId?: string) {
   const router = useRouter();
+  const returnTo = useReturnTo("/admin/adversarios");
+  const { pushToast } = useToast();
   const existing = useAdminOpponent(opponentId ?? "");
   const catalog = useAdminCards();
   const save = useSaveOpponent(opponentId);
@@ -100,7 +104,19 @@ function useOpponentForm(opponentId?: string) {
   function saveForm() {
     save.mutate(
       { ...form, energyTypes: form.energyTypes.length ? form.energyTypes : availableEnergy },
-      { onSuccess: (result) => router.push(`/admin/adversarios/${result.id}`) },
+      {
+        onSuccess: () => {
+          pushToast({ tone: "success", title: "Adversário salvo" });
+          router.push(returnTo);
+        },
+        onError: (error) => {
+          pushToast({
+            tone: "error",
+            title: "Não foi possível salvar o adversário",
+            description: errorDescription(error),
+          });
+        },
+      },
     );
   }
 

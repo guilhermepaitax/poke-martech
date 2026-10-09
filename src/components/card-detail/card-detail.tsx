@@ -3,10 +3,13 @@
 import { CardZoomDialog } from "@/components/holo-card/card-zoom-dialog";
 import { HoloCard } from "@/components/holo-card/holo-card";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { BackLink } from "@/components/ui/back-link";
 import { EmptyState } from "@/components/ui/empty-state";
 import { EnergyMark } from "@/components/ui/energy-chip";
 import { LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { useCard } from "@/hooks/use-pokedex";
+import { useReturnTo } from "@/hooks/use-list-location";
+import { withReturnTo } from "@/lib/return-path";
 import { formatCardNumber } from "@/lib/card-number";
 import { energyStyle } from "@/lib/type-appearance";
 import { attackDescription } from "@/lib/value-objects/attack-effect";
@@ -17,10 +20,13 @@ import { useState } from "react";
 
 function CardDetail({ id }: { id: string }) {
   const card = useCard(id);
+  const returnTo = useReturnTo("/pokedex");
   const [zoomed, setZoomed] = useState(false);
   if (card.isLoading) {
     return (
-      <LoadingScreen
+      <div className="flex flex-col gap-4">
+        <BackLink fallback="/pokedex" />
+        <LoadingScreen
         label="Carregando carta"
         className="grid items-start gap-8 lg:grid-cols-[18rem_1fr]"
       >
@@ -40,11 +46,14 @@ function CardDetail({ id }: { id: string }) {
           </div>
         </div>
       </LoadingScreen>
+      </div>
     );
   }
   if (card.isError || !card.data) {
     return (
-      <EmptyState
+      <div className="flex flex-col gap-4">
+        <BackLink fallback="/pokedex" />
+        <EmptyState
         placement="page"
         icon={Layers}
         title="Você ainda não tem essa carta"
@@ -54,7 +63,8 @@ function CardDetail({ id }: { id: string }) {
             Ir para a loja
           </Link>
         }
-      />
+        />
+      </div>
     );
   }
   const item = card.data;
@@ -85,10 +95,12 @@ function CardDetail({ id }: { id: string }) {
   };
 
   return (
-    <div
-      data-slot="card-detail"
-      className="grid items-start gap-8 lg:grid-cols-[18rem_1fr]"
-    >
+    <div className="flex flex-col gap-4">
+      <BackLink fallback="/pokedex" />
+      <div
+        data-slot="card-detail"
+        className="grid items-start gap-8 lg:grid-cols-[18rem_1fr]"
+      >
       <div className="flex flex-col items-center justify-center gap-3">
         <button
           type="button"
@@ -170,7 +182,7 @@ function CardDetail({ id }: { id: string }) {
           ) : null}
           {item.evolvesFromId ? (
             <Link
-              href={`/pokedex/${item.evolvesFromId}`}
+              href={withReturnTo(`/pokedex/${item.evolvesFromId}`, returnTo)}
               className="text-sm font-semibold text-primary"
             >
               Ver estágio anterior
@@ -220,6 +232,7 @@ function CardDetail({ id }: { id: string }) {
           </p>
         ) : null}
       </div>
+    </div>
     </div>
   );
 }

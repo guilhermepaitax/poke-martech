@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Package } from "lucide-react";
 import { FINISH_LABELS, RARITY_LABELS } from "@/lib/value-objects/card";
 import { useAdminBoosters } from "@/hooks/use-admin";
+import { useListLocation } from "@/hooks/use-list-location";
+import { withReturnTo } from "@/lib/return-path";
 import { Booster3D } from "@/components/booster-3d/booster-3d";
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -12,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 function AdminBoosterList() {
   const boosters = useAdminBoosters();
+  const here = useListLocation();
   if (boosters.isLoading) {
     return (
       <LoadingScreen label="Carregando pacotes" className="flex flex-col gap-4">
@@ -35,13 +38,13 @@ function AdminBoosterList() {
     >
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold tracking-tight">Pacotes</h1>
-        <Link href="/admin/boosters/novo" className={buttonVariants()}>Novo pacote</Link>
+        <Link href={withReturnTo("/admin/boosters/novo", here)} className={buttonVariants()}>Novo pacote</Link>
       </div>
       {items.length ? (
         <ul className="flex flex-col gap-2">
           {items.map((booster) => (
             <li key={booster.id}>
-              <Link href={`/admin/boosters/${booster.id}`} className="glass flex items-center gap-3 rounded-3xl px-3 py-3">
+              <Link href={withReturnTo(`/admin/boosters/${booster.id}`, here)} className="glass flex items-center gap-3 rounded-3xl px-3 py-3">
                 <Booster3D
                   className="w-10 shrink-0"
                   name={booster.name}
@@ -72,7 +75,7 @@ function AdminBoosterList() {
           title="Nenhum pacote cadastrado"
           description="Monte um pacote com preço, estoque e as cartas que podem sair na abertura."
           action={
-            <Link href="/admin/boosters/novo" className={buttonVariants()}>
+            <Link href={withReturnTo("/admin/boosters/novo", here)} className={buttonVariants()}>
               Novo pacote
             </Link>
           }

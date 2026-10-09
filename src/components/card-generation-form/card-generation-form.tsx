@@ -76,7 +76,6 @@ function CardGenerationForm() {
             </div>
           )}
         </div>
-        {form.error ? <p className="text-sm text-destructive">{form.error.message}</p> : null}
         <Button type="submit" disabled={!form.canSubmit}>
           <Sparkles className="size-4" />
           {form.isPending ? "Enviando..." : `Gerar ${form.totalCards} ${form.totalCards === 1 ? "carta" : "cartas"}`}

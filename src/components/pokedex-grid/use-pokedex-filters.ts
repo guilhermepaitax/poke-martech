@@ -1,23 +1,31 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { usePokemonTypes } from "@/hooks/use-pokemon-types";
 import { ENERGY_TYPES, RARITY_RANK, type EnergyType } from "@/lib/value-objects/card";
 import type { PokedexEntry, PokemonType } from "@/types/catalog";
-
-type SortKey = "number" | "name" | "hp" | "rarity";
+import { pokedexFiltersFromSearch, pokedexListHref, type SortKey } from "./pokedex-filter-params";
 
 function usePokedexFilters(entries: PokedexEntry[]) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const catalog = usePokemonTypes();
   const types: PokemonType[] = catalog.data?.length
     ? catalog.data
     : ENERGY_TYPES.map((code) => ({ code, name: code }));
-  const [query, setQuery] = useState("");
-  const [type, setType] = useState<EnergyType | "all">("all");
-  const [sort, setSort] = useState<SortKey>("number");
+  const search = searchParams.toString();
+  const { query, type, sort } = useMemo(
+    () => pokedexFiltersFromSearch(new URLSearchParams(search)),
+    [search],
+  );
+  const [draftQuery, setDraftQuery] = useState<string | null>(null);
+  if (draftQuery !== null && draftQuery === query) setDraftQuery(null);
+  const shownQuery = draftQuery ?? query;
 
   const visible = useMemo(() => {
-    const term = query.trim().toLowerCase();
+    const term = shownQuery.trim().toLowerCase();
     return entries
       .filter((entry) => {
         const face = entry.card;
@@ -35,17 +43,31 @@ function usePokedexFilters(entries: PokedexEntry[]) {
         if (sort === "rarity") return RARITY_RANK[right.card.rarity] - RARITY_RANK[left.card.rarity];
         return left.card.name.localeCompare(right.card.name, "pt-BR");
       });
-  }, [entries, query, sort, type]);
+  }, [entries, shownQuery, sort, type]);
 
   const owned = entries.filter((entry) => entry.ownedCount > 0).length;
 
+  function commit(next: { query?: string; type?: EnergyType | "all"; sort?: SortKey }) {
+    router.replace(
+      pokedexListHref(pathname, searchParams, {
+        query: next.query ?? shownQuery,
+        type: next.type ?? type,
+        sort: next.sort ?? sort,
+      }),
+      { scroll: false },
+    );
+  }
+
   return {
-    query,
-    setQuery,
+    query: shownQuery,
+    setQuery: (value: string) => {
+      setDraftQuery(value);
+      commit({ query: value });
+    },
     type,
-    setType,
+    setType: (value: EnergyType | "all") => commit({ type: value }),
     sort,
-    setSort,
+    setSort: (value: SortKey) => commit({ sort: value }),
     visible,
     owned,
     total: entries.length,

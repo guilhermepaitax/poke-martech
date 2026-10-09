@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { useCardGenerations } from "@/hooks/use-admin";
+import { useListLocation } from "@/hooks/use-list-location";
+import { withReturnTo } from "@/lib/return-path";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CardGenerationStatus } from "./card-generation-status";
@@ -12,6 +14,7 @@ const dateFormat = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeSt
 
 function CardGenerationHistory() {
   const generations = useCardGenerations();
+  const here = useListLocation();
 
   return (
     <aside data-slot="card-generation-history" className="glass flex flex-col gap-3 rounded-3xl p-4 lg:sticky lg:top-28">
@@ -43,7 +46,7 @@ function CardGenerationHistory() {
         {generations.data?.map((generation) => (
           <li key={generation.id}>
             <Link
-              href={`/admin/cartas/gerar/${generation.id}`}
+              href={withReturnTo(`/admin/cartas/gerar/${generation.id}`, here)}
               className="flex items-center gap-3 rounded-2xl px-2 py-2 hover:bg-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <span className="relative size-10 shrink-0 overflow-hidden rounded-xl bg-muted">

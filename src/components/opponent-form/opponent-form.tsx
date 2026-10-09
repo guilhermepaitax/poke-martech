@@ -174,9 +174,6 @@ function OpponentForm({ opponentId }: { opponentId?: string }) {
           </ul>
         </div>
       </div>
-      {form.error ? (
-        <p className="text-sm text-destructive">{form.error.message}</p>
-      ) : null}
       <Button type="submit" disabled={form.isPending || !form.isDirty}>
         Salvar adversário
       </Button>

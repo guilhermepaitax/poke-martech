@@ -8,12 +8,15 @@ import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton, LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { useAdminOpponents } from "@/hooks/use-admin";
+import { useListLocation } from "@/hooks/use-list-location";
+import { withReturnTo } from "@/lib/return-path";
 import { FEATURE_FLAGS } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 import { DIFFICULTY_LABELS } from "@/lib/value-objects/battle";
 
 function AdminOpponentList() {
   const opponents = useAdminOpponents();
+  const here = useListLocation();
   const registrationEnabled = useFeatureFlag(FEATURE_FLAGS.opponentRegistration);
   if (opponents.isLoading) {
     return (
@@ -39,14 +42,14 @@ function AdminOpponentList() {
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold tracking-tight">Adversários</h1>
         {registrationEnabled ? (
-          <Link href="/admin/adversarios/novo" className={buttonVariants()}>Novo adversário</Link>
+          <Link href={withReturnTo("/admin/adversarios/novo", here)} className={buttonVariants()}>Novo adversário</Link>
         ) : null}
       </div>
       {items.length ? (
         <ul className="flex flex-col gap-2">
           {items.map((opponent) => (
             <li key={opponent.id}>
-              <Link href={`/admin/adversarios/${opponent.id}`} className="glass flex items-center gap-3 rounded-3xl px-3 py-3">
+              <Link href={withReturnTo(`/admin/adversarios/${opponent.id}`, here)} className="glass flex items-center gap-3 rounded-3xl px-3 py-3">
                 <span className="relative size-12 shrink-0 overflow-hidden rounded-full bg-muted">
                   {opponent.avatarUrl ? <Image src={opponent.avatarUrl} alt="" fill className="object-cover" sizes="48px" /> : null}
                 </span>
@@ -69,7 +72,7 @@ function AdminOpponentList() {
           description="Cadastre um treinador com deck e recompensa para ele aparecer no ginásio."
           action={
             registrationEnabled ? (
-              <Link href="/admin/adversarios/novo" className={buttonVariants()}>
+              <Link href={withReturnTo("/admin/adversarios/novo", here)} className={buttonVariants()}>
                 Novo adversário
               </Link>
             ) : null

@@ -1,8 +1,10 @@
 "use client";
 
 import { Booster3D } from "@/components/booster-3d/booster-3d";
+import { BackLink } from "@/components/ui/back-link";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { errorDescription, useToast } from "@/components/ui/toaster";
 import { LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { useBooster, useOpenBooster } from "@/hooks/use-boosters";
 import { useProfile } from "@/hooks/use-profile";
@@ -15,11 +17,14 @@ function BoosterDetail({ slug }: { slug: string }) {
   const profile = useProfile();
   const open = useOpenBooster(slug);
   const router = useRouter();
+  const { pushToast } = useToast();
   const [confirm, setConfirm] = useState(false);
 
   if (booster.isLoading) {
     return (
-      <LoadingScreen label="Carregando pacote" className="grid items-start gap-8 md:grid-cols-[16rem_1fr]">
+      <div className="flex flex-col gap-4">
+        <BackLink fallback="/loja" />
+        <LoadingScreen label="Carregando pacote" className="grid items-start gap-8 md:grid-cols-[16rem_1fr]">
         <Skeleton className="mx-auto aspect-[2/3] w-full max-w-64 rounded-2xl" />
         <div className="glass flex flex-col gap-4 rounded-3xl p-6">
           <Skeleton className="h-10 w-2/3" />
@@ -30,10 +35,16 @@ function BoosterDetail({ slug }: { slug: string }) {
           <Skeleton className="h-10 w-28 rounded-full" />
         </div>
       </LoadingScreen>
+      </div>
     );
   }
   if (booster.isError || !booster.data) {
-    return <p className="text-destructive">Pacote não encontrado.</p>;
+    return (
+      <div className="flex flex-col gap-4">
+        <BackLink fallback="/loja" />
+        <p className="text-destructive">Pacote não encontrado.</p>
+      </div>
+    );
   }
 
   const item = booster.data;
@@ -44,10 +55,9 @@ function BoosterDetail({ slug }: { slug: string }) {
   const missing = Math.max(0, item.price - coins);
 
   return (
-    <div
-      data-slot="booster-detail"
-      className="grid items-start gap-8 md:grid-cols-[16rem_1fr]"
-    >
+    <div data-slot="booster-detail" className="flex flex-col gap-4">
+      <BackLink fallback="/loja" />
+      <div className="grid items-start gap-8 md:grid-cols-[16rem_1fr]">
       <Booster3D
         className="mx-auto w-full max-w-64"
         name={item.name}
@@ -96,7 +106,17 @@ function BoosterDetail({ slug }: { slug: string }) {
           pending={open.isPending}
           onConfirm={() => {
             open.mutate(undefined, {
-              onSuccess: (opening) => router.push(`/abertura/${opening.id}`),
+              onSuccess: (opening) => {
+                pushToast({ tone: "success", title: "Pacote comprado" });
+                router.push(`/abertura/${opening.id}`);
+              },
+              onError: (error) => {
+                pushToast({
+                  tone: "error",
+                  title: "Não foi possível comprar o pacote",
+                  description: errorDescription(error),
+                });
+              },
             });
           }}
         >
@@ -107,10 +127,8 @@ function BoosterDetail({ slug }: { slug: string }) {
             {soldOut ? "Esgotado" : poor ? "Moedas insuficientes" : "Comprar"}
           </Button>
         </ConfirmDialog>
-        {open.isError ? (
-          <p className="text-sm text-destructive">{open.error.message}</p>
-        ) : null}
       </div>
+    </div>
     </div>
   );
 }

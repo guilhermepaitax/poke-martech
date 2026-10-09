@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useReturnTo } from "@/hooks/use-list-location";
 import { useState } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { BackLink } from "@/components/ui/back-link";
+import { Button } from "@/components/ui/button";
+import { errorDescription, useToast } from "@/components/ui/toaster";
 import { CardGridSkeleton, LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { EnergyChip } from "@/components/ui/energy-chip";
 import { Input } from "@/components/ui/input";
@@ -19,6 +21,8 @@ import type { DeckCardInput } from "@/types/battle";
 
 function DeckBuilder({ deckId }: { deckId?: string }) {
   const router = useRouter();
+  const returnTo = useReturnTo("/batalha/decks");
+  const { pushToast } = useToast();
   const pokedex = usePokedex();
   const existing = useBattleDeck(deckId ?? "");
   const save = useSaveDeck(deckId);
@@ -82,14 +86,12 @@ function DeckBuilder({ deckId }: { deckId?: string }) {
 
   return (
     <div data-slot="deck-builder" className="flex flex-col gap-5">
+      <BackLink fallback="/batalha/decks" />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <Input aria-label="Nome do deck" value={deckName} onChange={(event) => setName(event.target.value)} />
           <p className="text-sm text-foreground-subtle">{total} / {DECK_SIZE} cartas</p>
         </div>
-        <Link href="/batalha" className={buttonVariants({ variant: "outline" })}>
-          Voltar
-        </Link>
       </div>
       <div className="flex flex-wrap gap-2">
         {availableEnergy.map((energy) => (
@@ -143,14 +145,25 @@ function DeckBuilder({ deckId }: { deckId?: string }) {
           );
         })}
       </ul>
-      {save.error ? <p className="text-sm text-destructive">{save.error.message}</p> : null}
       <div className="flex flex-wrap gap-2">
         <Button
           disabled={save.isPending || errors.length > 0}
           onClick={() => {
             save.mutate(
               { name: deckName, energyTypes: chosenEnergy, cards: selected },
-              { onSuccess: (result) => router.push(`/batalha/decks/${result.id}`) },
+              {
+                onSuccess: () => {
+                  pushToast({ tone: "success", title: "Deck salvo" });
+                  router.push(returnTo);
+                },
+                onError: (error) => {
+                  pushToast({
+                    tone: "error",
+                    title: "Não foi possível salvar o deck",
+                    description: errorDescription(error),
+                  });
+                },
+              },
             );
           }}
         >
@@ -165,7 +178,19 @@ function DeckBuilder({ deckId }: { deckId?: string }) {
             confirmLabel="Excluir"
             pending={remove.isPending}
             onConfirm={() => {
-              remove.mutate(deckId, { onSuccess: () => router.push("/batalha/decks") });
+              remove.mutate(deckId, {
+                onSuccess: () => {
+                  pushToast({ tone: "success", title: "Deck excluído" });
+                  router.push(returnTo);
+                },
+                onError: (error) => {
+                  pushToast({
+                    tone: "error",
+                    title: "Não foi possível excluir o deck",
+                    description: errorDescription(error),
+                  });
+                },
+              });
             }}
           >
             <Button variant="outline" onClick={() => setConfirmDelete(true)}>

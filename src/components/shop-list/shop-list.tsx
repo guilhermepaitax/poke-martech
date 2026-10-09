@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState, screenColumnClass } from "@/components/ui/empty-state";
 import { LoadingScreen, ShopGridSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { useBoosters } from "@/hooks/use-boosters";
+import { useListLocation } from "@/hooks/use-list-location";
+import { withReturnTo } from "@/lib/return-path";
 import { cn } from "@/lib/utils";
 import { FINISH_LABELS, RARITY_LABELS } from "@/lib/value-objects/card";
 import { Package } from "lucide-react";
@@ -12,6 +14,7 @@ import Link from "next/link";
 
 function ShopList() {
   const boosters = useBoosters();
+  const here = useListLocation();
 
   if (boosters.isLoading) {
     return (
@@ -46,7 +49,7 @@ function ShopList() {
         {boosters.data.map((booster) => (
           <li key={booster.id}>
             <Link
-              href={`/loja/${booster.slug}`}
+              href={withReturnTo(`/loja/${booster.slug}`, here)}
               className="glass flex h-full flex-col gap-4 rounded-3xl p-4"
             >
               <Booster3D

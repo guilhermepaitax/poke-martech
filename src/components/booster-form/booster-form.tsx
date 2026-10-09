@@ -244,9 +244,6 @@ function BoosterForm({ boosterId }: { boosterId?: string }) {
             />
           </div>
         </Disclosure>
-        {form.error ? (
-          <p className="text-sm text-destructive">{form.error.message}</p>
-        ) : null}
         <Button type="submit" disabled={form.isPending || !form.isDirty}>
           Salvar pacote
         </Button>
