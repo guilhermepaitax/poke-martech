@@ -1,9 +1,10 @@
 import { AuthForm } from "@/components/auth-form/auth-form";
+import { AuthLayout } from "@/components/auth-form/auth-layout";
 
 export default function CadastrarPage() {
   return (
-    <main className="flex min-h-full items-center justify-center px-4 py-16">
+    <AuthLayout mode="sign-up">
       <AuthForm mode="sign-up" />
-    </main>
+    </AuthLayout>
   );
 }
