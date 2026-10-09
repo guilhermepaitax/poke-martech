@@ -56,7 +56,7 @@ function useAuthForm(mode: AuthMode) {
       if (result.error) throw new Error(result.error.message ?? "Não foi possível cadastrar.");
     },
     onSuccess: () => {
-      router.push("/");
+      router.push("/home");
       router.refresh();
     },
   });

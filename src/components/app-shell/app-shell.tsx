@@ -77,7 +77,7 @@ function AppShell({ role, username, children }: AppShellProps) {
       <header className="pointer-events-none fixed inset-x-0 top-0 z-40 px-3 pt-3">
         <div className="glass pointer-events-auto mx-auto flex max-w-5xl items-center gap-2 rounded-full px-3 py-2">
           <Link
-            href="/"
+            href="/home"
             className="shrink-0 px-2 text-sm font-semibold text-foreground"
           >
             <Image

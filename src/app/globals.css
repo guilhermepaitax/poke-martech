@@ -168,6 +168,10 @@
   --sunpillar-4: hsl(176 100% 76%);
   --sunpillar-5: hsl(228 100% 74%);
   --sunpillar-6: hsl(283 100% 73%);
+  --landing-ink: #1a120c;
+  --landing-dusk: #2a1810;
+  --landing-gold: #e4b23c;
+  --landing-paper: #fff6e8;
 }
 
 @theme inline {
@@ -199,6 +203,11 @@
   --color-energy-dragon: var(--energy-dragon);
   --color-energy-colorless: var(--energy-colorless);
   --font-sans: var(--font-sora);
+  --font-display: var(--font-bricolage, var(--font-sora)), sans-serif;
+  --color-landing-ink: var(--landing-ink);
+  --color-landing-dusk: var(--landing-dusk);
+  --color-landing-gold: var(--landing-gold);
+  --color-landing-paper: var(--landing-paper);
 }
 
 html {
@@ -892,13 +901,27 @@ body {
   }
 }
 
+@keyframes landing-deal {
+  from {
+    transform: translateY(22%) rotate(-11deg);
+  }
+  to {
+    transform: rotate(-2deg);
+  }
+}
+
+.landing-deal {
+  animation: landing-deal 900ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pack-rip,
   [data-ripping] .pack-cap,
   .card-deal,
   .card-stack-item,
   .card-stack-item[data-sending],
-  .skeleton-shimmer::after {
+  .skeleton-shimmer::after,
+  .landing-deal {
     animation: none;
     transition: none;
   }

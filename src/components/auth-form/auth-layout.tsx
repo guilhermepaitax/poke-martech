@@ -1,5 +1,6 @@
 import { AuthSleeve } from "@/components/auth-form/auth-sleeve";
 import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 const COPY = {
@@ -29,14 +30,16 @@ function AuthLayout({
     >
       <div className="mx-auto my-auto grid w-full max-w-5xl items-center gap-8 lg:grid-cols-[minmax(0,1fr)_26rem] lg:gap-16">
         <section className="flex flex-col items-center gap-6 text-center lg:items-start lg:text-left">
-          <Image
-            src="/images/logo.png"
-            alt="PokeMartech"
-            width={240}
-            height={72}
-            priority
-            className="h-12 w-auto sm:h-14"
-          />
+          <Link href="/" className="cursor-pointer">
+            <Image
+              src="/images/logo.png"
+              alt="PokeMartech"
+              width={240}
+              height={72}
+              priority
+              className="h-12 w-auto sm:h-14"
+            />
+          </Link>
           <div className="flex max-w-md flex-col gap-3">
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
               {copy.title}
