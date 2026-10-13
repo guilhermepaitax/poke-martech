@@ -475,6 +475,7 @@ export const POST = nextRouteAdapter(
 - [ ] Use cases depend only on contracts (interfaces), never on implementations
 - [ ] One use case per file with a single `execute()` method
 - [ ] Drizzle schema and migrations live in `infrastructure/db/drizzle/`
+- [ ] A new `public` table enables and forces RLS in the same migration. Read `.agents/skills/supabase-rls/SKILL.md` before adding a table or migration
 - [ ] Entities live in `application/entities/` and are pure TypeScript classes
 - [ ] Value objects shared with client live in `lib/value-objects/`
 
