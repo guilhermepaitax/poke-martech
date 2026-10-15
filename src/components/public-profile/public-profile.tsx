@@ -1,19 +1,30 @@
 "use client";
 
 import { PokedexGrid } from "@/components/pokedex-grid/pokedex-grid";
-import { CardGridSkeleton, LoadingScreen, Skeleton } from "@/components/ui/skeleton";
+import {
+  CardGridSkeleton,
+  LoadingScreen,
+  Skeleton,
+} from "@/components/ui/skeleton";
+import { FollowInviteDialog } from "./follow-invite-dialog";
 import { ProfilePeopleDialog } from "./profile-people-dialog";
 import { PublicProfileHeader } from "./public-profile-header";
 import { TradeProposalDialog } from "./trade-proposal-dialog";
 import { usePublicProfileScreen } from "./use-public-profile-screen";
 
-function PublicProfile({ username }: { username: string }) {
-  const screen = usePublicProfileScreen(username);
+function PublicProfile({
+  username,
+  inviteFollow,
+}: {
+  username: string;
+  inviteFollow: boolean;
+}) {
+  const screen = usePublicProfileScreen(username, inviteFollow);
 
   if (screen.profile.isLoading) {
     return (
       <LoadingScreen label="Carregando perfil" className="flex flex-col gap-8">
-        <div className="glass flex flex-col gap-5 rounded-3xl p-5 sm:flex-row sm:items-center">
+        <div className="glass flex items-start gap-4 rounded-3xl p-5">
           <Skeleton className="size-16 shrink-0 rounded-full" />
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             <Skeleton className="h-8 w-48" />
@@ -35,13 +46,25 @@ function PublicProfile({ username }: { username: string }) {
   }
 
   const person = screen.profile.data;
-  const people = screen.peopleList === "following" ? screen.following : screen.followers;
+  const people =
+    screen.peopleList === "following" ? screen.following : screen.followers;
+  const inviteVisible = screen.inviteOpen && !person.isSelf;
   const followError = screen.follow.error ?? screen.unfollow.error;
 
   return (
     <div data-slot="public-profile" className="flex flex-col gap-8">
       <PublicProfileHeader
         person={person}
+        share={
+          person.isSelf
+            ? {
+                copied: screen.share.copied,
+                pending: screen.share.pending,
+                error: screen.share.error,
+                onShare: () => screen.share.share(person.name),
+              }
+            : null
+        }
         followPending={screen.follow.isPending || screen.unfollow.isPending}
         onToggleFollow={() => {
           if (person.isFollowing) screen.unfollow.mutate();
@@ -50,7 +73,9 @@ function PublicProfile({ username }: { username: string }) {
         onOpenFollowers={() => screen.setPeopleList("followers")}
         onOpenFollowing={() => screen.setPeopleList("following")}
       />
-      {followError ? <p className="text-sm text-destructive">{followError.message}</p> : null}
+      {followError && !inviteVisible ? (
+        <p className="text-sm text-destructive">{followError.message}</p>
+      ) : null}
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Coleção</h2>
         <PokedexGrid
@@ -60,6 +85,20 @@ function PublicProfile({ username }: { username: string }) {
           onPropose={person.isSelf ? undefined : screen.setTradeEntry}
         />
       </section>
+      <FollowInviteDialog
+        person={person}
+        open={inviteVisible}
+        pending={screen.follow.isPending}
+        error={screen.follow.error?.message ?? null}
+        onOpenChange={(open) => {
+          if (!open) screen.dismissInvite();
+        }}
+        onFollow={() => {
+          screen.follow.mutate(undefined, {
+            onSuccess: () => screen.dismissInvite(),
+          });
+        }}
+      />
       <ProfilePeopleDialog
         open={screen.peopleList !== null}
         title={screen.peopleList === "following" ? "Seguindo" : "Seguidores"}

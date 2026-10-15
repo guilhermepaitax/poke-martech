@@ -1,9 +1,9 @@
 import { Providers } from "@/components/providers/providers";
 import { readFeatureFlags } from "@/lib/feature-flags";
+import { siteMetadata } from "@/lib/site-metadata";
 import { trackFeatureFlags } from "@/lib/track-feature-flags";
-import type { Metadata } from "next";
-import { connection } from "next/server";
 import { Sora } from "next/font/google";
+import { connection } from "next/server";
 import "./globals.css";
 
 const sora = Sora({
@@ -11,10 +11,7 @@ const sora = Sora({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "PokeMartech",
-  description: "Cartas da equipe PokeMartech",
-};
+export const metadata = siteMetadata;
 
 export default async function RootLayout({
   children,

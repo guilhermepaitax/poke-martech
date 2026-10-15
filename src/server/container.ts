@@ -29,6 +29,7 @@ import { CreateTrade } from "@/server/application/use-cases/create-trade";
 import { FollowUser } from "@/server/application/use-cases/follow-user";
 import { GetMyProfile } from "@/server/application/use-cases/get-my-profile";
 import { GetOpening } from "@/server/application/use-cases/get-opening";
+import { GetProfilePreview } from "@/server/application/use-cases/get-profile-preview";
 import { GetPublicProfile } from "@/server/application/use-cases/get-public-profile";
 import { ListFollowers } from "@/server/application/use-cases/list-followers";
 import { ListFollowing } from "@/server/application/use-cases/list-following";
@@ -101,6 +102,7 @@ const container = {
   grantSignupBonus: new GrantSignupBonus(wallets),
   getMyProfile: new GetMyProfile(profiles, follows, trades),
   getPublicProfile: new GetPublicProfile(profiles, pokedex, follows),
+  getProfilePreview: new GetProfilePreview(profiles, follows),
   followUser: new FollowUser(profiles, follows),
   unfollowUser: new UnfollowUser(profiles, follows),
   listFollowers: new ListFollowers(profiles, follows),

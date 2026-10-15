@@ -1,5 +1,6 @@
 "use client";
 
+import { CardZoomDialog } from "@/components/holo-card/card-zoom-dialog";
 import { HoloCard } from "@/components/holo-card/holo-card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -8,12 +9,11 @@ import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { useInfiniteSlice } from "@/hooks/use-infinite-slice";
 import { useListLocation } from "@/hooks/use-list-location";
-import { formatCardNumber } from "@/lib/card-number";
 import { withReturnTo } from "@/lib/return-path";
-import { cn } from "@/lib/utils";
-import type { PokedexEntry } from "@/types/catalog";
+import type { CardFace, PokedexEntry } from "@/types/catalog";
 import { BookOpen, Search } from "lucide-react";
-import Link from "next/link";
+import { useState } from "react";
+import { PokedexCardTile } from "./pokedex-card-tile";
 import { UndiscoveredCard } from "./undiscovered-card";
 import { usePokedexFilters } from "./use-pokedex-filters";
 
@@ -40,6 +40,7 @@ function PokedexGrid({
   );
   const filters = usePokedexFilters(listed);
   const here = useListLocation();
+  const [zoomed, setZoomed] = useState<CardFace | null>(null);
   const {
     visible: shown,
     hasMore,
@@ -136,21 +137,14 @@ function PokedexGrid({
               <li key={entry.id} className="flex flex-col gap-2">
                 {entry.card ? (
                   <>
-                    <Link
+                    <PokedexCardTile
                       href={withReturnTo(`/pokedex/${entry.id}`, here)}
-                      className="flex flex-col gap-2 rounded-[4%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <div className={cn(missing && "opacity-20 grayscale")}>
-                        <HoloCard {...entry.card} />
-                      </div>
-                      <p className="text-center text-sm font-semibold tabular-nums text-foreground-subtle">
-                        {formatCardNumber(entry.number)}
-                      </p>
-                      <p className="text-center text-sm text-foreground-subtle">
-                        {entry.ownedCount}{" "}
-                        {entry.ownedCount === 1 ? "cópia" : "cópias"}
-                      </p>
-                    </Link>
+                      card={entry.card}
+                      number={entry.number}
+                      ownedCount={entry.ownedCount}
+                      missing={missing}
+                      onZoom={() => setZoomed(entry.card)}
+                    />
                     {missing ? (
                       <p className="text-center text-sm text-foreground-subtle">
                         Você não tem
@@ -183,6 +177,15 @@ function PokedexGrid({
           Role para ver mais
         </p>
       ) : null}
+      <CardZoomDialog
+        open={zoomed !== null}
+        onOpenChange={(open) => {
+          if (!open) setZoomed(null);
+        }}
+        title={zoomed?.name}
+      >
+        {zoomed ? <HoloCard {...zoomed} effects /> : null}
+      </CardZoomDialog>
     </div>
   );
 }

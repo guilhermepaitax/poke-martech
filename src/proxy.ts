@@ -1,25 +1,35 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
-
-const authPaths = new Set(["/entrar", "/cadastrar"]);
+import { resolveProxyAccess } from "@/lib/proxy-access";
 
 function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
   if (pathname.startsWith("/api") || pathname.startsWith("/monitoring")) {
     return NextResponse.next();
   }
 
-  const hasSession = Boolean(getSessionCookie(request));
+  const decision = resolveProxyAccess({
+    pathname,
+    search,
+    userAgent: request.headers.get("user-agent"),
+    hasSession: Boolean(getSessionCookie(request)),
+    callbackUrl: request.nextUrl.searchParams.get("callbackUrl"),
+  });
 
-  if (authPaths.has(pathname)) {
-    if (hasSession) return NextResponse.redirect(new URL("/home", request.url));
-    return NextResponse.next();
+  if (decision.type === "redirect") {
+    return NextResponse.redirect(new URL(decision.path, request.url));
   }
-
-  if (pathname === "/") return NextResponse.next();
-
-  if (!hasSession)
-    return NextResponse.redirect(new URL("/entrar", request.url));
+  if (decision.type === "rewrite") {
+    const url = request.nextUrl.clone();
+    url.pathname = decision.pathname;
+    url.search = "";
+    return NextResponse.rewrite(url);
+  }
+  if (decision.type === "next-with-path") {
+    const headers = new Headers(request.headers);
+    headers.set("x-pathname", pathname + search);
+    return NextResponse.next({ request: { headers } });
+  }
   return NextResponse.next();
 }
 

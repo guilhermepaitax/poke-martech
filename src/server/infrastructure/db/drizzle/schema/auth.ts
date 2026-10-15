@@ -14,6 +14,7 @@ const user = pgTable("user", {
     .notNull(),
   username: text("username").notNull().unique(),
   bio: text("bio").default("").notNull(),
+  imageUseConsent: boolean("image_use_consent").default(false).notNull(),
   role: text("role").default("user").notNull(),
   banned: boolean("banned").default(false).notNull(),
   banReason: text("ban_reason"),

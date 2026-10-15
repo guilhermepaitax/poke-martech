@@ -1,73 +1,77 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
 import {
-  evaluatePassword,
-  isPasswordValid,
-  unmetPasswordMessage,
-} from "@/lib/password-policy";
-
-type AuthMode = "sign-in" | "sign-up";
+  authApiErrorMessage,
+  authFieldErrors,
+  type AuthFieldErrors,
+  type AuthMode,
+} from "@/lib/auth-form-errors";
+import { evaluatePassword } from "@/lib/password-policy";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 type AuthInput = {
   email: string;
   password: string;
   name: string;
   username: string;
+  imageUseConsent: boolean;
 };
 
-function useAuthForm(mode: AuthMode) {
+function useAuthForm(mode: AuthMode, callbackUrl?: string | null) {
   const router = useRouter();
-  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<AuthFieldErrors>({});
   const [values, setValues] = useState<AuthInput>({
     email: "",
     password: "",
     name: "",
     username: "",
+    imageUseConsent: false,
   });
   const passwordChecks = evaluatePassword(values.password);
-  const passwordValid = isPasswordValid(values.password);
 
   const mutation = useMutation({
     mutationFn: async (input: AuthInput) => {
-      if (mode === "sign-up" && !isPasswordValid(input.password)) {
-        throw new Error(
-          unmetPasswordMessage(input.password) ??
-            "A senha não atende aos requisitos.",
-        );
-      }
       if (mode === "sign-in") {
         const result = await authClient.signIn.email({
-          email: input.email,
+          email: input.email.trim(),
           password: input.password,
         });
-        if (result.error) throw new Error(result.error.message ?? "Não foi possível entrar.");
+        if (result.error) throw new Error(authApiErrorMessage(mode, result.error));
         return;
       }
       const result = await authClient.signUp.email({
-        email: input.email,
+        email: input.email.trim(),
         password: input.password,
-        name: input.name,
-        username: input.username.toLowerCase(),
+        name: input.name.trim(),
+        username: input.username.trim().toLowerCase(),
+        imageUseConsent: input.imageUseConsent,
       });
-      if (result.error) throw new Error(result.error.message ?? "Não foi possível cadastrar.");
+      if (result.error) throw new Error(authApiErrorMessage(mode, result.error));
     },
     onSuccess: () => {
-      router.push("/home");
+      router.push(callbackUrl || "/home");
       router.refresh();
     },
   });
 
   function update(patch: Partial<AuthInput>) {
     setValues((current) => ({ ...current, ...patch }));
+    setFieldErrors((current) => {
+      const next = { ...current };
+      for (const key of Object.keys(patch) as (keyof AuthInput)[]) delete next[key];
+      return next;
+    });
+    if (mutation.isError) mutation.reset();
   }
 
   function submit() {
-    if (mode === "sign-up" && !passwordValid) {
-      setSubmitAttempted(true);
+    const errors = authFieldErrors(mode, values);
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      if (mutation.isError) mutation.reset();
       return;
     }
     mutation.mutate(values);
@@ -75,11 +79,13 @@ function useAuthForm(mode: AuthMode) {
 
   return {
     values,
+    fieldErrors,
     update,
     mutation,
     submit,
     passwordChecks,
-    passwordInvalid: mode === "sign-up" && submitAttempted && !passwordValid,
+    passwordInvalid: Boolean(fieldErrors.password) && mode === "sign-up",
+    consentInvalid: Boolean(fieldErrors.imageUseConsent),
   };
 }
 

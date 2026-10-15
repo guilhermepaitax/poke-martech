@@ -10,6 +10,7 @@ const authClient = createAuthClient({
         username: { type: "string", required: true },
         bio: { type: "string", required: false },
         role: { type: "string", required: false },
+        imageUseConsent: { type: "boolean", required: true },
       },
     }),
     adminClient(),

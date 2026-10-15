@@ -6,11 +6,12 @@ import type { ReactNode } from "react";
 const COPY = {
   "sign-in": {
     title: "Entre na coleção",
-    description: "A Pokédex, a loja e as trocas ficam nesta conta.",
+    description: "Encontre seus PokéMartechs favoritos e comece a colecionar.",
   },
   "sign-up": {
     title: "Abra sua primeira carta",
-    description: "A conta nova começa com 100 moedas para o primeiro pacote.",
+    description:
+      "A conta nova começa com 100 moedas para os primeiros pacotes.",
   },
 } as const;
 

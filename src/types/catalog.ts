@@ -190,6 +190,15 @@ type PublicProfile = {
   pokedex: PublicPokedexEntry[];
 };
 
+type ProfilePreview = {
+  username: string;
+  name: string;
+  image: string | null;
+  bio: string;
+  followerCount: number;
+  followingCount: number;
+};
+
 type RarityWeight = {
   rarity: Rarity;
   weight: number;
@@ -261,6 +270,7 @@ export type {
   Profile,
   ProfileBase,
   ProfileLink,
+  ProfilePreview,
   PublicPokedexEntry,
   PublicProfile,
   RarityWeight,
