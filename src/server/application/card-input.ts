@@ -39,6 +39,7 @@ function toCardDetail(card: Card, origin: Card | null, ownedCount = 0): CardDeta
     weaknessType: card.weaknessType,
     weaknessModifier: card.weaknessModifier,
     flavorText: card.flavorText,
+    tags: card.tags,
     attacks: card.attacks.map((attack) => ({
       name: attack.name,
       damage: attack.damage,
@@ -78,6 +79,7 @@ function toCardEntity(id: string, input: CardInput) {
     input.rarity,
     input.flavorText,
     input.published,
+    input.tags,
     input.attacks.map(
       (attack) =>
         new CardAttack(

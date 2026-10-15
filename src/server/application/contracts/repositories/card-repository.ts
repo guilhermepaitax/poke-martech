@@ -1,8 +1,8 @@
 import type { Card } from "@/server/application/entities/card";
-import type { CardSummary } from "@/types/catalog";
+import type { AdminCatalogCard, CardSummary } from "@/types/catalog";
 
 interface CardRepository {
-  listAll(): Promise<CardSummary[]>;
+  listAll(): Promise<AdminCatalogCard[]>;
   listPublished(): Promise<CardSummary[]>;
   findById(id: string): Promise<Card | null>;
   findPublishedById(id: string): Promise<Card | null>;

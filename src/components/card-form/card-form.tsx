@@ -15,6 +15,7 @@ import { SelectField } from "@/components/ui/select-field";
 import { SwitchField } from "@/components/ui/switch-field";
 import type { CardEvolutionOrigin, CardInput } from "@/types/catalog";
 import { AttackEffectsEditor } from "./attack-effects-editor";
+import { CardTagField } from "./card-tag-field";
 import { CardDecorationPicker } from "./card-decoration-picker";
 import { CardPlacementEditor } from "./card-placement-editor";
 import { frameOptions, rarityOptions, stageOptions, useCardForm } from "./use-card-form";
@@ -47,6 +48,11 @@ function CardForm({ cardId }: { cardId?: string }) {
             <Label htmlFor="card-name">Nome</Label>
             <Input id="card-name" value={values.name} onChange={(event) => form.update({ name: event.target.value })} required />
           </div>
+          <CardTagField
+            tags={values.tags}
+            suggestions={form.knownTags}
+            onChange={(tags) => form.update({ tags })}
+          />
           <div className="flex flex-col gap-2">
             <p className="text-sm font-medium text-foreground-subtle">Tipo</p>
             <div className="flex flex-wrap gap-2">

@@ -7,6 +7,7 @@ import { pokemonTypeName } from "@/hooks/use-pokemon-types";
 import { formatCardNumber } from "@/lib/card-number";
 import { RARITY_LABELS } from "@/lib/value-objects/card";
 import { useFeatureFlag } from "@/components/feature-flags/use-feature-flags";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Pagination } from "@/components/ui/pagination";
@@ -60,11 +61,13 @@ function AdminCardList() {
           filters={list.filters}
           typeOptions={list.typeOptions}
           rarityOptions={list.rarityOptions}
+          tagOptions={list.tagOptions}
           hasActiveFilters={list.hasActiveFilters}
           onNameChange={list.setName}
           onStatusChange={list.setStatus}
           onEnergyTypeChange={list.setEnergyType}
           onRarityChange={list.setRarity}
+          onTagToggle={list.toggleTag}
           onClear={list.clearFilters}
         />
       ) : null}
@@ -84,6 +87,15 @@ function AdminCardList() {
                   </span>
                   <span className="block text-sm text-foreground-subtle">{pokemonTypeName(list.types.data, card.energyType)}</span>
                   <span className="block text-sm text-foreground-subtle">{RARITY_LABELS[card.rarity]}</span>
+                  {card.tags.length ? (
+                    <span className="mt-1 flex flex-wrap gap-1">
+                      {card.tags.map((tag) => (
+                        <Badge key={tag} variant="outline">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="text-sm text-foreground-subtle">{card.published ? "Publicada" : "Rascunho"}</span>
               </Link>
@@ -95,7 +107,7 @@ function AdminCardList() {
           placement="section"
           icon={Search}
           title="Nenhuma carta com esses filtros"
-          description="Limpe a busca ou escolha outro tipo, raridade ou status."
+          description="Limpe a busca ou escolha outro tipo, raridade, tag ou status."
         />
       ) : (
         <EmptyState

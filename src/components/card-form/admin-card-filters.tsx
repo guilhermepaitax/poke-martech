@@ -1,11 +1,12 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import type { SelectOption } from "@/components/ui/select-field";
 import { SelectField } from "@/components/ui/select-field";
-import { SegmentedControl } from "@/components/ui/segmented-control";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { TagFilter } from "@/components/ui/tag-filter";
+import { Search } from "lucide-react";
 import type { AdminCardFilterState } from "./filter-admin-cards";
 
 const STATUS_OPTIONS = [
@@ -18,11 +19,13 @@ interface AdminCardFiltersProps {
   filters: AdminCardFilterState;
   typeOptions: SelectOption[];
   rarityOptions: SelectOption[];
+  tagOptions: string[];
   hasActiveFilters: boolean;
   onNameChange: (value: string) => void;
   onStatusChange: (value: string) => void;
   onEnergyTypeChange: (value: string) => void;
   onRarityChange: (value: string) => void;
+  onTagToggle: (tag: string) => void;
   onClear: () => void;
 }
 
@@ -30,11 +33,13 @@ function AdminCardFilters({
   filters,
   typeOptions,
   rarityOptions,
+  tagOptions,
   hasActiveFilters,
   onNameChange,
   onStatusChange,
   onEnergyTypeChange,
   onRarityChange,
+  onTagToggle,
   onClear,
 }: AdminCardFiltersProps) {
   return (
@@ -72,11 +77,27 @@ function AdminCardFilters({
           />
         </div>
         {hasActiveFilters ? (
-          <Button variant="outline" size="sm" onClick={onClear} className="w-fit">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClear}
+            className="w-fit"
+          >
             Limpar filtros
           </Button>
         ) : null}
       </div>
+      {tagOptions.length ? (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium text-foreground-subtle">Tags</p>
+          <TagFilter
+            tags={tagOptions}
+            selected={filters.tags}
+            onToggle={onTagToggle}
+            ariaLabel="Tags"
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

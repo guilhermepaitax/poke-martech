@@ -41,6 +41,7 @@ class Card {
     readonly rarity: Rarity,
     readonly flavorText: string,
     readonly published: boolean,
+    readonly tags: string[],
     readonly attacks: CardAttack[],
   ) {}
 }

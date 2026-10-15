@@ -80,6 +80,7 @@ const cards = pgTable(
     rarity: text("rarity").notNull(),
     flavorText: text("flavor_text").notNull().default(""),
     published: boolean("published").notNull().default(false),
+    tags: text("tags").array().notNull().default([]),
     number: integer("number").generatedByDefaultAsIdentity(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

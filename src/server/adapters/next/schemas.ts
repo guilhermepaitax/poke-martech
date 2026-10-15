@@ -3,6 +3,7 @@ import { CARD_DECORATION_IDS } from "@/lib/card-decorations";
 import { MAX_ATTACK_EFFECTS, STATUS_CONDITIONS } from "@/lib/value-objects/attack-effect";
 import { BATTLE_DIFFICULTIES } from "@/lib/value-objects/battle";
 import { ENERGY_TYPES, FINISHES, FRAMES, RARITIES, STAGES } from "@/lib/value-objects/card";
+import { MAX_CARD_TAGS, MAX_CARD_TAG_LENGTH, normalizeCardTags } from "@/lib/value-objects/card-tag";
 import { MAX_GENERATION_CARDS, POKEMON_ZONE_CARD_URL } from "@/lib/value-objects/card-generation";
 
 const energyCostSchema = z.object({
@@ -81,6 +82,18 @@ const cardSchema = z.object({
   rarity: z.enum(RARITIES),
   flavorText: z.string().trim().max(280),
   published: z.boolean(),
+  tags: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1, "Informe a tag.")
+        .max(MAX_CARD_TAG_LENGTH, "A tag pode ter no máximo 32 caracteres.")
+        .refine((value) => !value.includes(","), "A tag não pode ter vírgula."),
+    )
+    .max(MAX_CARD_TAGS, "Uma carta pode ter no máximo 12 tags.")
+    .default([])
+    .transform((values) => normalizeCardTags(values)),
   attacks: z.array(attackSchema).min(1).max(4),
 });
 

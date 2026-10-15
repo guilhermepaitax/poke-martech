@@ -194,6 +194,7 @@ function toCardInput(idea: CardIdea, slug: string, imageUrl: string): CardInput 
     weaknessType: idea.weaknessType,
     weaknessModifier: 20,
     flavorText: idea.flavorText,
+    tags: [],
     attacks: idea.attacks.map((attack, sortOrder) => ({ ...attack, effects: [], sortOrder })),
   };
 }

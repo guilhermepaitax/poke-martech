@@ -1,5 +1,6 @@
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { isEnergyType, isRarity, isStage, type EnergyType } from "@/lib/value-objects/card";
+import { normalizeCardTags } from "@/lib/value-objects/card-tag";
 import type { BattleDeckRepository } from "@/server/application/contracts/repositories/battle-deck-repository";
 import { BattleDeck } from "@/server/application/entities/battle";
 import { db } from "@/server/infrastructure/db/drizzle/client";
@@ -67,6 +68,7 @@ class DrizzleBattleDeckRepository implements BattleDeckRepository {
               stage: item.card.stage,
               rarity: item.card.rarity,
               published: item.card.published,
+              tags: normalizeCardTags(item.card.tags),
             },
           },
         ];

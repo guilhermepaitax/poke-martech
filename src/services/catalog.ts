@@ -8,7 +8,7 @@ import type {
   CardGenerationInput,
   CardGenerationSummary,
   CardInput,
-  CardSummary,
+  AdminCatalogCard,
   PackOpening,
   PokedexEntry,
   Profile,
@@ -50,7 +50,7 @@ function fetchOpening(id: string) {
 }
 
 function fetchAdminCards() {
-  return api<CardSummary[]>("/api/admin/cards");
+  return api<AdminCatalogCard[]>("/api/admin/cards");
 }
 
 function fetchAdminCard(id: string) {

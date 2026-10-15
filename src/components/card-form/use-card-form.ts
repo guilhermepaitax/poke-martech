@@ -3,6 +3,7 @@
 import { useAdminCard, useAdminCards, useSaveCard } from "@/hooks/use-admin";
 import { usePokemonTypes } from "@/hooks/use-pokemon-types";
 import { slugify } from "@/lib/slug";
+import { normalizeCardTags } from "@/lib/value-objects/card-tag";
 import {
   ENERGY_TYPES,
   FRAME_LABELS,
@@ -59,6 +60,7 @@ const emptyCard: CardInput = {
   rarity: "common",
   flavorText: "",
   published: false,
+  tags: [],
   attacks: [
     {
       name: "Golpe",
@@ -96,6 +98,7 @@ function toInput(card: CardInput): CardInput {
     rarity: card.rarity,
     flavorText: card.flavorText,
     published: card.published,
+    tags: card.tags ?? [],
     attacks: card.attacks.map((attack) => ({ ...attack, effects: attack.effects ?? [] })),
   };
 }
@@ -328,6 +331,7 @@ function useCardForm(cardId?: string) {
     isPending: save.isPending || optimizing,
     error: save.error,
     options: (catalog.data ?? []).filter((card) => card.id !== cardId),
+    knownTags: normalizeCardTags((catalog.data ?? []).flatMap((card) => card.tags ?? [])),
     energyTypes: types.data?.length
       ? types.data
       : ENERGY_TYPES.map((code) => ({ code, name: code })),

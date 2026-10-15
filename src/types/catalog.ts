@@ -41,7 +41,10 @@ type CardSummary = {
   stage: Stage;
   rarity: Rarity;
   published: boolean;
+  tags: string[];
 };
+
+type AdminCatalogCard = CardSummary & CardFace;
 
 type CardEvolutionOrigin = {
   name: string;
@@ -251,6 +254,7 @@ export type {
   CardGenerationInput,
   CardGenerationItemView,
   CardGenerationSummary,
+  AdminCatalogCard,
   Attack,
   CardArtwork,
   BoosterCardInput,

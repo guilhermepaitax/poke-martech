@@ -6,6 +6,7 @@ import { pokemonTypeName, usePokemonTypes } from "@/hooks/use-pokemon-types";
 import { useAdminCards } from "@/hooks/use-admin";
 import { paginate } from "@/lib/paginate";
 import { RARITIES, RARITY_LABELS } from "@/lib/value-objects/card";
+import { cardHasTag, foldText, normalizeCardTags } from "@/lib/value-objects/card-tag";
 import {
   adminCardFiltersFromSearch,
   adminCardListHref,
@@ -48,6 +49,13 @@ function useAdminCardList() {
     ],
     [catalog, types.data],
   );
+  const tagOptions = useMemo(
+    () =>
+      normalizeCardTags(catalog.flatMap((card) => card.tags)).sort((left, right) =>
+        left.localeCompare(right, "pt-BR"),
+      ),
+    [catalog],
+  );
   const rarityOptions = useMemo(
     () => [
       { value: "all", label: "Todas as raridades" },
@@ -84,9 +92,16 @@ function useAdminCardList() {
     commit({ ...filters, name, rarity }, 1);
   }
 
+  function toggleTag(tag: string) {
+    const tags = cardHasTag(filters.tags, tag)
+      ? filters.tags.filter((item) => foldText(item) !== foldText(tag))
+      : [...filters.tags, tag];
+    commit({ ...filters, name, tags: normalizeCardTags(tags) }, 1);
+  }
+
   function clearFilters() {
     setDraftName("");
-    commit({ name: "", status: "all", energyType: "all", rarity: "all" }, 1);
+    commit({ name: "", status: "all", energyType: "all", rarity: "all", tags: [] }, 1);
   }
 
   function setPage(nextPage: number) {
@@ -105,12 +120,14 @@ function useAdminCardList() {
     setPage,
     typeOptions,
     rarityOptions,
+    tagOptions,
     hasActiveFilters: hasActiveAdminCardFilters({ ...filters, name }),
     countLabel: formatAdminCardCount(filtered.length, catalog.length),
     setName,
     setStatus,
     setEnergyType,
     setRarity,
+    toggleTag,
     clearFilters,
   };
 }

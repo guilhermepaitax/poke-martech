@@ -78,6 +78,13 @@
       "when": 1792076628497,
       "tag": "0010_image_use_consent",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792086531885,
+      "tag": "0011_card_tags",
+      "breakpoints": true
     }
   ]
 }

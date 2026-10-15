@@ -2,16 +2,19 @@
 
 import { Booster3D } from "@/components/booster-3d/booster-3d";
 import { Button } from "@/components/ui/button";
-import { FormPanelSkeleton, LoadingScreen, Skeleton } from "@/components/ui/skeleton";
 import { Disclosure } from "@/components/ui/disclosure";
 import { ImageDropzone } from "@/components/ui/image-dropzone";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
+import {
+  FormPanelSkeleton,
+  LoadingScreen,
+  Skeleton,
+} from "@/components/ui/skeleton";
 import { NullableStepper, Stepper } from "@/components/ui/stepper";
 import { SwitchField } from "@/components/ui/switch-field";
-import { cn } from "@/lib/utils";
 import { isFinish } from "@/lib/value-objects/card";
-import Image from "next/image";
+import { BoosterCardPicker } from "./booster-card-picker";
 import {
   finishOptions,
   rarityOptions,
@@ -22,7 +25,10 @@ function BoosterForm({ boosterId }: { boosterId?: string }) {
   const form = useBoosterForm(boosterId);
   if (form.isLoading) {
     return (
-      <LoadingScreen label="Carregando pacote" className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_16rem]">
+      <LoadingScreen
+        label="Carregando pacote"
+        className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_16rem]"
+      >
         <FormPanelSkeleton fields={5} />
         <Skeleton className="mx-auto aspect-[2/3] w-full max-w-64 rounded-2xl" />
       </LoadingScreen>
@@ -120,76 +126,25 @@ function BoosterForm({ boosterId }: { boosterId?: string }) {
             onCheckedChange={(active) => form.update({ active })}
             label="Ativo na loja"
           />
-          <div className="flex flex-col gap-3">
-            <div className="flex items-end justify-between gap-3">
-              <p className="font-semibold">Cartas possíveis</p>
-              <p className="text-sm text-foreground-subtle">
-                {values.cards.length} selecionadas
-              </p>
-            </div>
-            <Input
-              aria-label="Buscar carta"
-              placeholder="Buscar carta"
-              value={form.cardQuery}
-              onChange={(event) => form.setCardQuery(event.target.value)}
-            />
-            {form.catalog.length === 0 ? (
-              <p className="text-sm text-foreground-subtle">
-                Cadastre cartas antes do pacote.
-              </p>
-            ) : null}
-            <ul className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-              {form.visibleCatalog.map((card) => {
-                const current = values.cards.find(
-                  (item) => item.cardId === card.id,
-                );
-                const selected = Boolean(current);
-                return (
-                  <li
-                    key={card.id}
-                    data-selected={selected ? "" : undefined}
-                    className={cn(
-                      "flex flex-col gap-2 rounded-3xl border border-white/70 bg-white/40 p-2",
-                      selected && "ring-2 ring-primary",
-                    )}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => form.toggleCard(card.id)}
-                      className="text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <span className="relative block aspect-[63/88] overflow-hidden rounded-2xl bg-muted">
-                        {card.imageUrl ? (
-                          <Image
-                            src={card.imageUrl}
-                            alt=""
-                            fill
-                            className="object-cover"
-                            sizes="140px"
-                          />
-                        ) : null}
-                      </span>
-                      <span className="mt-2 block text-sm font-semibold">
-                        {card.name}
-                      </span>
-                    </button>
-                    {current ? (
-                      <NullableStepper
-                        ariaLabel={`Peso de ${card.name}`}
-                        value={current.weightOverride}
-                        min={1}
-                        max={100}
-                        emptyLabel="Auto"
-                        onValueChange={(weightOverride) =>
-                          form.setWeight(card.id, weightOverride)
-                        }
-                      />
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+          <BoosterCardPicker
+            catalogCount={form.catalog.length}
+            cards={form.visibleCatalog}
+            selected={values.cards}
+            selectedCount={values.cards.length}
+            query={form.cardQuery}
+            energyTypes={form.energyTypes}
+            tags={form.tags}
+            typeOptions={form.typeOptions}
+            tagOptions={form.tagOptions}
+            allVisibleSelected={form.allVisibleSelected}
+            onQueryChange={form.setCardQuery}
+            onToggleEnergy={form.toggleEnergy}
+            onToggleTag={form.toggleTag}
+            onToggleCard={form.toggleCard}
+            onSelectVisible={form.selectVisible}
+            onClearCards={form.clearCards}
+            onWeightChange={form.setWeight}
+          />
         </div>
         <Disclosure title="Opções da loja">
           <div className="flex flex-col gap-2">

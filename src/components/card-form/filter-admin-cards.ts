@@ -1,5 +1,15 @@
 import { hrefWithQuery } from "@/lib/search-href";
-import { isEnergyType, isRarity, type EnergyType, type Rarity } from "@/lib/value-objects/card";
+import {
+  isEnergyType,
+  isRarity,
+  type EnergyType,
+  type Rarity,
+} from "@/lib/value-objects/card";
+import {
+  cardMatchesTags,
+  foldText,
+  normalizeCardTags,
+} from "@/lib/value-objects/card-tag";
 import type { CardSummary } from "@/types/catalog";
 
 const CARD_LIST_STATUSES = ["all", "draft", "published"] as const;
@@ -11,6 +21,7 @@ type AdminCardFilterState = {
   status: CardListStatus;
   energyType: "all" | EnergyType;
   rarity: "all" | Rarity;
+  tags: string[];
 };
 
 const DEFAULT_ADMIN_CARD_FILTERS: AdminCardFilterState = {
@@ -18,34 +29,35 @@ const DEFAULT_ADMIN_CARD_FILTERS: AdminCardFilterState = {
   status: "all",
   energyType: "all",
   rarity: "all",
+  tags: [],
 };
 
 function isCardListStatus(value: string): value is CardListStatus {
   return CARD_LIST_STATUSES.some((status) => status === value);
 }
 
-function fold(value: string) {
-  return value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
-}
-
 function filterAdminCards(cards: CardSummary[], filters: AdminCardFilterState) {
-  const name = fold(filters.name);
+  const name = foldText(filters.name);
   return cards.filter((card) => {
-    if (name && !fold(card.name).includes(name)) return false;
+    if (name && !foldText(card.name).includes(name)) return false;
     if (filters.status === "draft" && card.published) return false;
     if (filters.status === "published" && !card.published) return false;
-    if (filters.energyType !== "all" && card.energyType !== filters.energyType) return false;
-    if (filters.rarity !== "all" && card.rarity !== filters.rarity) return false;
+    if (filters.energyType !== "all" && card.energyType !== filters.energyType)
+      return false;
+    if (filters.rarity !== "all" && card.rarity !== filters.rarity)
+      return false;
+    if (!cardMatchesTags(card.tags ?? [], filters.tags)) return false;
     return true;
   });
 }
 
 function hasActiveAdminCardFilters(filters: AdminCardFilterState) {
   return (
-    fold(filters.name).length > 0 ||
+    foldText(filters.name).length > 0 ||
     filters.status !== "all" ||
     filters.energyType !== "all" ||
-    filters.rarity !== "all"
+    filters.rarity !== "all" ||
+    filters.tags.length > 0
   );
 }
 
@@ -55,12 +67,16 @@ function formatAdminCardCount(shown: number, total: number) {
   return `${shown} de ${total} ${noun}`;
 }
 
-function parseEnergyTypeFilter(value: string): AdminCardFilterState["energyType"] | null {
+function parseEnergyTypeFilter(
+  value: string,
+): AdminCardFilterState["energyType"] | null {
   if (value === "all") return "all";
   return isEnergyType(value) ? value : null;
 }
 
-function parseRarityFilter(value: string): AdminCardFilterState["rarity"] | null {
+function parseRarityFilter(
+  value: string,
+): AdminCardFilterState["rarity"] | null {
   if (value === "all") return "all";
   return isRarity(value) ? value : null;
 }
@@ -82,6 +98,9 @@ function adminCardFiltersFromSearch(params: URLSearchParams) {
       status: status && isCardListStatus(status) ? status : "all",
       energyType: energyType ?? "all",
       rarity: rarity ?? "all",
+      tags: normalizeCardTags(
+        (params.get("tags") ?? "").split(",").filter(Boolean),
+      ),
     } satisfies AdminCardFilterState,
     page: parsePage(params.get("pagina")),
   };
@@ -98,6 +117,7 @@ function adminCardListHref(
     status: filters.status === "all" ? null : filters.status,
     tipo: filters.energyType === "all" ? null : filters.energyType,
     raridade: filters.rarity === "all" ? null : filters.rarity,
+    tags: filters.tags.length ? filters.tags.join(",") : null,
     pagina: page > 1 ? String(page) : null,
   });
 }

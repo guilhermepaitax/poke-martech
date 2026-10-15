@@ -1,4 +1,3 @@
-import { and, asc, eq, sql } from "drizzle-orm";
 import {
   isCardDecorationId,
   type CardDecorationId,
@@ -14,6 +13,7 @@ import {
   type Rarity,
   type Stage,
 } from "@/lib/value-objects/card";
+import { normalizeCardTags } from "@/lib/value-objects/card-tag";
 import type { CardRepository } from "@/server/application/contracts/repositories/card-repository";
 import { Card, CardAttack } from "@/server/application/entities/card";
 import { db } from "@/server/infrastructure/db/drizzle/client";
@@ -22,12 +22,38 @@ import {
   cards,
   userCards,
 } from "@/server/infrastructure/db/drizzle/schema";
-import type { CardSummary } from "@/types/catalog";
+import {
+  evolutionOriginsFor,
+  toCardFace,
+} from "@/server/infrastructure/db/drizzle/to-card-face";
+import type { AdminCatalogCard, CardSummary } from "@/types/catalog";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 
 class DrizzleCardRepository implements CardRepository {
-  async listAll(): Promise<CardSummary[]> {
+  async listAll(): Promise<AdminCatalogCard[]> {
     const rows = await db.select().from(cards).orderBy(asc(cards.number));
-    return rows.map(toSummary);
+    if (rows.length === 0) return [];
+    const attackRows = await db
+      .select()
+      .from(cardAttacks)
+      .where(
+        inArray(
+          cardAttacks.cardId,
+          rows.map((row) => row.id),
+        ),
+      )
+      .orderBy(asc(cardAttacks.sortOrder));
+    const origins = await evolutionOriginsFor(db, rows);
+    return rows.map((row) => {
+      const summary = toSummary(row);
+      const face = toCardFace(
+        isFrame(row.frame) ? row : { ...row, frame: "basic" },
+        attackRows,
+        origins,
+      );
+      if (!face) throw new Error("Carta inválida.");
+      return { ...summary, ...face };
+    });
   }
 
   async listPublished(): Promise<CardSummary[]> {
@@ -71,12 +97,15 @@ class DrizzleCardRepository implements CardRepository {
       await db.transaction(async (tx) => {
         await tx.insert(cards).values(toInsert(id, card));
         if (card.attacks.length > 0) {
-          await tx.insert(cardAttacks).values(card.attacks.map((attack) => toAttackInsert(id, attack)));
+          await tx
+            .insert(cardAttacks)
+            .values(card.attacks.map((attack) => toAttackInsert(id, attack)));
         }
       });
       return { ok: true as const, id };
     } catch (error) {
-      if (isUniqueViolation(error)) return { ok: false as const, reason: "conflict" as const };
+      if (isUniqueViolation(error))
+        return { ok: false as const, reason: "conflict" as const };
       throw error;
     }
   }
@@ -89,17 +118,21 @@ class DrizzleCardRepository implements CardRepository {
           .set({ ...toInsert(card.id, card), updatedAt: new Date() })
           .where(eq(cards.id, card.id))
           .returning({ id: cards.id });
-        if (updated.length === 0) return { ok: false as const, reason: "not_found" as const };
+        if (updated.length === 0)
+          return { ok: false as const, reason: "not_found" as const };
         await tx.delete(cardAttacks).where(eq(cardAttacks.cardId, card.id));
         if (card.attacks.length > 0) {
           await tx
             .insert(cardAttacks)
-            .values(card.attacks.map((attack) => toAttackInsert(card.id, attack)));
+            .values(
+              card.attacks.map((attack) => toAttackInsert(card.id, attack)),
+            );
         }
         return { ok: true as const };
       });
     } catch (error) {
-      if (isUniqueViolation(error)) return { ok: false as const, reason: "conflict" as const };
+      if (isUniqueViolation(error))
+        return { ok: false as const, reason: "conflict" as const };
       throw error;
     }
   }
@@ -126,6 +159,7 @@ function toSummary(row: typeof cards.$inferSelect): CardSummary {
     stage: asStage(row.stage),
     rarity: asRarity(row.rarity),
     published: row.published,
+    tags: normalizeCardTags(row.tags),
   };
 }
 
@@ -159,6 +193,7 @@ function toCard(
     asRarity(row.rarity),
     row.flavorText,
     row.published,
+    normalizeCardTags(row.tags),
     attacks.map(
       (attack) =>
         new CardAttack(
@@ -202,6 +237,7 @@ function toInsert(id: string, card: Card) {
     rarity: card.rarity,
     flavorText: card.flavorText,
     published: card.published,
+    tags: card.tags,
   };
 }
 
