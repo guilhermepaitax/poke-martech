@@ -92,6 +92,9 @@ function PokedexGrid({
           value={filters.query}
           onChange={(event) => filters.setQuery(event.target.value)}
         />
+        <span className="text-sm text-foreground-subtle font-semibold">
+          Tipos
+        </span>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
@@ -110,6 +113,9 @@ function PokedexGrid({
             />
           ))}
         </div>
+        <span className="text-sm text-foreground-subtle font-semibold">
+          Ordenar por
+        </span>
         <SegmentedControl
           ariaLabel="Ordenar"
           value={filters.sort}
