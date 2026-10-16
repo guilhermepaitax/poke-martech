@@ -859,14 +859,35 @@ body {
   animation: card-deal 420ms ease both;
 }
 
+.pack-opening-deck {
+  transform: rotateY(var(--rotate-y, 0deg));
+  transform-origin: 50% 50%;
+  touch-action: none;
+  will-change: transform;
+}
+
 .card-stack-item {
   --depth: 0;
-  transform: translateY(calc(var(--depth) * -4.5%)) scale(calc(1 - var(--depth) * 0.06))
-    rotate(calc(var(--depth) * -2deg));
-  transform-origin: 50% 0%;
+  --spread: 0px;
+  --drag-x: 0px;
+  --drag-y: 0px;
+  --drag-rotate: 0deg;
+  --drag-lift: 0;
+  z-index: calc(12 - var(--depth));
+  translate: var(--drag-x) var(--drag-y);
+  rotate: var(--drag-rotate);
+  scale: calc(1 + var(--drag-lift));
+  transform: translateX(
+    calc(
+      var(--spread) + (var(--pointer-from-left, 0.5) - 0.5) * var(--depth) *
+        18px
+    )
+  );
   transition:
-    transform 320ms ease,
-    opacity 320ms ease;
+    translate 340ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    scale 340ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 340ms ease;
+  user-select: none;
 }
 
 .card-stack-item[data-hidden] {
@@ -874,7 +895,18 @@ body {
 }
 
 .card-stack-item[data-top] {
-  transform-origin: 50% 50%;
+  cursor: grab;
+  touch-action: none;
+}
+
+.card-stack-item[data-dragging] {
+  z-index: 40;
+  cursor: grabbing;
+  transition: none;
+}
+
+.card-stack-item:not([data-top]) {
+  pointer-events: none;
 }
 
 .card-stack-item[data-sending] {
@@ -885,20 +917,149 @@ body {
 
 @keyframes card-send {
   0% {
-    transform: none;
+    translate: var(--drag-x, 0px) var(--drag-y, 0px);
+    rotate: var(--drag-rotate, 0deg);
+    scale: calc(1 + var(--drag-lift, 0));
     opacity: 1;
   }
-  15% {
-    transform: translateY(-2%) scale(1.03) rotate(2deg);
-    opacity: 1;
-  }
-  80% {
+  18% {
+    translate: var(--drag-x, 0px) calc(var(--drag-y, 0px) - 12px);
+    scale: 1.04;
     opacity: 1;
   }
   100% {
-    transform: translate(var(--fly-x, 0px), var(--fly-y, 0px)) scale(0.12) rotate(-12deg);
+    translate: var(--fly-x, 0px) var(--fly-y, 0px);
+    rotate: -12deg;
+    scale: 0.12;
     opacity: 0;
   }
+}
+
+.pack-opening-pool {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(52rem, 100vw);
+  height: min(40rem, 80vh);
+  translate: calc(-50% + (var(--pointer-from-left, 0.5) - 0.5) * 48px)
+    calc(-50% + (var(--pointer-from-top, 0.5) - 0.5) * 32px);
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--energy, var(--accent)) 34%, transparent),
+    transparent 68%
+  );
+  opacity: 0.8;
+}
+
+[data-intensity="mid"] .pack-opening-pool {
+  opacity: 0.95;
+}
+
+[data-intensity="high"] .pack-opening-pool {
+  opacity: 1;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--energy, var(--accent)) 52%, transparent),
+    transparent 70%
+  );
+}
+
+.pack-opening-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 46%,
+    color-mix(in srgb, white 78%, var(--accent)),
+    transparent 58%
+  );
+  opacity: 0;
+}
+
+[data-phase="ripping"] .pack-opening-flash {
+  animation: pack-opening-flash 720ms ease forwards;
+}
+
+@keyframes pack-opening-flash {
+  0% {
+    opacity: 0;
+  }
+  28% {
+    opacity: 0.72;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.pack-opening-mote {
+  position: absolute;
+  border-radius: 999px;
+  background: color-mix(in srgb, white 82%, var(--accent));
+  opacity: 0;
+  animation: pack-opening-mote linear infinite;
+}
+
+@keyframes pack-opening-mote {
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-64px);
+    opacity: 0;
+  }
+}
+
+.pack-opening-burst {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: min(24rem, 72vw);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 999px;
+  border: 1px solid
+    color-mix(in srgb, var(--energy, var(--accent)) 50%, transparent);
+  opacity: 0;
+  animation: pack-opening-burst 780ms ease-out both;
+}
+
+[data-intensity="high"] .pack-opening-burst {
+  width: min(34rem, 92vw);
+  border-width: 2px;
+  border-color: color-mix(in srgb, var(--energy, var(--accent)) 78%, white);
+  box-shadow: 0 0 48px
+    color-mix(in srgb, var(--energy, var(--accent)) 42%, transparent);
+}
+
+@keyframes pack-opening-burst {
+  from {
+    transform: scale(0.62);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+.pack-opening-floor {
+  position: absolute;
+  left: 50%;
+  bottom: 7%;
+  width: 78%;
+  height: 12%;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse,
+    color-mix(in srgb, var(--foreground) 26%, transparent),
+    transparent 72%
+  );
+  filter: blur(8px);
 }
 
 @keyframes landing-deal {
@@ -921,7 +1082,10 @@ body {
   .card-stack-item,
   .card-stack-item[data-sending],
   .skeleton-shimmer::after,
-  .landing-deal {
+  .landing-deal,
+  .pack-opening-mote,
+  .pack-opening-flash,
+  .pack-opening-burst {
     animation: none;
     transition: none;
   }

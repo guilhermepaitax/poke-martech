@@ -14,6 +14,7 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:seed-admin": "tsx scripts/seed-admin.ts",
     "db:seed-genetic-apex": "tsx scripts/seed-genetic-apex.ts",
+    "db:seed-card-numbers": "tsx scripts/seed-card-numbers.ts",
     "minio:dev": "docker build -t poke-martech-minio docker/minio && (docker rm -f poke-martech-minio >/dev/null 2>&1 || true) && docker run --name poke-martech-minio -p 9000:9000 -p 9001:9001 -v poke-martech-minio:/data poke-martech-minio"
   },
   "dependencies": {

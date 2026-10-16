@@ -1,8 +1,8 @@
 "use client";
 
+import { useOpening } from "@/hooks/use-opening";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type AnimationEvent } from "react";
-import { useOpening } from "@/hooks/use-opening";
 
 type PackOpeningPhase = "sealed" | "ripping" | "stack" | "summary";
 
@@ -10,8 +10,23 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+function layoutCenter(node: HTMLElement) {
+  const parent = node.offsetParent;
+  if (!(parent instanceof HTMLElement)) {
+    const rect = node.getBoundingClientRect();
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  }
+  const parentRect = parent.getBoundingClientRect();
+  return {
+    x: parentRect.left + node.offsetLeft + node.offsetWidth / 2,
+    y: parentRect.top + node.offsetTop + node.offsetHeight / 2,
+  };
+}
+
 function pokedexTargetRect() {
-  const targets = document.querySelectorAll<HTMLElement>('[data-nav-target="pokedex"]');
+  const targets = document.querySelectorAll<HTMLElement>(
+    '[data-nav-target="pokedex"]',
+  );
   for (const target of targets) {
     const rect = target.getBoundingClientRect();
     if (rect.width > 0 && rect.height > 0) return rect;
@@ -23,6 +38,8 @@ function usePackOpening(id: string) {
   const opening = useOpening(id);
   const router = useRouter();
   const topCardRef = useRef<HTMLDivElement>(null);
+  const passLock = useRef(false);
+  const passIndex = useRef<number | null>(null);
   const [phase, setPhase] = useState<PackOpeningPhase>("sealed");
   const [current, setCurrent] = useState(0);
   const [sending, setSending] = useState(false);
@@ -39,32 +56,48 @@ function usePackOpening(id: string) {
   }
 
   function advance() {
+    if (!passLock.current || passIndex.current == null) return;
+    const index = passIndex.current;
+    passLock.current = false;
+    passIndex.current = null;
     setSending(false);
-    if (current + 1 >= total) {
+    if (index + 1 >= total) {
       setPhase("summary");
       return;
     }
-    setCurrent(current + 1);
+    setCurrent(index + 1);
+  }
+
+  function scheduleAdvance(index: number, delay: number) {
+    window.setTimeout(() => {
+      if (passIndex.current !== index) return;
+      advance();
+    }, delay);
   }
 
   function pass() {
-    if (sending) return;
+    if (passLock.current || sending) return;
+    const index = current;
+    passLock.current = true;
+    passIndex.current = index;
     const node = topCardRef.current;
     const target = pokedexTargetRect();
     if (!node || !target || prefersReducedMotion()) {
-      advance();
+      scheduleAdvance(index, 0);
       return;
     }
-    const card = node.getBoundingClientRect();
-    const flyX = target.left + target.width / 2 - (card.left + card.width / 2);
-    const flyY = target.top + target.height / 2 - (card.top + card.height / 2);
+    const card = layoutCenter(node);
+    const flyX = target.left + target.width / 2 - card.x;
+    const flyY = target.top + target.height / 2 - card.y;
     node.style.setProperty("--fly-x", `${flyX}px`);
     node.style.setProperty("--fly-y", `${flyY}px`);
     setSending(true);
+    scheduleAdvance(index, 800);
   }
 
   function onSendEnd(event: AnimationEvent<HTMLDivElement>) {
     if (event.target !== event.currentTarget) return;
+    if (passIndex.current !== current) return;
     advance();
   }
 
