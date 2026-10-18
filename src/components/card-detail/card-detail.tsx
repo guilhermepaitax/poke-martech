@@ -12,7 +12,6 @@ import { useReturnTo } from "@/hooks/use-list-location";
 import { withReturnTo } from "@/lib/return-path";
 import { formatCardNumber } from "@/lib/card-number";
 import { energyStyle } from "@/lib/type-appearance";
-import { attackDescription } from "@/lib/value-objects/attack-effect";
 import { RARITY_LABELS, STAGE_LABELS } from "@/lib/value-objects/card";
 import { Layers } from "lucide-react";
 import Link from "next/link";
@@ -218,10 +217,8 @@ function CardDetail({ id }: { id: string }) {
                   <p className="text-sm text-foreground-subtle">Sem custo</p>
                 )}
               </div>
-              {attackDescription(attack.effectText, attack.effects) ? (
-                <p className="mt-2 max-w-prose text-sm">
-                  {attackDescription(attack.effectText, attack.effects)}
-                </p>
+              {attack.effectText ? (
+                <p className="mt-2 max-w-prose text-sm">{attack.effectText}</p>
               ) : null}
             </li>
           ))}

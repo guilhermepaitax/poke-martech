@@ -1,8 +1,3 @@
-import type {
-  AttackEffect,
-  StatusCondition,
-} from "../../src/lib/value-objects/attack-effect";
-
 const EFFECT_TEXT: Record<string, string> = {
   "Heal 30 damage from this Pokémon.": "Cure 30 de dano deste Pokémon.",
   "Heal 10 damage from this Pokémon.": "Cure 10 de dano deste Pokémon.",
@@ -125,14 +120,6 @@ const EFFECT_TEXT: Record<string, string> = {
     "Escolha 1 ataque de um Pokémon do oponente e use-o como este ataque. Se este Pokémon não tiver a Energia necessária, este ataque não faz nada.",
 };
 
-const STATUS: Record<string, StatusCondition> = {
-  Asleep: "asleep",
-  Poisoned: "poisoned",
-  Paralyzed: "paralyzed",
-  Burned: "burned",
-  Confused: "confused",
-};
-
 function normalizeEffect(text: string) {
   return text
     .replace(/[’‘]/g, "'")
@@ -147,172 +134,21 @@ function translateEffect(effect: string) {
   return text;
 }
 
-function amountOk(value: number) {
-  return value >= 10 && value <= 300;
-}
-
-function countOk(value: number) {
-  return value >= 1 && value <= 5;
-}
-
-function matchAttackEffects(effect: string): AttackEffect[] {
-  const text = normalizeEffect(effect);
-  const effects: AttackEffect[] = [];
-
-  const heal = text.match(/^Heal (\d+) damage from this Pokémon\.$/);
-  if (heal) {
-    const amount = Number(heal[1]);
-    if (amountOk(amount)) effects.push({ kind: "heal_self", amount });
-  }
-
-  const asleep = text.match(
-    /^Your opponent's Active Pokémon is now (Asleep|Poisoned|Paralyzed|Burned|Confused)\.$/,
-  );
-  if (asleep) {
-    const condition = STATUS[asleep[1] ?? ""];
-    if (condition)
-      effects.push({
-        kind: "status",
-        condition,
-        target: "opponent",
-        coinFlip: false,
-      });
-  }
-
-  const statusCoin = text.match(
-    /^Flip a coin\. If heads, your opponent's Active Pokémon is now (Asleep|Poisoned|Paralyzed|Burned|Confused)\.$/,
-  );
-  if (statusCoin) {
-    const condition = STATUS[statusCoin[1] ?? ""];
-    if (condition)
-      effects.push({
-        kind: "status",
-        condition,
-        target: "opponent",
-        coinFlip: true,
-      });
-  }
-
-  if (text === "Flip a coin. If tails, this attack does nothing.") {
-    effects.push({ kind: "coin_or_nothing" });
-  }
-
-  const more = text.match(
-    /^Flip a coin\. If heads, this attack does (\d+) more damage\.$/,
-  );
-  if (more) {
-    const amountPerHeads = Number(more[1]);
-    if (amountOk(amountPerHeads))
-      effects.push({ kind: "coin_bonus", coins: 1, amountPerHeads });
-  }
-
-  const compound = text.match(
-    /^Flip a coin\. If heads, this attack does (\d+) more damage\. If tails, this Pokémon also does (\d+) damage to itself\.$/,
-  );
-  if (compound) {
-    const amountPerHeads = Number(compound[1]);
-    if (amountOk(amountPerHeads))
-      effects.push({ kind: "coin_bonus", coins: 1, amountPerHeads });
-  }
-
-  const eachHeads = text.match(
-    /^Flip (\d+) coins\. This attack does (\d+) damage for each heads\.$/,
-  );
-  if (eachHeads) {
-    const coins = Number(eachHeads[1]);
-    const amountPerHeads = Number(eachHeads[2]);
-    if (countOk(coins) && amountOk(amountPerHeads))
-      effects.push({ kind: "coin_bonus", coins, amountPerHeads });
-  }
-
-  const benchAll = text.match(
-    /^This attack also does (\d+) damage to each of your opponent's Benched Pokémon\.$/,
-  );
-  if (benchAll) {
-    const amount = Number(benchAll[1]);
-    if (amountOk(amount))
-      effects.push({ kind: "bench_damage", amount, scope: "all" });
-  }
-
-  const benchOne = text.match(
-    /^This attack does (\d+) damage to 1 of your opponent's Benched Pokémon\.$/,
-  );
-  if (benchOne) {
-    const amount = Number(benchOne[1]);
-    if (amountOk(amount))
-      effects.push({ kind: "bench_damage", amount, scope: "one" });
-  }
-
-  const self = text.match(/^This Pokémon also does (\d+) damage to itself\.$/);
-  if (self) {
-    const amount = Number(self[1]);
-    if (amountOk(amount)) effects.push({ kind: "self_damage", amount });
-  }
-
-  const discardSelf = text.match(
-    /^Discard (all|\d+|a) (?:\{[A-Z]\} )?Energy from this Pokémon\.$/,
-  );
-  if (discardSelf) {
-    const raw = discardSelf[1];
-    const count = raw === "all" ? 5 : raw === "a" ? 1 : Number(raw);
-    if (countOk(count))
-      effects.push({ kind: "discard_energy", count, target: "self" });
-  }
-
-  if (text === "Discard a random Energy from your opponent's Active Pokémon.") {
-    effects.push({ kind: "discard_energy", count: 1, target: "opponent" });
-  }
-
-  if (text === "Draw a card.") effects.push({ kind: "draw_cards", count: 1 });
-
-  if (
-    /^Take (?:1|a) \{[A-Z]\} Energy from your Energy Zone and attach it to this Pokémon\.$/.test(
-      text,
-    )
-  ) {
-    effects.push({ kind: "attach_energy_self", count: 1 });
-  }
-
-  if (
-    text ===
-    "Flip a coin. If heads, during your opponent's next turn, prevent all damage from-and effects of-attacks done to this Pokémon."
-  ) {
-    effects.push({ kind: "prevent_damage_next_turn", coinFlip: true });
-  }
-
-  const bonus = text.match(
-    /^If this Pokémon has damage on it, this attack does (\d+) more damage\.$/,
-  );
-  if (bonus) {
-    const amount = Number(bonus[1]);
-    if (amountOk(amount)) effects.push({ kind: "bonus_if_damaged", amount });
-  }
-
-  return effects.slice(0, 3);
-}
-
-function printedDamage(damage: string | null, effects: AttackEffect[]) {
+function printedDamage(damage: string | null) {
   if (!damage) return null;
-  const variable = /[×x]$/i.test(damage);
-  const amount = Number(damage.replace(/[+×x]/gi, ""));
+  if (/[×x]$/i.test(damage)) return null;
+  const amount = Number(damage.replace(/\+$/g, ""));
   if (!Number.isInteger(amount)) return null;
-  const coinReplacesDamage =
-    variable && effects.some((effect) => effect.kind === "coin_bonus");
-  if (coinReplacesDamage) return null;
   return amount;
 }
 
 function parseEffect(effect: string | null) {
-  if (!effect?.trim()) return { effectText: "", effects: [] as AttackEffect[] };
-  return {
-    effectText: translateEffect(effect),
-    effects: matchAttackEffects(effect),
-  };
+  if (!effect?.trim()) return "";
+  return translateEffect(effect);
 }
 
 export {
   EFFECT_TEXT,
-  matchAttackEffects,
   normalizeEffect,
   parseEffect,
   printedDamage,

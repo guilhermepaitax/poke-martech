@@ -16,7 +16,6 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
         <Link href="/admin/cartas" className="rounded-full px-3 py-1.5 text-foreground-subtle hover:bg-white/70 hover:text-foreground">Cartas</Link>
         <Link href="/admin/boosters" className="rounded-full px-3 py-1.5 text-foreground-subtle hover:bg-white/70 hover:text-foreground">Pacotes</Link>
         <Link href="/admin/raridades" className="rounded-full px-3 py-1.5 text-foreground-subtle hover:bg-white/70 hover:text-foreground">Raridades</Link>
-        <Link href="/admin/adversarios" className="rounded-full px-3 py-1.5 text-foreground-subtle hover:bg-white/70 hover:text-foreground">Adversários</Link>
       </nav>
       {children}
     </div>

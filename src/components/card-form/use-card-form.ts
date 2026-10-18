@@ -66,7 +66,6 @@ const emptyCard: CardInput = {
       name: "Golpe",
       damage: 20,
       effectText: "",
-      effects: [],
       energyCost: [{ type: "ia", count: 1 }],
       sortOrder: 0,
     },
@@ -99,7 +98,7 @@ function toInput(card: CardInput): CardInput {
     flavorText: card.flavorText,
     published: card.published,
     tags: card.tags ?? [],
-    attacks: card.attacks.map((attack) => ({ ...attack, effects: attack.effects ?? [] })),
+    attacks: card.attacks.map((attack) => ({ ...attack })),
   };
 }
 
@@ -172,7 +171,6 @@ function useCardForm(cardId?: string) {
             name: "Novo ataque",
             damage: null,
             effectText: "",
-            effects: [],
             energyCost: [{ type: "ia", count: 1 }],
             sortOrder: base.attacks.length,
           },

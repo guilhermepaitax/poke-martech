@@ -4,21 +4,6 @@ import {
   ListAdminBoosters,
   UpdateBooster,
 } from "@/server/application/use-cases/admin-boosters";
-import { DeleteDeck, GetDeck, ListMyDecks, SaveDeck } from "@/server/application/use-cases/battle-decks";
-import {
-  CreateOpponent,
-  GetAdminOpponent,
-  ListAdminOpponents,
-  ListBattleOpponents,
-  UpdateOpponent,
-} from "@/server/application/use-cases/battle-opponents";
-import {
-  ForfeitBattle,
-  GetBattle,
-  ListActiveBattle,
-  StartBattle,
-  SubmitBattleAction,
-} from "@/server/application/use-cases/battles";
 import { CreateCard } from "@/server/application/use-cases/create-card";
 import { GetAdminCard } from "@/server/application/use-cases/get-admin-card";
 import { GetBooster } from "@/server/application/use-cases/get-booster";
@@ -54,9 +39,6 @@ import { ListCardGenerations } from "@/server/application/use-cases/list-card-ge
 import { ProcessCardGeneration } from "@/server/application/use-cases/process-card-generation";
 import { RetryCardGeneration } from "@/server/application/use-cases/retry-card-generation";
 import { StartCardGeneration } from "@/server/application/use-cases/start-card-generation";
-import { DrizzleBattleDeckRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-battle-deck-repository";
-import { DrizzleBattleOpponentRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-battle-opponent-repository";
-import { DrizzleBattleRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-battle-repository";
 import { DrizzleBoosterRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-booster-repository";
 import { DrizzleCardGenerationRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-card-generation-repository";
 import { DrizzleCardRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-card-repository";
@@ -91,9 +73,6 @@ const purchases = new DrizzlePackPurchaseRepository();
 const openings = new DrizzleOpeningRepository();
 const storage = new R2Storage();
 const cardGenerations = new DrizzleCardGenerationRepository();
-const battleDecks = new DrizzleBattleDeckRepository();
-const battleOpponents = new DrizzleBattleOpponentRepository();
-const battles = new DrizzleBattleRepository();
 const cardSource = new TcgdexCardSource();
 const cardIdeas = new OpenAiCardIdeaGenerator();
 const images = new OpenAiImageGenerator();
@@ -144,20 +123,6 @@ const container = {
   getCardGeneration: new GetCardGeneration(cardGenerations, cards),
   listCardGenerations: new ListCardGenerations(cardGenerations),
   retryCardGeneration: new RetryCardGeneration(cardGenerations),
-  listMyDecks: new ListMyDecks(battleDecks),
-  getDeck: new GetDeck(battleDecks),
-  saveDeck: new SaveDeck(battleDecks, battles),
-  deleteDeck: new DeleteDeck(battleDecks),
-  listBattleOpponents: new ListBattleOpponents(battleOpponents),
-  listAdminOpponents: new ListAdminOpponents(battleOpponents),
-  getAdminOpponent: new GetAdminOpponent(battleOpponents),
-  createOpponent: new CreateOpponent(battleOpponents, battles),
-  updateOpponent: new UpdateOpponent(battleOpponents, battles),
-  listActiveBattle: new ListActiveBattle(battles, battleOpponents),
-  startBattle: new StartBattle(battles, battleDecks, battleOpponents),
-  getBattle: new GetBattle(battles, battleOpponents),
-  submitBattleAction: new SubmitBattleAction(battles, battleOpponents),
-  forfeitBattle: new ForfeitBattle(battles, battleOpponents),
 };
 
 export { container };

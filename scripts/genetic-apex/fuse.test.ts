@@ -127,9 +127,9 @@ describe("fusão das linhas evolutivas", () => {
     expect(ivysaur?.member.id).toBe("mago");
     expect(venusaur?.evolvesFromSourceId).toBe("A1-002");
     expect(venusaur?.stage).toBe("stage2");
-    expect(venusaur?.attacks[0]?.effects).toEqual([
-      { kind: "heal_self", amount: 30 },
-    ]);
+    expect(venusaur?.attacks[0]?.effectText).toBe(
+      "Cure 30 de dano deste Pokémon.",
+    );
     expect(venusaurEx?.frame).toBe("ex");
     expect(venusaurEx?.rarity).toBe("double_rare");
     expect(venusaurEx?.evolvesFromSourceId).toBe("A1-002");

@@ -1,5 +1,4 @@
 import { slugify } from "../../src/lib/slug";
-import type { AttackEffect } from "../../src/lib/value-objects/attack-effect";
 import type {
   CardFrame,
   EnergyType,
@@ -25,7 +24,6 @@ type FusedAttack = {
   name: string;
   damage: number | null;
   effectText: string;
-  effects: AttackEffect[];
   energyCost: EnergyCost[];
   sortOrder: number;
 };
@@ -298,15 +296,13 @@ function fuseCatalog(cards: ApexCard[]): FusedCard[] {
     const weakness = item.card.weaknesses[0]?.type ?? null;
     const spice = pickOption(naming.member.spices, `${item.card.id}:spice`);
     const attacks = item.card.attacks.map((attack, sortOrder) => {
-      const parsed = parseEffect(attack.effect);
       const energyCost = mapEnergyCost(attack.cost);
       if (energyCost.length > 6)
         throw new Error(`Custo de energia inválido em ${item.card.id}`);
       return {
         name: fuseAttackName(spice, attack.name),
-        damage: printedDamage(attack.damage, parsed.effects),
-        effectText: clip(parsed.effectText, 280),
-        effects: parsed.effects,
+        damage: printedDamage(attack.damage),
+        effectText: clip(parseEffect(attack.effect), 280),
         energyCost,
         sortOrder,
       };

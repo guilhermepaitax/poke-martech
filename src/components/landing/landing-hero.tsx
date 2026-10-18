@@ -44,8 +44,7 @@ function LandingHero({ signedIn }: { signedIn: boolean }) {
             Comece sua coleção!
           </h1>
           <p className="mt-5 max-w-[38ch] text-lg leading-relaxed text-landing-paper">
-            Abra pacotes para começar a colecionar, troque com o time e leve o
-            deck para a batalha.
+            Abra pacotes para começar a colecionar e troque com o time.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             {signedIn ? (

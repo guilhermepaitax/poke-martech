@@ -44,7 +44,6 @@ function toCardDetail(card: Card, origin: Card | null, ownedCount = 0): CardDeta
       name: attack.name,
       damage: attack.damage,
       effectText: attack.effectText,
-      effects: attack.effects,
       energyCost: attack.energyCost,
       sortOrder: attack.sortOrder,
     })),
@@ -88,7 +87,6 @@ function toCardEntity(id: string, input: CardInput) {
           attack.effectText,
           attack.energyCost,
           attack.sortOrder,
-          attack.effects,
         ),
     ),
   );

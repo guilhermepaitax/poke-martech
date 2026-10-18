@@ -17,13 +17,6 @@ import {
   updateBooster,
   updateCard,
 } from "@/services/catalog";
-import {
-  createOpponent,
-  fetchAdminOpponent,
-  fetchAdminOpponents,
-  updateOpponent,
-} from "@/services/battle";
-import type { BattleOpponentInput } from "@/types/battle";
 import type { BoosterInput, CardGenerationInput, CardInput, RarityWeight } from "@/types/catalog";
 
 const adminCardKeys = {
@@ -153,49 +146,17 @@ function useRetryCardGeneration(id: string) {
   });
 }
 
-const adminOpponentKeys = {
-  all: ["admin-opponents"] as const,
-  list: () => [...adminOpponentKeys.all, "list"] as const,
-  detail: (id: string) => [...adminOpponentKeys.all, id] as const,
-};
-
-function useAdminOpponents() {
-  return useQuery({ queryKey: adminOpponentKeys.list(), queryFn: fetchAdminOpponents });
-}
-
-function useAdminOpponent(id: string) {
-  return useQuery({
-    queryKey: adminOpponentKeys.detail(id),
-    queryFn: () => fetchAdminOpponent(id),
-    enabled: Boolean(id),
-  });
-}
-
-function useSaveOpponent(id?: string) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: (input: BattleOpponentInput) =>
-      id ? updateOpponent(id, input) : createOpponent(input),
-    onSuccess: () => {
-      void client.invalidateQueries({ queryKey: adminOpponentKeys.all });
-    },
-  });
-}
-
 export {
   useAdminBooster,
   useAdminBoosters,
   useAdminCard,
   useAdminCards,
-  useAdminOpponent,
-  useAdminOpponents,
   useCardGeneration,
   useCardGenerations,
   useRarities,
   useRetryCardGeneration,
   useSaveBooster,
   useSaveCard,
-  useSaveOpponent,
   useSaveRarities,
   useStartCardGeneration,
 };

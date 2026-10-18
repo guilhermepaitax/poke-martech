@@ -8,11 +8,6 @@ export {
   verification,
 } from "@/server/infrastructure/db/drizzle/schema/auth";
 export {
-  battleDeckCards,
-  battleDecks,
-  battleOpponentCards,
-  battleOpponents,
-  battles,
   boosterCards,
   boosters,
   cardAttacks,

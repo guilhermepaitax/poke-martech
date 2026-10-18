@@ -14,7 +14,6 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 import { SelectField } from "@/components/ui/select-field";
 import { SwitchField } from "@/components/ui/switch-field";
 import type { CardEvolutionOrigin, CardInput } from "@/types/catalog";
-import { AttackEffectsEditor } from "./attack-effects-editor";
 import { CardTagField } from "./card-tag-field";
 import { CardDecorationPicker } from "./card-decoration-picker";
 import { CardPlacementEditor } from "./card-placement-editor";
@@ -200,10 +199,6 @@ function CardForm({ cardId }: { cardId?: string }) {
                     aria-label="Efeito"
                     value={attack.effectText}
                     onChange={(event) => form.updateAttack(index, { effectText: event.target.value })}
-                  />
-                  <AttackEffectsEditor
-                    effects={attack.effects}
-                    onChange={(effects) => form.updateAttack(index, { effects })}
                   />
                 </div>
               );
