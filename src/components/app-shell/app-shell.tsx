@@ -2,10 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useFeatureFlag } from "@/components/feature-flags/use-feature-flags";
 import { useProfile } from "@/hooks/use-profile";
 import { authClient } from "@/lib/auth-client";
-import { FEATURE_FLAGS } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 import { Coins } from "lucide-react";
 import Image from "next/image";
@@ -46,13 +44,9 @@ function AppShell({ role, username, children }: AppShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const profile = useProfile();
-  const battleEnabled = useFeatureFlag(FEATURE_FLAGS.battle);
   const profileHref = `/u/${username}`;
   const links: { href: string; label: string; active: boolean; target?: string }[] = [
     { href: "/loja", label: "Loja", active: pathname.startsWith("/loja") },
-    ...(battleEnabled
-      ? [{ href: "/batalha", label: "Batalha", active: pathname.startsWith("/batalha") }]
-      : []),
     {
       href: "/pokedex",
       label: "Pokédex",

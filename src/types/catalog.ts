@@ -1,5 +1,4 @@
 import type { CardDecorationId } from "@/lib/card-decorations";
-import type { AttackEffect } from "@/lib/value-objects/attack-effect";
 import type { CardFrame, EnergyType, Finish, Rarity, Stage } from "@/lib/value-objects/card";
 import type { GenerationItemStatus, GenerationStatus } from "@/lib/value-objects/card-generation";
 import type { TradeStatus } from "@/lib/value-objects/trade";
@@ -25,7 +24,6 @@ type Attack = {
   name: string;
   damage: number | null;
   effectText: string;
-  effects: AttackEffect[];
   energyCost: EnergyCost[];
   sortOrder: number;
 };

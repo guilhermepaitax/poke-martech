@@ -1,5 +1,4 @@
 import type { CardDecorationId } from "@/lib/card-decorations";
-import type { AttackEffect } from "@/lib/value-objects/attack-effect";
 import type { CardFrame, EnergyType, Rarity, Stage } from "@/lib/value-objects/card";
 import type { Attack } from "@/types/catalog";
 
@@ -10,7 +9,6 @@ class CardAttack {
     readonly effectText: string,
     readonly energyCost: Attack["energyCost"],
     readonly sortOrder: number,
-    readonly effects: AttackEffect[] = [],
   ) {}
 }
 

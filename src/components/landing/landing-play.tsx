@@ -8,8 +8,8 @@ const STEPS = [
     body: "O que você tem aparece aberto. O resto fica coberto até você encontrar.",
   },
   {
-    title: "Troque ou batalhe",
-    body: "Proponha uma troca ou monte um deck e entre na batalha.",
+    title: "Troque com o time",
+    body: "Proponha uma troca com quem você segue.",
   },
 ] as const;
 

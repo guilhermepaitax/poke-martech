@@ -1,4 +1,3 @@
-import { describeAttackEffect } from "../../src/lib/value-objects/attack-effect";
 import type { FusedCard } from "./fuse";
 import { MEMBERS } from "./members";
 import { ENERGY_LABELS, originTypeLabel, type ApexCard } from "./types";
@@ -56,18 +55,11 @@ function renderCard(card: FusedCard) {
   const evolves = card.evolvesFromSlug ? `\`${card.evolvesFromSlug}\`` : "—";
   const attacks = card.attacks
     .map((attack) => {
-      const mechanics =
-        attack.effects.length > 0
-          ? attack.effects
-              .map((effect) => describeAttackEffect(effect))
-              .join(" ")
-          : "Sem efeito mecânico.";
       const text = attack.effectText
         ? attack.effectText
         : "Sem texto de efeito.";
       return `- **${attack.name}** — dano ${attack.damage ?? "—"} — custo ${costLabel(attack)}
-  - Texto: ${text}
-  - Batalha: ${mechanics}`;
+  - Texto: ${text}`;
     })
     .join("\n");
 

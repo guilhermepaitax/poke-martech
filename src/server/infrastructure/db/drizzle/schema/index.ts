@@ -10,11 +10,6 @@ export {
 } from "@/server/infrastructure/db/drizzle/schema/auth";
 export {
   appRateLimits,
-  battleDeckCards,
-  battleDecks,
-  battleOpponentCards,
-  battleOpponents,
-  battles,
   boosterCards,
   boosters,
   cardAttacks,

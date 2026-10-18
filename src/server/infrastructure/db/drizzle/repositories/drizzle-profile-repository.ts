@@ -90,34 +90,6 @@ class DrizzleProfileRepository implements ProfileRepository {
 }
 
 class DrizzlePokedexRepository implements PokedexRepository {
-  async listForUser(userId: string): Promise<PokedexEntry[]> {
-    const rows = await db
-      .select({
-        card: cards,
-        ownedCount: sql<number>`count(${userCards.id})::int`,
-      })
-      .from(cards)
-      .leftJoin(
-        userCards,
-        and(eq(userCards.cardId, cards.id), eq(userCards.userId, userId)),
-      )
-      .where(eq(cards.published, true))
-      .groupBy(cards.id)
-      .orderBy(asc(cards.number));
-    const owned = rows.flatMap((row) => (row.ownedCount > 0 ? [row.card] : []));
-    const attackRows = await attacksFor(owned.map((card) => card.id));
-    const origins = await evolutionOriginsFor(db, owned);
-
-    return rows.flatMap((row): PokedexEntry[] => {
-      if (row.ownedCount === 0) {
-        return [{ id: row.card.id, number: row.card.number, ownedCount: 0, card: null }];
-      }
-      const face = toCardFace(row.card, attackRows, origins);
-      if (!face) return [];
-      return [{ id: row.card.id, number: row.card.number, ownedCount: row.ownedCount, card: face }];
-    });
-  }
-
   async page(
     userId: string,
     filters: PokedexFilters,

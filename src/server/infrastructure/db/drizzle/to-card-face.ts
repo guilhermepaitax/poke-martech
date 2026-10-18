@@ -1,6 +1,5 @@
 import { inArray } from "drizzle-orm";
 import { isCardDecorationId } from "@/lib/card-decorations";
-import { parseAttackEffects } from "@/lib/value-objects/attack-effect";
 import { isEnergyType, isFrame, isRarity, isStage } from "@/lib/value-objects/card";
 import type { db } from "@/server/infrastructure/db/drizzle/client";
 import { cardAttacks, cards } from "@/server/infrastructure/db/drizzle/schema";
@@ -47,7 +46,6 @@ function toCardFace(
       name: attack.name,
       damage: attack.damage,
       effectText: attack.effectText,
-      effects: parseAttackEffects(attack.effects),
       sortOrder: attack.sortOrder,
       energyCost: attack.energyCost.flatMap((cost) =>
         isEnergyType(cost.type) ? [{ type: cost.type, count: cost.count }] : [],

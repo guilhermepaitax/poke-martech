@@ -18,7 +18,6 @@ type PokedexFilters = {
 };
 
 interface PokedexRepository {
-  listForUser(userId: string): Promise<PokedexEntry[]>;
   page(userId: string, filters: PokedexFilters, request: PageRequest): Promise<PageSlice<PokedexEntry>>;
   totals(userId: string): Promise<{ owned: number; total: number }>;
   ownedCardIdsAmong(userId: string, cardIds: string[]): Promise<string[]>;

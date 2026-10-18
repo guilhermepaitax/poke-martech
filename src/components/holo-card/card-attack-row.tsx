@@ -1,9 +1,8 @@
-import { attackDescription } from "@/lib/value-objects/attack-effect";
 import type { Attack } from "@/types/catalog";
 import { CardEnergySymbol } from "./card-energy-symbol";
 
 function CardAttackRow({ attack }: { attack: Attack }) {
-  const description = attackDescription(attack.effectText, attack.effects);
+  const description = attack.effectText;
   const symbols = attack.energyCost.flatMap((cost) =>
     Array.from({ length: cost.count }, () => cost.type),
   );

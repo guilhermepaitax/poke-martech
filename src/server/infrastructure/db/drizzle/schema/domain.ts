@@ -12,9 +12,6 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import type { AttackEffect } from "@/lib/value-objects/attack-effect";
-import type { EnergyType } from "@/lib/value-objects/card";
-import type { BattleState } from "@/lib/battle/battle-state";
 import type { SourcePokemon } from "@/server/application/entities/source-pokemon";
 import { user } from "@/server/infrastructure/db/drizzle/schema/auth";
 
@@ -132,7 +129,6 @@ const cardAttacks = pgTable(
     name: text("name").notNull(),
     damage: integer("damage"),
     effectText: text("effect_text").notNull().default(""),
-    effects: jsonb("effects").$type<AttackEffect[]>().notNull().default([]),
     energyCost: jsonb("energy_cost").$type<EnergyCostRow[]>().notNull(),
     sortOrder: integer("sort_order").notNull(),
   },
@@ -286,95 +282,6 @@ const cardGenerationItems = pgTable(
   (table) => [index("card_generation_items_batch_idx").on(table.batchId)],
 );
 
-const battleDecks = pgTable(
-  "battle_decks",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    name: text("name").notNull(),
-    energyTypes: jsonb("energy_types").$type<EnergyType[]>().notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
-  },
-  (table) => [index("battle_decks_user_id_idx").on(table.userId)],
-);
-
-const battleDeckCards = pgTable(
-  "battle_deck_cards",
-  {
-    deckId: uuid("deck_id")
-      .notNull()
-      .references(() => battleDecks.id, { onDelete: "cascade" }),
-    cardId: uuid("card_id")
-      .notNull()
-      .references(() => cards.id, { onDelete: "restrict" }),
-    copies: integer("copies").notNull(),
-  },
-  (table) => [uniqueIndex("battle_deck_cards_pk").on(table.deckId, table.cardId)],
-);
-
-const battleOpponents = pgTable(
-  "battle_opponents",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    name: text("name").notNull(),
-    slug: text("slug").notNull(),
-    avatarUrl: text("avatar_url"),
-    description: text("description").notNull().default(""),
-    difficulty: text("difficulty").notNull().default("normal"),
-    rewardCoins: integer("reward_coins").notNull().default(10),
-    energyTypes: jsonb("energy_types").$type<EnergyType[]>().notNull(),
-    active: boolean("active").notNull().default(false),
-    sortOrder: integer("sort_order").notNull().default(0),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
-  },
-  (table) => [uniqueIndex("battle_opponents_slug_idx").on(table.slug)],
-);
-
-const battleOpponentCards = pgTable(
-  "battle_opponent_cards",
-  {
-    opponentId: uuid("opponent_id")
-      .notNull()
-      .references(() => battleOpponents.id, { onDelete: "cascade" }),
-    cardId: uuid("card_id")
-      .notNull()
-      .references(() => cards.id, { onDelete: "restrict" }),
-    copies: integer("copies").notNull(),
-  },
-  (table) => [uniqueIndex("battle_opponent_cards_pk").on(table.opponentId, table.cardId)],
-);
-
-const battles = pgTable(
-  "battles",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    opponentId: uuid("opponent_id")
-      .notNull()
-      .references(() => battleOpponents.id, { onDelete: "restrict" }),
-    deckId: uuid("deck_id").references(() => battleDecks.id, { onDelete: "set null" }),
-    status: text("status").notNull().default("active"),
-    state: jsonb("state").$type<BattleState>().notNull(),
-    version: integer("version").notNull().default(0),
-    rewardCoins: integer("reward_coins").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    finishedAt: timestamp("finished_at"),
-  },
-  (table) => [index("battles_user_status_idx").on(table.userId, table.status)],
-);
-
 const follows = pgTable(
   "follows",
   {
@@ -452,11 +359,6 @@ const appRateLimits = pgTable("app_rate_limits", {
 
 export {
   appRateLimits,
-  battleDeckCards,
-  battleDecks,
-  battleOpponentCards,
-  battleOpponents,
-  battles,
   boosterCards,
   boosters,
   cardAttacks,

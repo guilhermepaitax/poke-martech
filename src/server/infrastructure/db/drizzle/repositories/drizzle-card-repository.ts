@@ -2,7 +2,6 @@ import {
   isCardDecorationId,
   type CardDecorationId,
 } from "@/lib/card-decorations";
-import { parseAttackEffects } from "@/lib/value-objects/attack-effect";
 import {
   isEnergyType,
   isFrame,
@@ -230,7 +229,6 @@ function toCard(
             count: cost.count,
           })),
           attack.sortOrder,
-          parseAttackEffects(attack.effects),
         ),
     ),
   );
@@ -272,7 +270,6 @@ function toAttackInsert(cardId: string, attack: CardAttack) {
     name: attack.name,
     damage: attack.damage,
     effectText: attack.effectText,
-    effects: attack.effects,
     energyCost: attack.energyCost,
     sortOrder: attack.sortOrder,
   };

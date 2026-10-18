@@ -14,7 +14,6 @@ import type {
   CardTag,
   AdminCatalogCard,
   PackOpening,
-  PokedexEntry,
   PokedexPage,
   Profile,
   PublicPokedexPage,
@@ -25,10 +24,6 @@ import type {
 
 function fetchProfile() {
   return api<Profile>("/api/me");
-}
-
-function fetchPokedex() {
-  return api<PokedexEntry[]>("/api/pokedex");
 }
 
 type PokedexQuery = {
@@ -182,7 +177,6 @@ export {
   fetchCardGeneration,
   fetchCardGenerations,
   fetchOpening,
-  fetchPokedex,
   fetchPokedexPage,
   fetchProfileCards,
   fetchPokemonTypes,

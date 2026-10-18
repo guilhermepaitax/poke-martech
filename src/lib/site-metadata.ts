@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 const SITE_NAME = "PokeMartech";
 const SITE_TITLE = "PokeMartech — Comece sua coleção";
 const SITE_DESCRIPTION =
-  "Abra pacotes para começar a colecionar, troque com o time e leve o deck para a batalha.";
+  "Abra pacotes para começar a colecionar e troque com o time.";
 
 const OG_IMAGE = {
   url: "/landing-page/banner.png",
