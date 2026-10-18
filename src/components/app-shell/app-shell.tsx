@@ -1,15 +1,17 @@
 "use client";
 
+import { useFeatureFlag } from "@/components/feature-flags/use-feature-flags";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProfile } from "@/hooks/use-profile";
 import { authClient } from "@/lib/auth-client";
+import { FEATURE_FLAGS } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 import { Coins } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 interface AppShellProps {
   role: string;
@@ -44,6 +46,21 @@ function AppShell({ role, username, children }: AppShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const profile = useProfile();
+  const arenaEnabled = useFeatureFlag(FEATURE_FLAGS.arena);
+  const arenaLayout = arenaEnabled && pathname.startsWith("/batalha");
+  const headerRef = useRef<HTMLElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const update = () => setHeaderHeight(Math.ceil(header.getBoundingClientRect().height));
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
   const profileHref = `/u/${username}`;
   const links: { href: string; label: string; active: boolean; target?: string }[] = [
     { href: "/loja", label: "Loja", active: pathname.startsWith("/loja") },
@@ -53,6 +70,9 @@ function AppShell({ role, username, children }: AppShellProps) {
       active: pathname.startsWith("/pokedex"),
       target: "pokedex",
     },
+    ...(arenaEnabled
+      ? [{ href: "/batalha", label: "Batalha", active: pathname.startsWith("/batalha") }]
+      : []),
     { href: "/trocas", label: "Trocas", active: pathname.startsWith("/trocas") },
     { href: profileHref, label: "Perfil", active: pathname === profileHref },
     ...(role === "admin"
@@ -68,7 +88,7 @@ function AppShell({ role, username, children }: AppShellProps) {
 
   return (
     <div data-slot="app-shell" className="min-h-full">
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-40 px-3 pt-3">
+      <header ref={headerRef} className="pointer-events-none fixed inset-x-0 top-0 z-40 px-3 pt-3">
         <div className="glass pointer-events-auto mx-auto flex max-w-5xl items-center gap-2 rounded-full px-3 py-2">
           <Link
             href="/home"
@@ -114,7 +134,14 @@ function AppShell({ role, username, children }: AppShellProps) {
           ))}
         </nav>
       </header>
-      <main className="mx-auto w-full max-w-6xl px-4 pb-12 pt-36 md:pt-24">
+      <main
+        className={cn(
+          arenaLayout
+            ? "fixed inset-x-0 bottom-0 overflow-hidden"
+            : "mx-auto w-full max-w-6xl px-4 pb-12 pt-36 md:pt-24",
+        )}
+        style={arenaLayout ? { top: headerHeight } : undefined}
+      >
         {children}
       </main>
     </div>

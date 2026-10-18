@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { isFeatureEnabled, readFeatureFlags } from "@/lib/feature-flags";
 
-const ENV_KEYS = ["FEATURE_FLAG_AI_CARD_GENERATION"] as const;
+const ENV_KEYS = ["FEATURE_FLAG_AI_CARD_GENERATION", "FEATURE_FLAG_ARENA"] as const;
 
 describe("readFeatureFlags", () => {
   afterEach(() => {
@@ -11,6 +11,7 @@ describe("readFeatureFlags", () => {
   it("mantém as funcionalidades ativas quando as variáveis não estão definidas", () => {
     expect(readFeatureFlags()).toEqual({
       "ai-card-generation": true,
+      arena: true,
     });
   });
 
@@ -18,6 +19,14 @@ describe("readFeatureFlags", () => {
     process.env.FEATURE_FLAG_AI_CARD_GENERATION = "off";
 
     expect(isFeatureEnabled("ai-card-generation")).toBe(false);
+    expect(isFeatureEnabled("arena")).toBe(true);
+  });
+
+  it("desliga a arena sem afetar as outras flags", () => {
+    process.env.FEATURE_FLAG_ARENA = "off";
+
+    expect(isFeatureEnabled("arena")).toBe(false);
+    expect(isFeatureEnabled("ai-card-generation")).toBe(true);
   });
 
   it("aceita valores afirmativos sem diferenciar maiúsculas", () => {
