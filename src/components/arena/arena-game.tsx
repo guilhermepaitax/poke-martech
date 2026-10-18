@@ -9,7 +9,7 @@ function ArenaGame() {
     <div
       ref={parentRef}
       data-slot="arena-game"
-      className="h-full w-full overflow-hidden bg-muted [&_canvas]:block"
+      className="h-full w-full overflow-hidden bg-muted [&_canvas]:block [&_canvas]:outline-none"
     />
   );
 }

@@ -1,6 +1,6 @@
-import Phaser from "phaser";
 import { cssColor } from "@/game/arena/css-color";
 import { ArenaScene } from "@/game/arena/scenes/arena-scene";
+import Phaser from "phaser";
 
 function createArenaGame(parent: HTMLElement): Phaser.Game {
   const width = Math.max(parent.clientWidth, 1);
@@ -20,6 +20,7 @@ function createArenaGame(parent: HTMLElement): Phaser.Game {
         gravity: { x: 0, y: 0 },
         width,
         height,
+        debug: false,
       },
     },
     scale: {

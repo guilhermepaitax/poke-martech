@@ -9,7 +9,7 @@ Cada etapa abaixo deve poder ser jogada e verificada antes da seguinte. Não ava
 - [x] Etapa 0 — Auditoria e planejamento
 - [x] Etapa 1 — Phaser integrado à aplicação
 - [x] Ajustes visuais pedidos depois da etapa 1
-- [ ] Etapa 2 — Movimentação do jogador
+- [x] Etapa 2 — Movimentação do jogador
 - [ ] Etapa 3 — Cartas fixas como lutadores
 - [ ] Etapa 4 — Combate básico
 - [ ] Etapa 5 — CPU
@@ -72,20 +72,20 @@ Pedidos depois da etapa 1. Não substituem as etapas 2 a 8.
 - [x] Borda reta de 4px em volta do canvas
 - [x] Testes de `arenaWorldSize` em `src/lib/arena/world-size.test.ts`
 
-Ainda não existe personagem. A câmera só revela o resto do fundo quando a etapa 2 passar a segui-lo.
+A etapa 2 coloca o personagem no centro. A câmera o segue e revela o fundo que começa fora da tela.
 
 ## Etapa 2 — Movimentação do jogador
 
 Objetivo: controlar um personagem provisório dentro da arena.
 
-- [ ] Entidade do jogador em `src/game/arena/entities/player.ts`
-- [ ] Oito direções, WASD e setas
-- [ ] `normalizeMove` em `src/lib/arena/movement.ts`, com teste de eixo, diagonal e input zero
-- [ ] Velocidade pelo Arcade, usando o delta, sem atualizar x/y pelo React
-- [ ] Colisão com os bounds do mundo e com os obstáculos
-- [ ] Setas não rolam a página enquanto o canvas está em foco
-- [ ] A câmera segue o personagem e mostra as partes do fundo que começam fora da tela
-- [ ] Sprite provisório enquanto não houver arte de caminhada
+- [x] Entidade do jogador em `src/game/arena/entities/player.ts`
+- [x] Oito direções, WASD e setas
+- [x] `normalizeMove` em `src/lib/arena/movement.ts`, com teste de eixo, diagonal e input zero
+- [x] Velocidade pelo Arcade, usando o delta, sem atualizar x/y pelo React
+- [x] Colisão com os bounds do mundo e com os obstáculos
+- [x] Setas não rolam a página enquanto o canvas está em foco
+- [x] A câmera segue o personagem e mostra as partes do fundo que começam fora da tela
+- [x] Sprite provisório enquanto não houver arte de caminhada
 
 Aceite: a diagonal não é mais rápida que os eixos, o personagem não sai do mundo e o React não escreve a posição a cada frame.
 
@@ -173,4 +173,4 @@ Aceite: uma luta inteira inicia, termina e reinicia. Pokédex, loja e admin cont
 
 ## Próximo passo
 
-A etapa 2. Ela depende da câmera e do mundo já montados: o personagem se move no mundo, e a câmera o segue para revelar o fundo.
+A etapa 3. Os lutadores passam a vir de duas cartas publicadas, sem picker novo.
