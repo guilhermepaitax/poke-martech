@@ -13,7 +13,10 @@ import {
   type Stage,
 } from "@/lib/value-objects/card";
 import { normalizeCardTags } from "@/lib/value-objects/card-tag";
-import type { CardRepository } from "@/server/application/contracts/repositories/card-repository";
+import type {
+  CardRepository,
+  PublishedCardRecord,
+} from "@/server/application/contracts/repositories/card-repository";
 import { Card, CardAttack } from "@/server/application/entities/card";
 import { db } from "@/server/infrastructure/db/drizzle/client";
 import {
@@ -64,6 +67,31 @@ class DrizzleCardRepository implements CardRepository {
     return rows.map(toSummary);
   }
 
+  async listPublishedCards(): Promise<PublishedCardRecord[]> {
+    const rows = await db
+      .select()
+      .from(cards)
+      .where(eq(cards.published, true))
+      .orderBy(asc(cards.number));
+    if (rows.length === 0) return [];
+    const attackRows = await db
+      .select()
+      .from(cardAttacks)
+      .where(
+        inArray(
+          cardAttacks.cardId,
+          rows.map((row) => row.id),
+        ),
+      )
+      .orderBy(asc(cardAttacks.sortOrder));
+    const origins = await evolutionOriginsFor(db, rows);
+    return rows.flatMap((row) => {
+      const face = toCardFace(row, attackRows, origins);
+      if (!face) return [];
+      return [{ id: row.id, slug: row.slug, face }];
+    });
+  }
+
   async findById(id: string): Promise<Card | null> {
     const rows = await db.select().from(cards).where(eq(cards.id, id)).limit(1);
     const row = rows[0];
@@ -76,6 +104,17 @@ class DrizzleCardRepository implements CardRepository {
       .select()
       .from(cards)
       .where(and(eq(cards.id, id), eq(cards.published, true)))
+      .limit(1);
+    const row = rows[0];
+    if (!row) return null;
+    return this.hydrate(row);
+  }
+
+  async findPublishedBySlug(slug: string): Promise<Card | null> {
+    const rows = await db
+      .select()
+      .from(cards)
+      .where(and(eq(cards.slug, slug), eq(cards.published, true)))
       .limit(1);
     const row = rows[0];
     if (!row) return null;

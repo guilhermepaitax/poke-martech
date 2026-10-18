@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import type { GenerationStatus } from "@/lib/value-objects/card-generation";
 import type {
   CardGenerationItemPatch,
@@ -24,6 +23,7 @@ import {
 import { PokemonType } from "@/server/application/entities/pokemon-type";
 import type { SourcePokemon } from "@/server/application/entities/source-pokemon";
 import { ProcessCardGeneration } from "@/server/application/use-cases/process-card-generation";
+import { describe, expect, it } from "vitest";
 
 const MACHOP_URL = "https://www.pokemon-zone.com/cards/a1/143/machop/";
 
@@ -34,7 +34,9 @@ const machop: SourcePokemon = {
   types: ["Fighting"],
   stage: "Basic",
   description: "Its whole body is composed of muscles.",
-  attacks: [{ name: "Knuckle Punch", cost: ["Fighting"], damage: "20", effect: null }],
+  attacks: [
+    { name: "Knuckle Punch", cost: ["Fighting"], damage: "20", effect: null },
+  ],
   abilities: [],
   weaknesses: [{ type: "Psychic", value: "+20" }],
   retreat: 2,
@@ -83,7 +85,10 @@ class MemoryGenerations implements CardGenerationRepository {
     return true;
   }
 
-  async updateBatch(_id: string, patch: { status: GenerationStatus; error: string | null }) {
+  async updateBatch(
+    _id: string,
+    patch: { status: GenerationStatus; error: string | null },
+  ) {
     this.setStatus(patch.status, patch.error);
   }
 
@@ -96,7 +101,9 @@ class MemoryGenerations implements CardGenerationRepository {
             item.position,
             item.sourceUrl,
             patch.sourceData ?? item.sourceData,
-            patch.sourceImageUrl === undefined ? item.sourceImageUrl : patch.sourceImageUrl,
+            patch.sourceImageUrl === undefined
+              ? item.sourceImageUrl
+              : patch.sourceImageUrl,
             patch.imagePrompt ?? item.imagePrompt,
             patch.cardId ?? item.cardId,
             patch.status ?? item.status,
@@ -121,7 +128,13 @@ class MemoryGenerations implements CardGenerationRepository {
     this.replace({ status, error });
   }
 
-  private replace(patch: Partial<{ status: GenerationStatus; error: string | null; items: CardGenerationItem[] }>) {
+  private replace(
+    patch: Partial<{
+      status: GenerationStatus;
+      error: string | null;
+      items: CardGenerationItem[];
+    }>,
+  ) {
     const batch = this.batch;
     if (!batch) return;
     this.batch = new CardGenerationBatch(
@@ -152,11 +165,19 @@ class MemoryCards implements CardRepository {
     return [];
   }
 
+  async listPublishedCards() {
+    return [];
+  }
+
   async findById() {
     return null;
   }
 
   async findPublishedById() {
+    return null;
+  }
+
+  async findPublishedBySlug() {
     return null;
   }
 
@@ -169,7 +190,8 @@ class MemoryCards implements CardRepository {
   }
 
   async create(card: Card) {
-    if (this.takenSlugs.has(card.slug)) return { ok: false as const, reason: "conflict" as const };
+    if (this.takenSlugs.has(card.slug))
+      return { ok: false as const, reason: "conflict" as const };
     this.takenSlugs.add(card.slug);
     this.created.push(card);
     return { ok: true as const, id: `card-${this.created.length}` };
@@ -195,7 +217,14 @@ class FakeIdeas implements CardIdeaGenerator {
       rarity: "common",
       frame: "basic",
       flavorText: "Toma café o dia inteiro.",
-      attacks: [{ name: "Refatorar", damage: 30, effectText: "", energyCost: [{ type: "frontend", count: 1 }] }],
+      attacks: [
+        {
+          name: "Refatorar",
+          damage: 30,
+          effectText: "",
+          energyCost: [{ type: "frontend", count: 1 }],
+        },
+      ],
       imagePrompt: `prompt-${index}`,
     }));
   }
@@ -211,12 +240,16 @@ class FakeImages implements ImageGenerator {
 
   async generate(input: ImageGenerationRequest) {
     this.calls.push(input);
-    if (this.failingPrompts.has(input.prompt)) throw new Error("fal indisponível");
+    if (this.failingPrompts.has(input.prompt))
+      throw new Error("fal indisponível");
     return { bytes: new Uint8Array([1, 2, 3]), contentType: "image/png" };
   }
 }
 
-function setup(items: CardGenerationItem[], status: GenerationStatus = "pending") {
+function setup(
+  items: CardGenerationItem[],
+  status: GenerationStatus = "pending",
+) {
   const generations = new MemoryGenerations();
   generations.seed(status, items);
   const cards = new MemoryCards();
@@ -233,7 +266,12 @@ function setup(items: CardGenerationItem[], status: GenerationStatus = "pending"
   const useCase = new ProcessCardGeneration(
     generations,
     cards,
-    { list: async () => [new PokemonType("frontend", "Frontend"), new PokemonType("backend", "Backend")] },
+    {
+      list: async () => [
+        new PokemonType("frontend", "Frontend"),
+        new PokemonType("backend", "Backend"),
+      ],
+    },
     source,
     ideas,
     images,
@@ -245,66 +283,133 @@ function setup(items: CardGenerationItem[], status: GenerationStatus = "pending"
 const MACHOP_ARTWORK = "https://storage.local/machop-arte.webp";
 
 function pendingItem(position: number, sourceUrl: string | null = null) {
-  return new CardGenerationItem(`item-${position}`, position, sourceUrl, null, null, null, null, "pending", null);
+  return new CardGenerationItem(
+    `item-${position}`,
+    position,
+    sourceUrl,
+    null,
+    null,
+    null,
+    null,
+    "pending",
+    null,
+  );
 }
 
 describe("ProcessCardGeneration", () => {
   it("gera cartas em rascunho com e sem Pokémon de referência", async () => {
-    const { generations, cards, ideas, images, useCase } = setup([pendingItem(0, MACHOP_URL), pendingItem(1)]);
+    const { generations, cards, ideas, images, useCase } = setup([
+      pendingItem(0, MACHOP_URL),
+      pendingItem(1),
+    ]);
 
     await useCase.execute("batch-1");
 
     expect(generations.batch?.status).toBe("completed");
-    expect(generations.item(0)).toMatchObject({ status: "done", cardId: "card-1", sourceImageUrl: MACHOP_ARTWORK });
-    expect(generations.item(1)).toMatchObject({ status: "done", cardId: "card-2" });
+    expect(generations.item(0)).toMatchObject({
+      status: "done",
+      cardId: "card-1",
+      sourceImageUrl: MACHOP_ARTWORK,
+    });
+    expect(generations.item(1)).toMatchObject({
+      status: "done",
+      cardId: "card-2",
+    });
     expect(ideas.requests).toHaveLength(1);
-    expect(ideas.requests[0].inspirations).toEqual([{ pokemon: machop, artworkUrl: MACHOP_ARTWORK }, null]);
-    expect(images.calls.find((call) => call.prompt === "prompt-0")).toMatchObject({
+    expect(ideas.requests[0].inspirations).toEqual([
+      { pokemon: machop, artworkUrl: MACHOP_ARTWORK },
+      null,
+    ]);
+    expect(
+      images.calls.find((call) => call.prompt === "prompt-0"),
+    ).toMatchObject({
       personImageUrl: "https://storage.local/ana.png",
       inspirationImageUrl: MACHOP_ARTWORK,
     });
-    expect(images.calls.find((call) => call.prompt === "prompt-1")).toMatchObject({
+    expect(
+      images.calls.find((call) => call.prompt === "prompt-1"),
+    ).toMatchObject({
       personImageUrl: "https://storage.local/ana.png",
       inspirationImageUrl: null,
     });
-    expect(cards.created.every((card) => !card.published && card.stage === "basic")).toBe(true);
-    expect(cards.created[0].imageUrl).toBe("https://storage.local/criatura-1.png");
+    expect(
+      cards.created.every((card) => !card.published && card.stage === "basic"),
+    ).toBe(true);
+    expect(cards.created[0].imageUrl).toBe(
+      "https://storage.local/criatura-1.png",
+    );
   });
 
   it("marca só o item com falha de imagem e conclui o lote", async () => {
-    const { generations, images, useCase } = setup([pendingItem(0), pendingItem(1)]);
+    const { generations, images, useCase } = setup([
+      pendingItem(0),
+      pendingItem(1),
+    ]);
     images.failingPrompts.add("prompt-1");
 
     await useCase.execute("batch-1");
 
     expect(generations.batch?.status).toBe("completed");
     expect(generations.item(0).status).toBe("done");
-    expect(generations.item(1)).toMatchObject({ status: "failed", error: "fal indisponível" });
+    expect(generations.item(1)).toMatchObject({
+      status: "failed",
+      error: "fal indisponível",
+    });
   });
 
   it("falha o lote quando nenhuma carta é criada", async () => {
-    const { generations, useCase } = setup([pendingItem(0, "https://www.pokemon-zone.com/cards/z9/1/nada/")]);
+    const { generations, useCase } = setup([
+      pendingItem(0, "https://www.pokemon-zone.com/cards/z9/1/nada/"),
+    ]);
 
     await useCase.execute("batch-1");
 
     expect(generations.item(0).status).toBe("failed");
-    expect(generations.batch).toMatchObject({ status: "failed", error: "Nenhuma carta foi gerada." });
+    expect(generations.batch).toMatchObject({
+      status: "failed",
+      error: "Nenhuma carta foi gerada.",
+    });
   });
 
   it("no retry ignora itens já concluídos", async () => {
-    const done = new CardGenerationItem("item-0", 0, null, null, null, "prompt", "card-old", "done", null);
-    const { generations, cards, ideas, useCase } = setup([done, pendingItem(1, MACHOP_URL)]);
+    const done = new CardGenerationItem(
+      "item-0",
+      0,
+      null,
+      null,
+      null,
+      "prompt",
+      "card-old",
+      "done",
+      null,
+    );
+    const { generations, cards, ideas, useCase } = setup([
+      done,
+      pendingItem(1, MACHOP_URL),
+    ]);
 
     await useCase.execute("batch-1");
 
-    expect(ideas.requests[0].inspirations).toEqual([{ pokemon: machop, artworkUrl: MACHOP_ARTWORK }]);
+    expect(ideas.requests[0].inspirations).toEqual([
+      { pokemon: machop, artworkUrl: MACHOP_ARTWORK },
+    ]);
     expect(cards.created).toHaveLength(1);
     expect(generations.item(0).cardId).toBe("card-old");
     expect(generations.item(1).status).toBe("done");
   });
 
   it("reaproveita a arte já recortada no retry", async () => {
-    const item = new CardGenerationItem("item-0", 0, MACHOP_URL, machop, MACHOP_ARTWORK, null, null, "pending", null);
+    const item = new CardGenerationItem(
+      "item-0",
+      0,
+      MACHOP_URL,
+      machop,
+      MACHOP_ARTWORK,
+      null,
+      null,
+      "pending",
+      null,
+    );
     const { artworkFetches, images, useCase } = setup([item]);
 
     await useCase.execute("batch-1");
@@ -314,7 +419,17 @@ describe("ProcessCardGeneration", () => {
   });
 
   it("recorta de novo quando só havia a carta inteira salva", async () => {
-    const item = new CardGenerationItem("item-0", 0, MACHOP_URL, machop, machop.imageUrl, null, null, "pending", null);
+    const item = new CardGenerationItem(
+      "item-0",
+      0,
+      MACHOP_URL,
+      machop,
+      machop.imageUrl,
+      null,
+      null,
+      "pending",
+      null,
+    );
     const { artworkFetches, generations, useCase } = setup([item]);
 
     await useCase.execute("batch-1");
@@ -330,7 +445,10 @@ describe("ProcessCardGeneration", () => {
 
     await useCase.execute("batch-1");
 
-    expect(cards.created.map((card) => card.slug).sort()).toEqual(["cafe-turbo-2", "cafe-turbo-3"]);
+    expect(cards.created.map((card) => card.slug).sort()).toEqual([
+      "cafe-turbo-2",
+      "cafe-turbo-3",
+    ]);
   });
 
   it("não processa um lote que não está na fila", async () => {

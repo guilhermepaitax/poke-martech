@@ -1,3 +1,4 @@
+import type { ArenaFighter } from "@/lib/arena/fighter";
 import {
   facingFromMove,
   normalizeMove,
@@ -26,8 +27,6 @@ const PLAYER_BODY_OFFSET_X = (PLAYER_CELL_SIZE - PLAYER_BODY_WIDTH) / 2;
 const PLAYER_BODY_OFFSET_Y = 20;
 const IDLE_FRAME_RATE = 8;
 const WALK_FRAME_RATE = 12;
-const PLAYER_NAME = "Antoniomander";
-const PLAYER_HP_RATIO = 1;
 const FEET_OFFSET_Y = 36;
 const GROUND_DEPTH = 1;
 const PLAYER_DEPTH = 2;
@@ -55,6 +54,9 @@ type Player = {
   ground: Phaser.GameObjects.Container;
   plate: Phaser.GameObjects.Container;
   hpFill: Phaser.GameObjects.Rectangle;
+  hp: number;
+  maxHp: number;
+  attackDamage: number;
 };
 
 function animationKey(action: "idle" | "walk", facing: CardinalFacing) {
@@ -91,7 +93,20 @@ function markerFont() {
   return font || "sans-serif";
 }
 
-function createPlayer(scene: Phaser.Scene, x: number, y: number): Player {
+function hpFillWidth(hp: number, maxHp: number) {
+  const span = BAR_WIDTH - BAR_INSET * 2;
+  if (maxHp <= 0) return 0;
+  const ratio = Math.min(Math.max(hp / maxHp, 0), 1);
+  return span * ratio;
+}
+
+function createPlayer(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  fighter: ArenaFighter,
+  facing: CardinalFacing = "south",
+): Player {
   ensureCharacterAnimations(scene);
   const feetY = y + FEET_OFFSET_Y;
   const shadow = scene.add.ellipse(
@@ -122,7 +137,7 @@ function createPlayer(scene: Phaser.Scene, x: number, y: number): Player {
     x,
     y,
     PLAYER_SHEETS.idle.key,
-    DIRECTION_ROW.south * PLAYER_COLUMNS,
+    DIRECTION_ROW[facing] * PLAYER_COLUMNS,
   );
   sprite.setDisplaySize(PLAYER_DISPLAY_SIZE, PLAYER_DISPLAY_SIZE);
   sprite.setDepth(PLAYER_DEPTH);
@@ -138,7 +153,7 @@ function createPlayer(scene: Phaser.Scene, x: number, y: number): Player {
     body.setSize(PLAYER_BODY_WIDTH, PLAYER_BODY_HEIGHT, false);
     body.setOffset(PLAYER_BODY_OFFSET_X, PLAYER_BODY_OFFSET_Y);
   }
-  sprite.play(animationKey("idle", "south"));
+  sprite.play(animationKey("idle", facing));
 
   const hpTrack = scene.add.rectangle(
     0,
@@ -148,7 +163,7 @@ function createPlayer(scene: Phaser.Scene, x: number, y: number): Player {
     0x111429,
     1,
   );
-  const fillWidth = (BAR_WIDTH - BAR_INSET * 2) * PLAYER_HP_RATIO;
+  const fillWidth = hpFillWidth(fighter.hp, fighter.hp);
   const hpFill = scene.add.rectangle(
     -BAR_WIDTH / 2 + BAR_INSET + fillWidth / 2,
     BAR_OFFSET_Y,
@@ -158,7 +173,7 @@ function createPlayer(scene: Phaser.Scene, x: number, y: number): Player {
     1,
   );
   const nameLabel = scene.add
-    .text(0, NAME_OFFSET_Y, PLAYER_NAME, {
+    .text(0, NAME_OFFSET_Y, fighter.name, {
       fontFamily: markerFont(),
       fontSize: "12px",
       color: "#f7f3ea",
@@ -168,7 +183,16 @@ function createPlayer(scene: Phaser.Scene, x: number, y: number): Player {
   const plate = scene.add.container(x, feetY, [hpTrack, hpFill, nameLabel]);
   plate.setDepth(PLATE_DEPTH);
 
-  return { sprite, facing: "south", ground, plate, hpFill };
+  return {
+    sprite,
+    facing,
+    ground,
+    plate,
+    hpFill,
+    hp: fighter.hp,
+    maxHp: fighter.hp,
+    attackDamage: fighter.attackDamage,
+  };
 }
 
 function syncPlayerMarker(player: Player) {

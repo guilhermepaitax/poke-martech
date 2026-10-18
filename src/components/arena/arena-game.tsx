@@ -1,9 +1,11 @@
 "use client";
 
+import type { ArenaMatchup } from "@/lib/arena/fighter";
+
 import { useArenaGame } from "./use-arena-game";
 
-function ArenaGame() {
-  const parentRef = useArenaGame();
+function ArenaGame({ matchup }: { matchup: ArenaMatchup }) {
+  const parentRef = useArenaGame(matchup);
 
   return (
     <div

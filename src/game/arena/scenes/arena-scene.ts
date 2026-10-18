@@ -8,6 +8,7 @@ import {
   updatePlayer,
   type Player,
 } from "@/game/arena/entities/player";
+import type { ArenaMatchup } from "@/lib/arena/fighter";
 import { arenaWorldSize } from "@/lib/arena/world-size";
 import Phaser from "phaser";
 
@@ -43,9 +44,18 @@ type ArenaKeys = {
   D: Phaser.Input.Keyboard.Key;
 };
 
+const OPPONENT_GAP = 180;
+
 function axis(negative: boolean, positive: boolean) {
   if (negative === positive) return 0;
   return positive ? 1 : -1;
+}
+
+function readMatchup(registry: Phaser.Data.DataManager): ArenaMatchup | null {
+  const value: unknown = registry.get("matchup");
+  if (!value || typeof value !== "object") return null;
+  if (!("player" in value) || !("opponent" in value)) return null;
+  return value as ArenaMatchup;
 }
 
 class ArenaScene extends Phaser.Scene {
@@ -54,9 +64,12 @@ class ArenaScene extends Phaser.Scene {
   private sourceWidth = 0;
   private sourceHeight = 0;
   private player: Player | null = null;
+  private opponent: Player | null = null;
   private keys: ArenaKeys | null = null;
-  private anchorX = 0.5;
-  private anchorY = 0.5;
+  private playerAnchorX = 0.5;
+  private playerAnchorY = 0.5;
+  private opponentAnchorX = 0.5;
+  private opponentAnchorY = 0.5;
   private worldWidth = 0;
   private worldHeight = 0;
 
@@ -103,6 +116,7 @@ class ArenaScene extends Phaser.Scene {
     };
     const followMarker = () => {
       if (this.player) syncPlayerMarker(this.player);
+      if (this.opponent) syncPlayerMarker(this.opponent);
     };
     this.input.on(Phaser.Input.Events.POINTER_DOWN, focusCanvas);
     window.addEventListener("keydown", preventArrowScroll);
@@ -116,11 +130,8 @@ class ArenaScene extends Phaser.Scene {
 
     this.keys = this.bindKeys();
     this.layout();
-    const bounds = this.physics.world.bounds;
-    this.player = createPlayer(this, bounds.centerX, bounds.centerY);
-    this.physics.add.collider(this.player.sprite, this.blocks);
-    this.cameras.main.startFollow(this.player.sprite);
-    this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
+    const matchup = readMatchup(this.game.registry);
+    if (matchup) this.spawnFighters(matchup);
   }
 
   update() {
@@ -165,9 +176,15 @@ class ArenaScene extends Phaser.Scene {
     );
     if (world.width === 0 || world.height === 0) return;
 
-    if (this.player && this.worldWidth > 0 && this.worldHeight > 0) {
-      this.anchorX = this.player.sprite.x / this.worldWidth;
-      this.anchorY = this.player.sprite.y / this.worldHeight;
+    if (this.worldWidth > 0 && this.worldHeight > 0) {
+      if (this.player) {
+        this.playerAnchorX = this.player.sprite.x / this.worldWidth;
+        this.playerAnchorY = this.player.sprite.y / this.worldHeight;
+      }
+      if (this.opponent) {
+        this.opponentAnchorX = this.opponent.sprite.x / this.worldWidth;
+        this.opponentAnchorY = this.opponent.sprite.y / this.worldHeight;
+      }
     }
 
     this.background
@@ -195,12 +212,51 @@ class ArenaScene extends Phaser.Scene {
         block.body.updateFromGameObject();
     });
 
-    if (!this.player) return;
-    placePlayer(
-      this.player,
-      world.width * this.anchorX,
-      world.height * this.anchorY,
+    if (this.player) {
+      placePlayer(
+        this.player,
+        world.width * this.playerAnchorX,
+        world.height * this.playerAnchorY,
+      );
+      this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
+    }
+    if (this.opponent) {
+      placePlayer(
+        this.opponent,
+        world.width * this.opponentAnchorX,
+        world.height * this.opponentAnchorY,
+      );
+    }
+  }
+
+  private spawnFighters(matchup: ArenaMatchup) {
+    const bounds = this.physics.world.bounds;
+    this.player = createPlayer(
+      this,
+      bounds.centerX,
+      bounds.centerY,
+      matchup.player,
     );
+    const room = bounds.right - bounds.centerX - 48;
+    const opponentX =
+      bounds.centerX + Math.max(Math.min(OPPONENT_GAP, room), 0);
+    this.opponent = createPlayer(
+      this,
+      opponentX,
+      bounds.centerY,
+      matchup.opponent,
+      "west",
+    );
+    if (this.worldWidth > 0 && this.worldHeight > 0) {
+      this.playerAnchorX = this.player.sprite.x / this.worldWidth;
+      this.playerAnchorY = this.player.sprite.y / this.worldHeight;
+      this.opponentAnchorX = this.opponent.sprite.x / this.worldWidth;
+      this.opponentAnchorY = this.opponent.sprite.y / this.worldHeight;
+    }
+    this.physics.add.collider(this.player.sprite, this.blocks);
+    this.physics.add.collider(this.opponent.sprite, this.blocks);
+    this.physics.add.collider(this.player.sprite, this.opponent.sprite);
+    this.cameras.main.startFollow(this.player.sprite);
     this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
   }
 }

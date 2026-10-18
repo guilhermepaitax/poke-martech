@@ -1,6 +1,11 @@
 "use client";
 
+import type { ArenaRoster } from "@/lib/arena/fighter";
 import dynamic from "next/dynamic";
+
+import { useArenaCanvasLayout } from "./arena-canvas-layout";
+import { ArenaPicker } from "./arena-picker";
+import { useArenaPicker } from "./use-arena-picker";
 
 const ArenaGame = dynamic(
   () => import("./arena-game").then((mod) => mod.ArenaGame),
@@ -21,13 +26,66 @@ function ArenaGameFallback() {
   );
 }
 
-function ArenaScreen() {
+function ArenaBootError({ message }: { message: string }) {
   return (
-    <section
-      data-slot="arena-screen"
-      className="box-border h-full w-full overflow-hidden border-4 border-amber-400"
-    >
-      <ArenaGame />
+    <p data-slot="arena-boot-error" className="text-sm text-foreground-subtle">
+      {message}
+    </p>
+  );
+}
+
+function ArenaScreen({
+  roster,
+  message,
+}: {
+  roster: ArenaRoster | null;
+  message?: string;
+}) {
+  const canvas = useArenaCanvasLayout();
+  const picker = useArenaPicker(
+    {
+      playerId: roster?.playerId ?? null,
+      opponentId: roster?.opponentId ?? null,
+      active: "player",
+    },
+    roster?.fighters ?? [],
+  );
+
+  function start() {
+    if (!picker.fight()) return;
+    canvas.setActive(true);
+  }
+
+  if (roster && picker.matchup) {
+    return (
+      <section
+        data-slot="arena-screen"
+        className="box-border h-full w-full overflow-hidden border-4 border-amber-400"
+      >
+        <ArenaGame matchup={picker.matchup} />
+      </section>
+    );
+  }
+
+  if (!roster) return <ArenaBootError message={message ?? ""} />;
+
+  return (
+    <section data-slot="arena-screen">
+      <ArenaPicker
+        entries={picker.pageItems}
+        player={picker.player}
+        opponent={picker.opponent}
+        active={picker.active}
+        query={picker.query}
+        onQuery={picker.setQuery}
+        page={picker.page}
+        pageCount={picker.pageCount}
+        onPageChange={picker.setPage}
+        onChoose={picker.choose}
+        onActivate={picker.activate}
+        onFight={start}
+        canFight={picker.canFight}
+      />
     </section>
   );
 }

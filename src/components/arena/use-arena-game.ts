@@ -1,5 +1,6 @@
 "use client";
 
+import type { ArenaMatchup } from "@/lib/arena/fighter";
 import { useEffect, useRef } from "react";
 
 type ArenaGameInstance = {
@@ -18,7 +19,7 @@ function fitArena(game: ArenaGameInstance, parent: HTMLElement) {
   game.scale.resize(width, height);
 }
 
-function useArenaGame() {
+function useArenaGame(matchup: ArenaMatchup) {
   const parentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ function useArenaGame() {
     void (async () => {
       const { createArenaGame } = await import("@/game/arena/create-game");
       if (cancelled || parentRef.current !== parent) return;
-      const instance = createArenaGame(parent);
+      const instance = createArenaGame(parent, matchup);
       if (cancelled) {
         instance.destroy(true, false);
         return;
@@ -52,7 +53,7 @@ function useArenaGame() {
       game?.destroy(true, false);
       game = null;
     };
-  }, []);
+  }, [matchup]);
 
   return parentRef;
 }

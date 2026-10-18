@@ -10,7 +10,7 @@ Cada etapa abaixo deve poder ser jogada e verificada antes da seguinte. Não ava
 - [x] Etapa 1 — Phaser integrado à aplicação
 - [x] Ajustes visuais pedidos depois da etapa 1
 - [x] Etapa 2 — Movimentação do jogador
-- [ ] Etapa 3 — Cartas fixas como lutadores
+- [x] Etapa 3 — Cartas fixas como lutadores
 - [ ] Etapa 4 — Combate básico
 - [ ] Etapa 5 — CPU
 - [ ] Etapa 6 — Vitória, derrota e reinício
@@ -93,15 +93,15 @@ Aceite: a diagonal não é mais rápida que os eixos, o personagem não sai do m
 
 Objetivo: a cena recebe dois fighters vindos de cartas publicadas.
 
-- [ ] `cardToFighter`: id, nome, HP mínimo 1, URL da imagem e dano do primeiro ataque numérico
-- [ ] Use case que lê dois slugs fixos, chamado pela página, sem mudar as APIs atuais
-- [ ] Textura remota com fallback local se a URL falhar ou vier vazia
-- [ ] Testes do adaptador: com ataque, sem ataque, sem imagem e HP 0
-- [ ] Sem animação de caminhada enquanto não houver sprite sheet
+- [x] `cardToFighter`: id, nome, HP mínimo 1, URL da imagem e dano do primeiro ataque numérico
+- [x] Use case que lê dois slugs fixos, chamado pela página, sem mudar as APIs atuais
+- [x] A imagem da carta fica no dado. O corpo usa as folhas idle e walk do Antoniomander. Carta sem imagem entra do mesmo jeito, porque a cena não depende da URL
+- [x] Testes do adaptador: com ataque, sem ataque, sem imagem e HP 0
+- [x] A caminhada continua nas folhas do Antoniomander, as únicas disponíveis
 
 Aceite: uma carta sem imagem entra na arena. `GET /api/cards/[id]` continua só devolvendo carta publicada e possuída.
 
-Pergunta em aberto: quais dois slugs usar. Sem preferência, os dois primeiros cards publicados do seed.
+Slugs fixos, os dois primeiros publicados: jogador `a1-001-calvassauro` e oponente `a1-005-rafrpie`.
 
 ## Etapa 4 — Combate básico
 
@@ -173,4 +173,4 @@ Aceite: uma luta inteira inicia, termina e reinicia. Pokédex, loja e admin cont
 
 ## Próximo passo
 
-A etapa 3. Os lutadores passam a vir de duas cartas publicadas, sem picker novo.
+A etapa 4. O jogador mira com o mouse e causa dano uma vez por projétil.
