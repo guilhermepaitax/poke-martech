@@ -85,6 +85,13 @@
       "when": 1792086531885,
       "tag": "0011_card_tags",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792509825900,
+      "tag": "0012_tags_table",
+      "breakpoints": true
     }
   ]
 }

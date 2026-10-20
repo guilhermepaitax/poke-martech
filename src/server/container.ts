@@ -39,6 +39,8 @@ import { RejectTrade } from "@/server/application/use-cases/reject-trade";
 import { UnfollowUser } from "@/server/application/use-cases/unfollow-user";
 import { GrantSignupBonus } from "@/server/application/use-cases/grant-signup-bonus";
 import { ListAdminCards } from "@/server/application/use-cases/list-admin-cards";
+import { ListAdminTags } from "@/server/application/use-cases/list-admin-tags";
+import { SearchAdminCards } from "@/server/application/use-cases/search-admin-cards";
 import { ListBoosters } from "@/server/application/use-cases/list-boosters";
 import { ListPokedex } from "@/server/application/use-cases/list-pokedex";
 import { ListPokemonTypes } from "@/server/application/use-cases/list-pokemon-types";
@@ -60,6 +62,7 @@ import { DrizzleBattleRepository } from "@/server/infrastructure/db/drizzle/repo
 import { DrizzleBoosterRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-booster-repository";
 import { DrizzleCardGenerationRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-card-generation-repository";
 import { DrizzleCardRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-card-repository";
+import { DrizzleTagRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-tag-repository";
 import { DrizzlePokemonTypeRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-pokemon-type-repository";
 import {
   DrizzleOpeningRepository,
@@ -79,6 +82,7 @@ import { TcgdexCardSource } from "@/server/infrastructure/services/tcgdex-card-s
 import { R2Storage } from "@/server/infrastructure/storage/r2-storage";
 
 const cards = new DrizzleCardRepository();
+const tags = new DrizzleTagRepository();
 const pokemonTypes = new DrizzlePokemonTypeRepository();
 const boosters = new DrizzleBoosterRepository();
 const rarities = new DrizzleRarityRepository();
@@ -121,6 +125,8 @@ const container = {
   openPack: new OpenPack(purchases),
   getOpening: new GetOpening(openings),
   listAdminCards: new ListAdminCards(cards),
+  searchAdminCards: new SearchAdminCards(cards),
+  listAdminTags: new ListAdminTags(tags),
   getAdminCard: new GetAdminCard(cards),
   createCard: new CreateCard(cards),
   updateCard: new UpdateCard(cards),

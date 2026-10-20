@@ -8,6 +8,8 @@ import type {
   CardGenerationInput,
   CardGenerationSummary,
   CardInput,
+  CardOption,
+  CardTag,
   AdminCatalogCard,
   PackOpening,
   PokedexEntry,
@@ -51,6 +53,16 @@ function fetchOpening(id: string) {
 
 function fetchAdminCards() {
   return api<AdminCatalogCard[]>("/api/admin/cards");
+}
+
+function searchAdminCards(name: string, excludeId: string | null) {
+  const params = new URLSearchParams({ q: name });
+  if (excludeId) params.set("exclude", excludeId);
+  return api<CardOption[]>(`/api/admin/cards/search?${params}`);
+}
+
+function fetchAdminTags() {
+  return api<CardTag[]>("/api/admin/tags");
 }
 
 function fetchAdminCard(id: string) {
@@ -134,6 +146,7 @@ export {
   fetchAdminBoosters,
   fetchAdminCard,
   fetchAdminCards,
+  fetchAdminTags,
   fetchBooster,
   fetchBoosters,
   fetchCard,
@@ -148,6 +161,7 @@ export {
   openBooster,
   retryCardGeneration,
   saveRarities,
+  searchAdminCards,
   startCardGeneration,
   updateBooster,
   updateCard,

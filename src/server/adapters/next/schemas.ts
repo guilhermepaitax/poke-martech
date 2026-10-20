@@ -97,6 +97,11 @@ const cardSchema = z.object({
   attacks: z.array(attackSchema).min(1).max(4),
 });
 
+const cardSearchSchema = z.object({
+  name: z.string().trim().max(80),
+  excludeId: z.string().uuid().nullable(),
+});
+
 const boosterCardSchema = z.object({
   cardId: z.string().uuid(),
   weightOverride: z.number().int().min(1).max(100000).nullable(),
@@ -216,6 +221,7 @@ export {
   boosterSchema,
   cardGenerationSchema,
   cardSchema,
+  cardSearchSchema,
   createTradeSchema,
   forfeitBattleSchema,
   rarityWeightsSchema,

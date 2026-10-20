@@ -46,6 +46,17 @@ type CardSummary = {
 
 type AdminCatalogCard = CardSummary & CardFace;
 
+type CardOption = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+};
+
+type CardTag = {
+  id: string;
+  name: string;
+};
+
 type CardEvolutionOrigin = {
   name: string;
   imageUrl: string | null;
@@ -265,7 +276,9 @@ export type {
   CardEvolutionOrigin,
   CardFace,
   CardInput,
+  CardOption,
   CardSummary,
+  CardTag,
   EnergyCost,
   OpeningCard,
   PackOpening,

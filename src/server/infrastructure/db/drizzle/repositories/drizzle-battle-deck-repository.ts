@@ -1,8 +1,8 @@
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { isEnergyType, isRarity, isStage, type EnergyType } from "@/lib/value-objects/card";
-import { normalizeCardTags } from "@/lib/value-objects/card-tag";
 import type { BattleDeckRepository } from "@/server/application/contracts/repositories/battle-deck-repository";
 import { BattleDeck } from "@/server/application/entities/battle";
+import { tagsByCard } from "@/server/infrastructure/db/drizzle/card-tags";
 import { db } from "@/server/infrastructure/db/drizzle/client";
 import { battleDeckCards, battleDecks, cards, userCards } from "@/server/infrastructure/db/drizzle/schema";
 import type { BattleDeckDetail, BattleDeckSummary } from "@/types/battle";
@@ -46,6 +46,10 @@ class DrizzleBattleDeckRepository implements BattleDeckRepository {
       .from(battleDeckCards)
       .innerJoin(cards, eq(cards.id, battleDeckCards.cardId))
       .where(eq(battleDeckCards.deckId, id));
+    const tagMap = await tagsByCard(
+      db,
+      links.map((item) => item.cardId),
+    );
     return {
       id: row.id,
       name: row.name,
@@ -68,7 +72,7 @@ class DrizzleBattleDeckRepository implements BattleDeckRepository {
               stage: item.card.stage,
               rarity: item.card.rarity,
               published: item.card.published,
-              tags: normalizeCardTags(item.card.tags),
+              tags: tagMap.get(item.cardId) ?? [],
             },
           },
         ];

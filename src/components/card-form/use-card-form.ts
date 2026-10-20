@@ -1,9 +1,8 @@
 "use client";
 
-import { useAdminCard, useAdminCards, useSaveCard } from "@/hooks/use-admin";
+import { useAdminCard, useAdminTags, useSaveCard } from "@/hooks/use-admin";
 import { usePokemonTypes } from "@/hooks/use-pokemon-types";
 import { slugify } from "@/lib/slug";
-import { normalizeCardTags } from "@/lib/value-objects/card-tag";
 import {
   ENERGY_TYPES,
   FRAME_LABELS,
@@ -19,8 +18,10 @@ import type { CardDecorationId } from "@/lib/card-decorations";
 import type {
   Attack,
   CardArtwork,
+  CardDetail,
   CardEvolutionOrigin,
   CardInput,
+  CardOption,
   CardSummary,
 } from "@/types/catalog";
 import { useReturnTo } from "@/hooks/use-list-location";
@@ -103,13 +104,26 @@ function toInput(card: CardInput): CardInput {
   };
 }
 
+function originFor(
+  evolvesFromId: string | null,
+  picked: CardOption | null,
+  existing: CardDetail | undefined,
+): CardOption | null {
+  if (!evolvesFromId) return null;
+  if (picked?.id === evolvesFromId) return picked;
+  if (existing?.evolvesFromId === evolvesFromId && existing.evolvesFrom) {
+    return { id: evolvesFromId, ...existing.evolvesFrom };
+  }
+  return null;
+}
+
 function useCardForm(cardId?: string) {
   const router = useRouter();
   const returnTo = useReturnTo("/admin/cartas");
   const { pushToast } = useToast();
   const types = usePokemonTypes();
   const existing = useAdminCard(cardId ?? "");
-  const catalog = useAdminCards();
+  const tags = useAdminTags();
   const save = useSaveCard(cardId);
   const slugTouched = useRef(false);
   const pendingPortrait = useRef<{ file: File; url: string } | null>(null);
@@ -123,15 +137,14 @@ function useCardForm(cardId?: string) {
   const [uploading, setUploading] = useState<UploadTarget | null>(null);
   const [optimizing, setOptimizing] = useState(false);
   const [enlarged, setEnlarged] = useState(false);
+  const [pickedOrigin, setPickedOrigin] = useState<CardOption | null>(null);
 
   const serverValues = existing.data ? toInput(existing.data) : emptyCard;
   const form = draft ?? serverValues;
   const isDirty = draft !== null;
-  const origin = form.evolvesFromId
-    ? catalog.data?.find((card) => card.id === form.evolvesFromId)
-    : undefined;
-  const evolvesFrom: CardEvolutionOrigin | null = origin
-    ? { name: origin.name, imageUrl: origin.imageUrl }
+  const evolutionOrigin = originFor(form.evolvesFromId, pickedOrigin, existing.data);
+  const evolvesFrom: CardEvolutionOrigin | null = evolutionOrigin
+    ? { name: evolutionOrigin.name, imageUrl: evolutionOrigin.imageUrl }
     : null;
 
   function update(patch: Partial<CardInput>) {
@@ -265,6 +278,11 @@ function useCardForm(cardId?: string) {
     });
   }
 
+  function selectOrigin(card: CardOption | null) {
+    setPickedOrigin(card);
+    update({ evolvesFromId: card?.id ?? null });
+  }
+
   function selectDecoration(asset: CardDecorationId | null) {
     update({ decorationAsset: asset, decorationImageUrl: null });
   }
@@ -313,6 +331,8 @@ function useCardForm(cardId?: string) {
   return {
     form,
     evolvesFrom,
+    evolutionOrigin,
+    selectOrigin,
     update,
     updateAttack,
     addAttack,
@@ -330,8 +350,7 @@ function useCardForm(cardId?: string) {
     isMissing: Boolean(cardId) && existing.isError,
     isPending: save.isPending || optimizing,
     error: save.error,
-    options: (catalog.data ?? []).filter((card) => card.id !== cardId),
-    knownTags: normalizeCardTags((catalog.data ?? []).flatMap((card) => card.tags ?? [])),
+    knownTags: (tags.data ?? []).map((tag) => tag.name),
     energyTypes: types.data?.length
       ? types.data
       : ENERGY_TYPES.map((code) => ({ code, name: code })),

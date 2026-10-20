@@ -11,12 +11,12 @@ import { ImageDropzone } from "@/components/ui/image-dropzone";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { NullableStepper, Stepper } from "@/components/ui/stepper";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { SelectField } from "@/components/ui/select-field";
 import { SwitchField } from "@/components/ui/switch-field";
 import type { CardEvolutionOrigin, CardInput } from "@/types/catalog";
 import { AttackEffectsEditor } from "./attack-effects-editor";
 import { CardTagField } from "./card-tag-field";
 import { CardDecorationPicker } from "./card-decoration-picker";
+import { CardEvolutionField } from "./card-evolution-field";
 import { CardPlacementEditor } from "./card-placement-editor";
 import { frameOptions, rarityOptions, stageOptions, useCardForm } from "./use-card-form";
 
@@ -228,15 +228,13 @@ function CardForm({ cardId }: { cardId?: string }) {
               onValueChange={(stage) => form.update({ stage: stage as typeof values.stage })}
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium text-foreground-subtle">Evolui de</p>
-            <SelectField
-              ariaLabel="Evolui de"
-              value={values.evolvesFromId ?? "none"}
-              options={[{ value: "none", label: "Nenhuma" }, ...form.options.map((card) => ({ value: card.id, label: card.name }))]}
-              onValueChange={(evolvesFromId) => form.update({ evolvesFromId: evolvesFromId === "none" ? null : evolvesFromId })}
+          {values.stage !== "basic" ? (
+            <CardEvolutionField
+              value={form.evolutionOrigin}
+              excludeId={cardId ?? null}
+              onChange={form.selectOrigin}
             />
-          </div>
+          ) : null}
           <div className="flex flex-col gap-2">
             <p className="text-sm font-medium text-foreground-subtle">Raridade</p>
             <SegmentedControl

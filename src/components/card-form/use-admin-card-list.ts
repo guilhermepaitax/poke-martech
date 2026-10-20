@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { pokemonTypeName, usePokemonTypes } from "@/hooks/use-pokemon-types";
-import { useAdminCards } from "@/hooks/use-admin";
+import { useAdminCards, useAdminTags } from "@/hooks/use-admin";
 import { paginate } from "@/lib/paginate";
 import { RARITIES, RARITY_LABELS } from "@/lib/value-objects/card";
 import { cardHasTag, foldText, normalizeCardTags } from "@/lib/value-objects/card-tag";
@@ -23,6 +23,7 @@ function useAdminCardList() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cards = useAdminCards();
+  const tags = useAdminTags();
   const types = usePokemonTypes();
   const search = searchParams.toString();
   const { filters, page } = useMemo(
@@ -49,13 +50,7 @@ function useAdminCardList() {
     ],
     [catalog, types.data],
   );
-  const tagOptions = useMemo(
-    () =>
-      normalizeCardTags(catalog.flatMap((card) => card.tags)).sort((left, right) =>
-        left.localeCompare(right, "pt-BR"),
-      ),
-    [catalog],
-  );
+  const tagOptions = useMemo(() => (tags.data ?? []).map((tag) => tag.name), [tags.data]);
   const rarityOptions = useMemo(
     () => [
       { value: "all", label: "Todas as raridades" },

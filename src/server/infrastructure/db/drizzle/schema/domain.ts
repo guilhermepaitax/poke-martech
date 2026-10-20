@@ -80,7 +80,6 @@ const cards = pgTable(
     rarity: text("rarity").notNull(),
     flavorText: text("flavor_text").notNull().default(""),
     published: boolean("published").notNull().default(false),
-    tags: text("tags").array().notNull().default([]),
     number: integer("number").generatedByDefaultAsIdentity(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -91,6 +90,34 @@ const cards = pgTable(
   (table) => [
     uniqueIndex("cards_slug_idx").on(table.slug),
     uniqueIndex("cards_number_idx").on(table.number),
+  ],
+);
+
+const tags = pgTable(
+  "tags",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    normalizedName: text("normalized_name").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("tags_normalized_name_idx").on(table.normalizedName)],
+);
+
+const cardTags = pgTable(
+  "card_tags",
+  {
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => cards.id, { onDelete: "cascade" }),
+    tagId: uuid("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+    sortOrder: integer("sort_order").notNull().default(0),
+  },
+  (table) => [
+    primaryKey({ columns: [table.cardId, table.tagId] }),
+    index("card_tags_tag_id_idx").on(table.tagId),
   ],
 );
 
@@ -421,12 +448,14 @@ export {
   cardGenerationItems,
   cards,
   cardsRelations,
+  cardTags,
   coinLedger,
   follows,
   packOpeningCards,
   packOpenings,
   pokemonTypes,
   rarityWeights,
+  tags,
   tradeProposals,
   userCards,
   wallets,
