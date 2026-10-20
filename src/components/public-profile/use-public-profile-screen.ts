@@ -10,12 +10,16 @@ import {
   useTradableCards,
 } from "@/hooks/use-social";
 import { usePublicProfile } from "@/hooks/use-opening";
+import { useProfileCardPages } from "@/hooks/use-pokedex";
+import { usePokedexFilters } from "@/components/pokedex-grid/use-pokedex-filters";
 import type { PokedexEntry } from "@/types/catalog";
 import { useShareProfile } from "./use-share-profile";
 
 function usePublicProfileScreen(username: string, inviteFollow: boolean) {
   const router = useRouter();
   const profile = usePublicProfile(username);
+  const cardFilters = usePokedexFilters();
+  const cards = useProfileCardPages(username, cardFilters.applied);
   const [peopleList, setPeopleList] = useState<"followers" | "following" | null>(null);
   const [tradeEntry, setTradeEntry] = useState<PokedexEntry | null>(null);
   const [dismissedInvite, setDismissedInvite] = useState(false);
@@ -34,6 +38,8 @@ function usePublicProfileScreen(username: string, inviteFollow: boolean) {
 
   return {
     profile,
+    cardFilters,
+    cards,
     peopleList,
     setPeopleList,
     followers,

@@ -3,7 +3,7 @@ import { requireUser } from "@/server/application/authorize";
 import type { BoosterRepository } from "@/server/application/contracts/repositories/booster-repository";
 import { NotFoundError } from "@/server/shared/app-error";
 import { err, success, type Result } from "@/server/shared/result";
-import type { BoosterDetail } from "@/types/catalog";
+import type { BoosterSummary } from "@/types/catalog";
 
 class GetBooster {
   constructor(private readonly boosters: BoosterRepository) {}
@@ -11,7 +11,7 @@ class GetBooster {
   async execute(
     input: { slug: string },
     actor: Actor | null,
-  ): Promise<Result<BoosterDetail>> {
+  ): Promise<Result<BoosterSummary>> {
     const auth = requireUser(actor);
     if (!auth.ok) return auth;
     const booster = await this.boosters.findActiveBySlug(input.slug);
@@ -28,7 +28,6 @@ class GetBooster {
       featuredSlotMinRarity: booster.featuredSlotMinRarity,
       finish: booster.finish,
       active: booster.active,
-      cards: booster.cards,
     });
   }
 }

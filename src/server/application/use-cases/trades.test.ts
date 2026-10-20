@@ -6,7 +6,7 @@ import type {
   TradeUser,
 } from "@/server/application/contracts/repositories/trade-repository";
 import { AcceptTrade } from "@/server/application/use-cases/accept-trade";
-import { CreateTrade } from "@/server/application/use-cases/create-trade";
+import { CreateTrade, MAX_PENDING_TRADES } from "@/server/application/use-cases/create-trade";
 import { RejectTrade } from "@/server/application/use-cases/reject-trade";
 import type { TradableCard, TradeProposalView, TradeStatus } from "@/types/catalog";
 
@@ -55,12 +55,18 @@ class MemoryTrades implements TradeRepository {
     return this.proposals.find((proposal) => proposal.id === id) ?? null;
   }
 
-  async list(): Promise<TradeProposalView[]> {
-    return [];
+  async list() {
+    return { items: [], hasMore: false };
   }
 
   async pendingIncoming(): Promise<TradeProposalView[]> {
     return [];
+  }
+
+  async countPendingFrom(userId: string) {
+    return this.proposals.filter(
+      (proposal) => proposal.fromUserId === userId && proposal.status === "pending",
+    ).length;
   }
 
   async listFreeOffers(): Promise<TradableCard[]> {
@@ -141,5 +147,24 @@ describe("trades", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe("CONFLICT");
     expect(trades.proposals).toHaveLength(1);
+  });
+
+  it("refuses a new proposal when the sender hit the pending limit", async () => {
+    const trades = new MemoryTrades();
+    for (let index = 0; index < MAX_PENDING_TRADES; index += 1) {
+      trades.proposals.push({
+        ...pendingProposal(),
+        id: `old-${index}`,
+        offeredUserCardId: `x-${index}`,
+        requestedUserCardId: `y-${index}`,
+      });
+    }
+    const result = await new CreateTrade(trades).execute(
+      { targetUsername: "misty", offeredCardId: "card-a", requestedCardId: "card-b" },
+      { id: "user-1", role: "user" },
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.message).toContain("aguardando resposta");
+    expect(trades.proposals).toHaveLength(MAX_PENDING_TRADES);
   });
 });

@@ -2,14 +2,14 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ObservabilityIdentity } from "@/components/analytics/observability-identity";
 import { AppShell } from "@/components/app-shell/app-shell";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/server-session";
 import { loginPath, safeCallbackUrl } from "@/lib/profile-share";
 
 export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const requestHeaders = await headers();
-  const session = await auth.api.getSession({ headers: requestHeaders });
+  const session = await getServerSession();
   if (!session) {
     const callback = safeCallbackUrl(requestHeaders.get("x-pathname"));
     redirect(callback ? loginPath(callback) : "/entrar");

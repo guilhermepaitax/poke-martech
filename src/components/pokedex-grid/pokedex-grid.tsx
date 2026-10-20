@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { EnergyChip } from "@/components/ui/energy-chip";
 import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { useInfiniteSlice } from "@/hooks/use-infinite-slice";
+import { useLoadMore } from "@/hooks/use-load-more";
 import { useListLocation } from "@/hooks/use-list-location";
 import { withReturnTo } from "@/lib/return-path";
 import type { CardFace, PokedexEntry } from "@/types/catalog";
@@ -15,41 +15,41 @@ import { BookOpen, Search } from "lucide-react";
 import { useState } from "react";
 import { PokedexCardTile } from "./pokedex-card-tile";
 import { UndiscoveredCard } from "./undiscovered-card";
-import { usePokedexFilters } from "./use-pokedex-filters";
+import type { PokedexFiltersState } from "./use-pokedex-filters";
 
 type GridEntry = PokedexEntry & { viewerOwns?: boolean };
 
 function PokedexGrid({
+  filters,
   entries,
+  owned,
+  total,
+  hasMore,
+  isFetchingMore,
+  onLoadMore,
   ownedOnly = false,
   markMissing = false,
   emptyPlacement = "section",
   onPropose,
 }: {
+  filters: PokedexFiltersState;
   entries: GridEntry[];
+  owned: number;
+  total: number;
+  hasMore: boolean;
+  isFetchingMore: boolean;
+  onLoadMore: () => void;
   ownedOnly?: boolean;
   markMissing?: boolean;
   emptyPlacement?: "fill" | "section";
   onPropose?: (entry: GridEntry) => void;
 }) {
-  const listed = ownedOnly
-    ? entries.filter((entry) => entry.ownedCount > 0)
-    : entries;
-  const ownership = new Map(
-    entries.map((entry) => [entry.id, entry.viewerOwns]),
-  );
-  const filters = usePokedexFilters(listed);
   const here = useListLocation();
   const [zoomed, setZoomed] = useState<CardFace | null>(null);
-  const {
-    visible: shown,
-    hasMore,
-    sentinelRef,
-  } = useInfiniteSlice(filters.visible);
-  const progress =
-    filters.total === 0 ? 0 : (filters.owned / filters.total) * 100;
+  const sentinelRef = useLoadMore(hasMore && !isFetchingMore, onLoadMore);
+  const progress = total === 0 ? 0 : (owned / total) * 100;
 
-  if (listed.length === 0) {
+  if (total === 0) {
     return (
       <EmptyState
         placement={emptyPlacement}
@@ -70,12 +70,12 @@ function PokedexGrid({
     <div data-slot="pokedex-grid" className="flex flex-col gap-5">
       {ownedOnly ? (
         <p className="text-sm text-foreground-subtle">
-          {filters.total} {filters.total === 1 ? "carta" : "cartas"}
+          {total} {total === 1 ? "carta" : "cartas"}
         </p>
       ) : (
         <div>
           <p className="text-sm text-foreground-subtle">
-            {filters.owned} de {filters.total} cartas
+            {owned} de {total} cartas
           </p>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/70">
             <div
@@ -128,7 +128,7 @@ function PokedexGrid({
           ]}
         />
       </div>
-      {filters.visible.length === 0 ? (
+      {entries.length === 0 ? (
         <EmptyState
           placement="section"
           icon={Search}
@@ -137,8 +137,8 @@ function PokedexGrid({
         />
       ) : (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {shown.map((entry) => {
-            const missing = markMissing && ownership.get(entry.id) === false;
+          {entries.map((entry) => {
+            const missing = markMissing && entry.viewerOwns === false;
             return (
               <li key={entry.id} className="flex flex-col gap-2">
                 {entry.card ? (
@@ -180,7 +180,7 @@ function PokedexGrid({
           data-slot="pokedex-scroll-sentinel"
           className="text-center text-sm text-foreground-subtle"
         >
-          Role para ver mais
+          {isFetchingMore ? "Carregando mais cartas" : "Role para ver mais"}
         </p>
       ) : null}
       <CardZoomDialog

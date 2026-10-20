@@ -1,7 +1,6 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { PublicProfile } from "@/components/public-profile/public-profile";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/server-session";
 import { profileShareMetadata } from "@/lib/profile-share-metadata";
 import { container } from "@/server/container";
 import type { Metadata } from "next";
@@ -26,7 +25,7 @@ export default async function ProfilePage({
 }) {
   const { username } = await params;
   const { seguir } = await searchParams;
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
   const sessionUsername =
     session?.user && "username" in session.user && typeof session.user.username === "string"
       ? session.user.username.toLowerCase()

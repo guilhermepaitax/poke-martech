@@ -241,7 +241,6 @@ async function main() {
           name: attack.name,
           damage: attack.damage,
           effectText: attack.effectText,
-          effects: attack.effects,
           energyCost: attack.energyCost,
           sortOrder: attack.sortOrder,
         })),

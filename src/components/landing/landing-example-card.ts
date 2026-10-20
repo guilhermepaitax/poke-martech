@@ -50,7 +50,6 @@ const LANDING_ATTACK: Attack = {
   name: "Brincadeira de Arremesso Sísmico",
   damage: 100,
   effectText: "",
-  effects: [],
   energyCost: [{ type: "qa", count: 3 }],
   sortOrder: 0,
 };

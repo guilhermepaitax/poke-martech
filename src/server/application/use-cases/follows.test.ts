@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import type { FollowRepository } from "@/server/application/contracts/repositories/follow-repository";
 import type { ProfileRepository } from "@/server/application/contracts/repositories/profile-repository";
 import { FollowUser } from "@/server/application/use-cases/follow-user";
-import type { ProfileLink } from "@/types/catalog";
 
 const ash = { id: "user-1", role: "user" };
 
@@ -42,12 +41,12 @@ class MemoryFollows implements FollowRepository {
     return { followers: 0, following: 0 };
   }
 
-  async listFollowers(): Promise<ProfileLink[]> {
-    return [];
+  async listFollowers() {
+    return { items: [], hasMore: false };
   }
 
-  async listFollowing(): Promise<ProfileLink[]> {
-    return [];
+  async listFollowing() {
+    return { items: [], hasMore: false };
   }
 }
 

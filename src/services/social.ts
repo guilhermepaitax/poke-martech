@@ -1,5 +1,5 @@
 import { api } from "@/services/http";
-import type { ProfileLink, TradableCard, TradeProposalView } from "@/types/catalog";
+import type { Page, ProfileLink, TradableCard, TradeProposalView } from "@/types/catalog";
 
 function followUser(username: string) {
   return api<{ following: boolean }>(`/api/profiles/${username}/follow`, { method: "POST" });
@@ -9,16 +9,22 @@ function unfollowUser(username: string) {
   return api<{ following: boolean }>(`/api/profiles/${username}/follow`, { method: "DELETE" });
 }
 
-function fetchFollowers(username: string) {
-  return api<ProfileLink[]>(`/api/profiles/${username}/followers`);
+function withCursor(params: Record<string, string>, cursor: string | null) {
+  const search = new URLSearchParams(params);
+  if (cursor) search.set("cursor", cursor);
+  return search.toString();
 }
 
-function fetchFollowing(username: string) {
-  return api<ProfileLink[]>(`/api/profiles/${username}/following`);
+function fetchFollowers(username: string, cursor: string | null) {
+  return api<Page<ProfileLink>>(`/api/profiles/${username}/followers?${withCursor({}, cursor)}`);
 }
 
-function fetchTrades(box: "incoming" | "outgoing") {
-  return api<TradeProposalView[]>(`/api/trades?box=${box}`);
+function fetchFollowing(username: string, cursor: string | null) {
+  return api<Page<ProfileLink>>(`/api/profiles/${username}/following?${withCursor({}, cursor)}`);
+}
+
+function fetchTrades(box: "incoming" | "outgoing", cursor: string | null) {
+  return api<Page<TradeProposalView>>(`/api/trades?${withCursor({ box }, cursor)}`);
 }
 
 function fetchTradableCards() {

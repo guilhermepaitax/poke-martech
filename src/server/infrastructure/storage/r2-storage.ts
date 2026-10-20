@@ -1,12 +1,36 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { ObjectStorage } from "@/server/application/contracts/services/object-storage";
 
+type StorageConfig = {
+  client: S3Client;
+  bucket: string;
+  publicUrl: string;
+};
+
 class R2Storage implements ObjectStorage {
+  private config: StorageConfig | null = null;
+
   async upload(input: {
     body: Uint8Array;
     contentType: string;
     filename: string;
   }): Promise<string> {
+    const { client, bucket, publicUrl } = this.resolveConfig();
+    const safeName = input.filename.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 80);
+    const key = `uploads/${crypto.randomUUID()}-${safeName}`;
+    await client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: input.body,
+        ContentType: input.contentType,
+      }),
+    );
+    return `${publicUrl}/${key}`;
+  }
+
+  private resolveConfig(): StorageConfig {
+    if (this.config) return this.config;
     const endpointOverride = process.env.S3_ENDPOINT?.replace(/\/$/, "");
     const accountId = process.env.R2_ACCOUNT_ID;
     const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -33,17 +57,8 @@ class R2Storage implements ObjectStorage {
       credentials: { accessKeyId, secretAccessKey },
       forcePathStyle,
     });
-    const safeName = input.filename.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 80);
-    const key = `uploads/${crypto.randomUUID()}-${safeName}`;
-    await client.send(
-      new PutObjectCommand({
-        Bucket: bucket,
-        Key: key,
-        Body: input.body,
-        ContentType: input.contentType,
-      }),
-    );
-    return `${publicUrl}/${key}`;
+    this.config = { client, bucket, publicUrl };
+    return this.config;
   }
 }
 

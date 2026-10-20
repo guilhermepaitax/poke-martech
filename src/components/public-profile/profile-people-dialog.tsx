@@ -2,6 +2,7 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import { Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserInitials } from "@/components/ui/user-initials";
@@ -13,6 +14,9 @@ interface ProfilePeopleDialogProps {
   title: string;
   people: ProfileLink[];
   isLoading: boolean;
+  hasMore: boolean;
+  isFetchingMore: boolean;
+  onLoadMore: () => void;
   onOpenChange: (open: boolean) => void;
 }
 
@@ -21,6 +25,9 @@ function ProfilePeopleDialog({
   title,
   people,
   isLoading,
+  hasMore,
+  isFetchingMore,
+  onLoadMore,
   onOpenChange,
 }: ProfilePeopleDialogProps) {
   return (
@@ -77,6 +84,19 @@ function ProfilePeopleDialog({
                     </Link>
                   </li>
                 ))}
+                {hasMore ? (
+                  <li className="pt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full"
+                      disabled={isFetchingMore}
+                      onClick={onLoadMore}
+                    >
+                      {isFetchingMore ? "Carregando…" : "Carregar mais"}
+                    </Button>
+                  </li>
+                ) : null}
               </ul>
             ) : null}
           </div>

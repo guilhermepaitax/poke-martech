@@ -1,5 +1,4 @@
 import type { CardDecorationId } from "@/lib/card-decorations";
-import type { AttackEffect } from "@/lib/value-objects/attack-effect";
 import type { CardFrame, EnergyType, Finish, Rarity, Stage } from "@/lib/value-objects/card";
 import type { GenerationItemStatus, GenerationStatus } from "@/lib/value-objects/card-generation";
 import type { TradeStatus } from "@/lib/value-objects/trade";
@@ -25,7 +24,6 @@ type Attack = {
   name: string;
   damage: number | null;
   effectText: string;
-  effects: AttackEffect[];
   energyCost: EnergyCost[];
   sortOrder: number;
 };
@@ -192,6 +190,20 @@ type PublicPokedexEntry = PokedexEntry & {
   viewerOwns: boolean;
 };
 
+type Page<T> = {
+  items: T[];
+  nextCursor: string | null;
+};
+
+type PokedexPage = Page<PokedexEntry> & {
+  owned: number;
+  total: number;
+};
+
+type PublicPokedexPage = Page<PublicPokedexEntry> & {
+  total: number;
+};
+
 type PublicProfile = {
   username: string;
   name: string;
@@ -201,7 +213,6 @@ type PublicProfile = {
   isFollowing: boolean;
   followerCount: number;
   followingCount: number;
-  pokedex: PublicPokedexEntry[];
 };
 
 type ProfilePreview = {
@@ -282,13 +293,16 @@ export type {
   EnergyCost,
   OpeningCard,
   PackOpening,
+  Page,
   PokedexEntry,
+  PokedexPage,
   PokemonType,
   Profile,
   ProfileBase,
   ProfileLink,
   ProfilePreview,
   PublicPokedexEntry,
+  PublicPokedexPage,
   PublicProfile,
   RarityWeight,
   RecentCard,

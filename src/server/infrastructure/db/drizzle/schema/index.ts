@@ -1,6 +1,7 @@
 export {
   account,
   accountRelations,
+  rateLimit,
   session,
   sessionRelations,
   user,
@@ -8,11 +9,7 @@ export {
   verification,
 } from "@/server/infrastructure/db/drizzle/schema/auth";
 export {
-  battleDeckCards,
-  battleDecks,
-  battleOpponentCards,
-  battleOpponents,
-  battles,
+  appRateLimits,
   boosterCards,
   boosters,
   cardAttacks,
