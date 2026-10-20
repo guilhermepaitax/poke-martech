@@ -1,6 +1,8 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 import { getActor } from "@/lib/session";
+import { rateLimited } from "@/server/adapters/next/http-adapter";
+import { RATE_LIMITS } from "@/server/adapters/next/rate-limits";
 import { MAX_UPLOAD_BYTES } from "@/server/application/use-cases/upload-image";
 import { container } from "@/server/container";
 
@@ -13,6 +15,8 @@ async function POST(req: Request) {
     if (actor.role !== "admin") {
       return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
     }
+    const limited = await rateLimited(RATE_LIMITS.upload, actor);
+    if (limited) return limited;
     const length = Number(req.headers.get("content-length"));
     if (!length || length > MAX_BODY_BYTES) {
       return NextResponse.json({ error: "A imagem deve ter até 4 MB." }, { status: 413 });

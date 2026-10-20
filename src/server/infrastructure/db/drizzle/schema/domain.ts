@@ -434,7 +434,14 @@ const cardAttacksRelations = relations(cardAttacks, ({ one }) => ({
   }),
 }));
 
+const appRateLimits = pgTable("app_rate_limits", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull(),
+  windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+});
+
 export {
+  appRateLimits,
   battleDeckCards,
   battleDecks,
   battleOpponentCards,

@@ -100,6 +100,14 @@ class DrizzleTradeRepository implements TradeRepository {
     );
   }
 
+  async countPendingFrom(userId: string): Promise<number> {
+    const rows = await db
+      .select({ value: sql<number>`count(*)::int` })
+      .from(tradeProposals)
+      .where(and(eq(tradeProposals.fromUserId, userId), eq(tradeProposals.status, "pending")));
+    return rows[0]?.value ?? 0;
+  }
+
   async listFreeOffers(userId: string): Promise<TradableCard[]> {
     const rows = await db
       .select({

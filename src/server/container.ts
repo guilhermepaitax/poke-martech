@@ -56,6 +56,7 @@ import { ListCardGenerations } from "@/server/application/use-cases/list-card-ge
 import { ProcessCardGeneration } from "@/server/application/use-cases/process-card-generation";
 import { RetryCardGeneration } from "@/server/application/use-cases/retry-card-generation";
 import { StartCardGeneration } from "@/server/application/use-cases/start-card-generation";
+import { DrizzleRateLimiter } from "@/server/infrastructure/db/drizzle/drizzle-rate-limiter";
 import { DrizzleBattleDeckRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-battle-deck-repository";
 import { DrizzleBattleOpponentRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-battle-opponent-repository";
 import { DrizzleBattleRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-battle-repository";
@@ -102,7 +103,10 @@ const cardSource = new TcgdexCardSource();
 const cardIdeas = new OpenAiCardIdeaGenerator();
 const images = new OpenAiImageGenerator();
 
+const rateLimiter = new DrizzleRateLimiter();
+
 const container = {
+  rateLimiter,
   grantSignupBonus: new GrantSignupBonus(wallets),
   getMyProfile: new GetMyProfile(profiles, follows, trades),
   getPublicProfile: new GetPublicProfile(profiles, pokedex, follows),

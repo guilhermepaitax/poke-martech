@@ -6,6 +6,8 @@ import { getActor } from "@/lib/session";
 import { idParamSchema } from "@/server/adapters/next/schemas";
 import { trackFeatureFlag } from "@/lib/track-feature-flags";
 import type { Actor } from "@/server/application/actor";
+import type { RateLimitRule } from "@/server/application/contracts/services/rate-limiter";
+import { container } from "@/server/container";
 import type { AppError } from "@/server/shared/app-error";
 import type { Result } from "@/server/shared/result";
 
@@ -18,6 +20,7 @@ function nextRouteAdapter<TInput, TOutput>(
     auth?: AuthMode;
     feature?: FeatureFlag;
     ids?: string[];
+    rateLimit?: RateLimitRule & { name: string };
   },
 ) {
   return async (req: Request) => {
@@ -37,6 +40,11 @@ function nextRouteAdapter<TInput, TOutput>(
       }
       if (auth === "admin" && actor?.role !== "admin") {
         return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
+      }
+
+      if (options?.rateLimit && actor) {
+        const limited = await rateLimited(options.rateLimit, actor);
+        if (limited) return limited;
       }
 
       if (options?.ids?.some((id) => !idParamSchema.safeParse(id).success)) {
@@ -75,4 +83,13 @@ function nextRouteAdapter<TInput, TOutput>(
   };
 }
 
-export { nextRouteAdapter };
+async function rateLimited(rule: RateLimitRule & { name: string }, actor: Actor) {
+  const decision = await container.rateLimiter.consume(`${rule.name}:${actor.id}`, rule);
+  if (decision.allowed) return null;
+  return NextResponse.json(
+    { error: "Muitas tentativas. Aguarde um pouco e tente de novo." },
+    { status: 429, headers: { "Retry-After": String(decision.retryAfterSeconds) } },
+  );
+}
+
+export { nextRouteAdapter, rateLimited };

@@ -31,6 +31,7 @@ interface TradeRepository {
   findById(id: string): Promise<TradeRecord | null>;
   list(userId: string, box: "incoming" | "outgoing"): Promise<TradeProposalView[]>;
   pendingIncoming(userId: string, limit: number): Promise<TradeProposalView[]>;
+  countPendingFrom(userId: string): Promise<number>;
   listFreeOffers(userId: string): Promise<TradableCard[]>;
   exchange(id: string): Promise<ExchangeResult>;
   setStatus(id: string, status: "rejected" | "cancelled"): Promise<boolean>;

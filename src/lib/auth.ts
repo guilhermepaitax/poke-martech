@@ -85,8 +85,17 @@ const auth = betterAuth({
       session: schema.session,
       account: schema.account,
       verification: schema.verification,
+      rateLimit: schema.rateLimit,
     },
   }),
+  rateLimit: {
+    storage: "database",
+    customRules: {
+      "/sign-in/email": { window: 60, max: 5 },
+      "/sign-up/email": { window: 3600, max: 5 },
+      "/update-user": { window: 60, max: 10 },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,

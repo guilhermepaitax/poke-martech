@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { nextRouteAdapter } from "@/server/adapters/next/http-adapter";
+import { RATE_LIMITS } from "@/server/adapters/next/rate-limits";
 import { createTradeSchema } from "@/server/adapters/next/schemas";
 import { container } from "@/server/container";
 
@@ -24,6 +25,7 @@ async function POST(req: Request) {
   return nextRouteAdapter((input, actor) => container.createTrade.execute(input, actor), {
     schema: createTradeSchema,
     auth: "user",
+    rateLimit: RATE_LIMITS.tradeCreate,
   })(req);
 }
 

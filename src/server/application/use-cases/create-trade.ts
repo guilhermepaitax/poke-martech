@@ -4,6 +4,8 @@ import type { TradeRepository } from "@/server/application/contracts/repositorie
 import { ConflictError, NotFoundError, ValidationError } from "@/server/shared/app-error";
 import { err, success, type Result } from "@/server/shared/result";
 
+const MAX_PENDING_TRADES = 20;
+
 class CreateTrade {
   constructor(private readonly trades: TradeRepository) {}
 
@@ -13,6 +15,14 @@ class CreateTrade {
   ): Promise<Result<{ id: string }>> {
     const auth = requireUser(actor);
     if (!auth.ok) return auth;
+    const pending = await this.trades.countPendingFrom(auth.value.id);
+    if (pending >= MAX_PENDING_TRADES) {
+      return err(
+        new ConflictError(
+          `Você já tem ${MAX_PENDING_TRADES} propostas aguardando resposta. Cancele alguma para enviar outra.`,
+        ),
+      );
+    }
     const target = await this.trades.findUserByUsername(input.targetUsername.toLowerCase());
     if (!target) return err(new NotFoundError("Treinador"));
     if (target.id === auth.value.id) {
@@ -35,4 +45,4 @@ class CreateTrade {
   }
 }
 
-export { CreateTrade };
+export { CreateTrade, MAX_PENDING_TRADES };
