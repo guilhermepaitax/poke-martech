@@ -5,6 +5,7 @@ import {
   isPasswordValid,
   unmetPasswordMessage,
 } from "@/lib/password-policy";
+import { profileInputError } from "@/lib/user-profile-input";
 import { container } from "@/server/container";
 import { db } from "@/server/infrastructure/db/drizzle/client";
 import * as schema from "@/server/infrastructure/db/drizzle/schema";
@@ -42,8 +43,23 @@ function readString(body: unknown, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function authSecret() {
+  const secret = process.env.BETTER_AUTH_SECRET;
+  if (secret) return secret;
+  const building = process.env.NEXT_PHASE === "phase-production-build";
+  if (process.env.NODE_ENV === "production" && !building) {
+    throw new Error("BETTER_AUTH_SECRET não configurado.");
+  }
+  return "development-only-secret-change-me";
+}
+
+function assertProfileInput(body: unknown, mode: "sign-up" | "update") {
+  const error = profileInputError(body, mode, process.env.R2_PUBLIC_URL);
+  if (error) throw APIError.from("BAD_REQUEST", error);
+}
+
 const auth = betterAuth({
-  secret: process.env.BETTER_AUTH_SECRET || "development-only-secret-change-me",
+  secret: authSecret(),
   baseURL: formattedBaseUrl
     ? formattedBaseUrl
     : {
@@ -78,7 +94,12 @@ const auth = betterAuth({
   },
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path === "/update-user") {
+        assertProfileInput(ctx.body, "update");
+        return;
+      }
       if (ctx.path !== "/sign-up/email") return;
+      assertProfileInput(ctx.body, "sign-up");
       if (!hasImageUseConsent(ctx.body)) {
         throw APIError.from("BAD_REQUEST", {
           code: "IMAGE_USE_CONSENT_REQUIRED",

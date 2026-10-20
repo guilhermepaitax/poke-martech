@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, sql } from "drizzle-orm";
 import { isFinish, isRarity, type Finish } from "@/lib/value-objects/card";
 import type {
   OpeningRepository,
@@ -81,11 +81,13 @@ class DrizzlePackPurchaseRepository implements PackPurchaseRepository {
       });
       if (!drawn.ok) return { status: drawn.reason };
 
-      const balanceAfter = wallet.coins - booster.price;
-      await tx
+      const debited = await tx
         .update(wallets)
-        .set({ coins: balanceAfter })
-        .where(eq(wallets.userId, input.userId));
+        .set({ coins: sql`${wallets.coins} - ${booster.price}` })
+        .where(and(eq(wallets.userId, input.userId), gte(wallets.coins, booster.price)))
+        .returning({ coins: wallets.coins });
+      const balanceAfter = debited[0]?.coins;
+      if (balanceAfter === undefined) return { status: "insufficient_coins" as const };
 
       if (booster.stock !== null) {
         await tx
