@@ -27,7 +27,7 @@ function createArenaGame(
         gravity: { x: 0, y: 0 },
         width,
         height,
-        debug: false,
+        debug: true,
       },
     },
     scale: {

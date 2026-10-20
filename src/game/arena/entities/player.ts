@@ -10,6 +10,7 @@ import {
   syncMarker,
   type PlayerMarker,
 } from "@/game/arena/entities/marker";
+import type { AttackKind } from "@/lib/arena/combat";
 import type { ArenaFighter } from "@/lib/arena/fighter";
 import { normalizeMove, type Facing } from "@/lib/arena/movement";
 import Phaser from "phaser";
@@ -23,7 +24,10 @@ const PLAYER_BODY_OFFSET_Y = 20;
 const FEET_OFFSET_Y = 36;
 const PLAYER_DEPTH = 2;
 
+type DashKind = "lunge" | "evade";
+
 type Dash = {
+  kind: DashKind;
   x: number;
   y: number;
   until: number;
@@ -39,6 +43,8 @@ type Player = {
   attacking: boolean;
   hurting: boolean;
   dash: Dash | null;
+  readyAt: Record<AttackKind, number>;
+  dashReadyAt: number;
   animToken: number;
 };
 
@@ -77,6 +83,8 @@ function createPlayer(
     attacking: false,
     hurting: false,
     dash: null,
+    readyAt: { melee: 0, fire: 0 },
+    dashReadyAt: 0,
     animToken: 0,
   };
 }
@@ -129,10 +137,18 @@ function syncPlayerMarker(player: Player) {
   syncMarker(player.marker, anchor.x, anchor.y);
 }
 
-function startDash(player: Player, x: number, y: number, speed: number, durationMs: number) {
+function startDash(
+  player: Player,
+  x: number,
+  y: number,
+  speed: number,
+  durationMs: number,
+  kind: DashKind = "lunge",
+) {
   const length = Math.hypot(x, y);
   if (length === 0 || speed <= 0 || durationMs <= 0) return;
   player.dash = {
+    kind,
     x: (x / length) * speed,
     y: (y / length) * speed,
     until: player.sprite.scene.time.now + durationMs,
@@ -144,10 +160,13 @@ function isDashing(player: Player) {
   return player.dash !== null && player.sprite.scene.time.now < player.dash.until;
 }
 
-function updatePlayer(player: Player, x: number, y: number) {
+function updatePlayer(player: Player, x: number, y: number, speed = PLAYER_SPEED) {
   if (player.dash && !isDashing(player)) player.dash = null;
   if (player.dash) {
     player.sprite.setVelocity(player.dash.x, player.dash.y);
+    if (player.dash.kind === "evade") {
+      playClip(player.sprite, characterAnimationKey("dash", player.facing));
+    }
     return;
   }
   if (player.attacking || player.hurting) {
@@ -156,7 +175,7 @@ function updatePlayer(player: Player, x: number, y: number) {
   }
   const move = normalizeMove(x, y);
   const moving = move.x !== 0 || move.y !== 0;
-  player.sprite.setVelocity(move.x * PLAYER_SPEED, move.y * PLAYER_SPEED);
+  player.sprite.setVelocity(move.x * speed, move.y * speed);
   playClip(
     player.sprite,
     characterAnimationKey(moving ? "walk" : "idle", player.facing),
@@ -182,4 +201,4 @@ export {
   syncPlayerMarker,
   updatePlayer,
 };
-export type { Player };
+export type { DashKind, Player };

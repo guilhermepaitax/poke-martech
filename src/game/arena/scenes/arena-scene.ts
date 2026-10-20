@@ -10,12 +10,16 @@ import {
   layoutCombat,
   setCombatKind,
   syncCombatAim,
+  syncDashHud,
   tryPlayerAttack,
+  tryPlayerDash,
   type Combat,
 } from "@/game/arena/entities/combat";
+import { updateCpu } from "@/game/arena/entities/cpu";
 import { createFxTextures } from "@/game/arena/entities/fx-textures";
 import {
   createPlayer,
+  isDashing,
   playerAnchor,
   syncPlayerMarker,
   updatePlayer,
@@ -107,8 +111,15 @@ class ArenaScene extends Phaser.Scene {
     this.applyAttackKeys();
     this.followPointer();
     const move = readMoveAxes(this.keys);
+    if (this.combat && Phaser.Input.Keyboard.JustDown(this.keys.space)) {
+      tryPlayerDash(this, this.combat, this.player, move);
+    }
     updatePlayer(this.player, move.x, move.y);
+    if (this.combat && this.opponent) {
+      updateCpu(this, this.combat, this.opponent, this.player);
+    }
     if (this.combat) {
+      syncDashHud(this, this.combat, this.player);
       cullProjectiles(this, this.combat, this.world.width, this.world.height);
     }
   }
@@ -141,7 +152,7 @@ class ArenaScene extends Phaser.Scene {
     }
     const pointer = this.input.activePointer;
     const origin = playerAnchor(this.player);
-    if (!this.player.attacking && !this.player.hurting) {
+    if (!this.player.attacking && !this.player.hurting && !isDashing(this.player)) {
       const dx = pointer.worldX - origin.x;
       const dy = pointer.worldY - origin.y;
       if (dx !== 0 || dy !== 0) {

@@ -28,22 +28,34 @@ const CARDINAL_ROW = {
 } as const;
 
 const CLIP = {
-  idle: { frameRate: 8, frames: SHEET_COLUMNS, repeat: -1, eightWay: true },
-  walk: { frameRate: 12, frames: SHEET_COLUMNS, repeat: -1, eightWay: true },
-  attack: { frameRate: 12, frames: 3, repeat: 0, eightWay: false },
-  hurt: { frameRate: 12, frames: 6, repeat: 0, eightWay: false },
-} as const;
+  idle: { sheet: "idle", frameRate: 8, frames: SHEET_COLUMNS, repeat: -1, eightWay: true },
+  walk: { sheet: "walk", frameRate: 12, frames: SHEET_COLUMNS, repeat: -1, eightWay: true },
+  dash: { sheet: "walk", frameRate: 24, frames: SHEET_COLUMNS, repeat: -1, eightWay: true },
+  attack: { sheet: "attack", frameRate: 12, frames: 3, repeat: 0, eightWay: false },
+  hurt: { sheet: "hurt", frameRate: 12, frames: 6, repeat: 0, eightWay: false },
+} as const satisfies Record<
+  string,
+  {
+    sheet: CharacterAction;
+    frameRate: number;
+    frames: number;
+    repeat: number;
+    eightWay: boolean;
+  }
+>;
 
-function usesEightWay(action: CharacterAction) {
+type CharacterClip = keyof typeof CLIP;
+
+function usesEightWay(action: CharacterClip) {
   return CLIP[action].eightWay;
 }
 
-function characterAnimationKey(action: CharacterAction, facing: Facing) {
+function characterAnimationKey(action: CharacterClip, facing: Facing) {
   const direction = usesEightWay(action) ? facing : cardinalFacing(facing);
   return `antoniomander-${action}-${direction}`;
 }
 
-function characterFrameStart(action: CharacterAction, facing: Facing) {
+function characterFrameStart(action: CharacterClip, facing: Facing) {
   const row = usesEightWay(action)
     ? EIGHT_WAY_ROW[facing]
     : CARDINAL_ROW[cardinalFacing(facing)];
@@ -52,9 +64,9 @@ function characterFrameStart(action: CharacterAction, facing: Facing) {
 
 function registerCharacterAnimations(scene: Phaser.Scene) {
   applyNearestCharacterFilter(scene);
-  (Object.keys(CHARACTER_SHEETS) as CharacterAction[]).forEach((action) => {
-    const sheet = CHARACTER_SHEETS[action];
+  (Object.keys(CLIP) as CharacterClip[]).forEach((action) => {
     const clip = CLIP[action];
+    const sheet = CHARACTER_SHEETS[clip.sheet];
     const directions: Facing[] = clip.eightWay
       ? (Object.keys(EIGHT_WAY_ROW) as Facing[])
       : (Object.keys(CARDINAL_ROW) as CardinalFacing[]);
@@ -86,3 +98,4 @@ export {
   playClip,
   registerCharacterAnimations,
 };
+export type { CharacterClip };

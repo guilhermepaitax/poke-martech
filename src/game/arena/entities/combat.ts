@@ -22,9 +22,11 @@ import { clearHitFx, spawnHitFx } from "@/game/arena/entities/hit-fx";
 import {
   DASH_DISTANCE,
   dashWithTrail,
+  EVADE,
   spawnSlashArc,
 } from "@/game/arena/entities/melee-fx";
 import {
+  isDashing,
   playAttack,
   playHurt,
   playerAnchor,
@@ -47,7 +49,13 @@ import {
   type Point,
   type ResolvedHit,
 } from "@/lib/arena/combat";
-import { facingFromAim, facingVector } from "@/lib/arena/movement";
+import {
+  DASH_COOLDOWN_MS,
+  dashHeading,
+  facingFromAim,
+  facingVector,
+  type MoveVector,
+} from "@/lib/arena/movement";
 import Phaser from "phaser";
 
 const MUZZLE_FORWARD = 36;
@@ -64,7 +72,7 @@ const IMPACT_COLOR: Record<AttackKind, number> = {
 
 type Combat = {
   kind: AttackKind;
-  readyAt: Record<AttackKind, number>;
+  dashReady: boolean;
   hud: AttackHud;
   projectiles: Phaser.Physics.Arcade.Group;
   cracks: Phaser.GameObjects.GameObject[];
@@ -85,7 +93,7 @@ function createCombat(
   const projectiles = scene.physics.add.group();
   const combat: Combat = {
     kind: "melee",
-    readyAt: { melee: 0, fire: 0 },
+    dashReady: true,
     hud: createAttackHud(scene),
     projectiles,
     cracks: [],
@@ -109,7 +117,7 @@ function createCombat(
     }),
     aim: createAim(scene),
   };
-  paintAttackHud(combat.hud, combat.kind);
+  paintAttackHud(combat.hud, combat.kind, combat.dashReady);
   layoutCombat(scene, combat);
   return combat;
 }
@@ -134,7 +142,14 @@ function clearCombatAim(combat: Combat) {
 
 function setCombatKind(combat: Combat, kind: AttackKind) {
   combat.kind = kind;
-  paintAttackHud(combat.hud, kind);
+  paintAttackHud(combat.hud, kind, combat.dashReady);
+}
+
+function syncDashHud(scene: Phaser.Scene, combat: Combat, player: Player) {
+  const ready = canAttack(scene.time.now, player.dashReadyAt);
+  if (ready === combat.dashReady) return;
+  combat.dashReady = ready;
+  paintAttackHud(combat.hud, combat.kind, ready);
 }
 
 function aimVector(player: Player, worldX: number, worldY: number) {
@@ -306,6 +321,51 @@ function startMelee(
   });
 }
 
+function tryAttack(
+  scene: Phaser.Scene,
+  combat: Combat,
+  attacker: Player,
+  target: Player,
+  kind: AttackKind,
+  aim: Point,
+  cooldownScale = 1,
+) {
+  if (attacker.attacking || attacker.hurting || isDashing(attacker)) return false;
+  const now = scene.time.now;
+  if (!canAttack(now, attacker.readyAt[kind])) return false;
+  attacker.facing = facingFromAim(aim.x, aim.y, attacker.facing);
+  if (!playAttack(attacker)) return false;
+  playArenaAudio(scene, "hit");
+  attacker.readyAt[kind] = nextReadyAt(now, COOLDOWN_MS[kind] * cooldownScale);
+  const damage = attackPower(kind, attacker.attackDamage, target.maxHp);
+  if (kind === "melee") {
+    startMelee(scene, combat, attacker, target, aim, damage);
+    return true;
+  }
+  const muzzle = {
+    x: attacker.sprite.x + aim.x * MUZZLE_FORWARD,
+    y: attacker.sprite.y + aim.y * MUZZLE_DOWN,
+  };
+  castBeam(scene, combat.beams, {
+    from: muzzle,
+    rayFrom: muzzle,
+    direction: aim,
+    style: FIRE_BEAM,
+    blocks: blockRects(combat),
+    target: { x: target.sprite.x, y: target.sprite.y },
+    onArrive: (impact) => {
+      const hit = impact.stop === "fighter" ? rollHit(damage) : null;
+      if (hit) {
+        hurtFighter(scene, combat, target, hit, aim, IMPACT_COLOR.fire);
+      }
+      if (impact.stop !== "range") {
+        spawnCracks(scene, combat.cracks, impact.x, impact.y, hit?.damage ?? damage);
+      }
+    },
+  });
+  return true;
+}
+
 function tryPlayerAttack(
   scene: Phaser.Scene,
   combat: Combat,
@@ -314,40 +374,31 @@ function tryPlayerAttack(
   worldX: number,
   worldY: number,
 ) {
-  if (player.attacking || player.hurting) return;
+  return tryAttack(
+    scene,
+    combat,
+    player,
+    opponent,
+    combat.kind,
+    aimVector(player, worldX, worldY),
+  );
+}
+
+function tryPlayerDash(
+  scene: Phaser.Scene,
+  combat: Combat,
+  player: Player,
+  move: MoveVector,
+) {
+  if (player.attacking || player.hurting || isDashing(player)) return false;
   const now = scene.time.now;
-  if (!canAttack(now, combat.readyAt[combat.kind])) return;
-  const aim = aimVector(player, worldX, worldY);
-  player.facing = facingFromAim(aim.x, aim.y, player.facing);
-  if (!playAttack(player)) return;
-  playArenaAudio(scene, "hit");
-  combat.readyAt[combat.kind] = nextReadyAt(now, COOLDOWN_MS[combat.kind]);
-  const damage = attackPower(combat.kind, player.attackDamage);
-  if (combat.kind === "melee") {
-    startMelee(scene, combat, player, opponent, aim, damage);
-    return;
-  }
-  const muzzle = {
-    x: player.sprite.x + aim.x * MUZZLE_FORWARD,
-    y: player.sprite.y + aim.y * MUZZLE_DOWN,
-  };
-  castBeam(scene, combat.beams, {
-    from: muzzle,
-    rayFrom: muzzle,
-    direction: aim,
-    style: FIRE_BEAM,
-    blocks: blockRects(combat),
-    target: { x: opponent.sprite.x, y: opponent.sprite.y },
-    onArrive: (impact) => {
-      const hit = impact.stop === "fighter" ? rollHit(damage) : null;
-      if (hit) {
-        hurtFighter(scene, combat, opponent, hit, aim, IMPACT_COLOR.fire);
-      }
-      if (impact.stop !== "range") {
-        spawnCracks(scene, combat.cracks, impact.x, impact.y, hit?.damage ?? damage);
-      }
-    },
-  });
+  if (!canAttack(now, player.dashReadyAt)) return false;
+  const heading = dashHeading(move, player.facing);
+  player.facing = facingFromAim(heading.x, heading.y, player.facing);
+  player.dashReadyAt = nextReadyAt(now, DASH_COOLDOWN_MS);
+  dashWithTrail(scene, combat.hitFx, player, heading, EVADE);
+  syncDashHud(scene, combat, player);
+  return true;
 }
 
 function cullProjectiles(
@@ -393,6 +444,7 @@ function destroyCombat(scene: Phaser.Scene, combat: Combat) {
 }
 
 export {
+  blockRects,
   clearCombatAim,
   createCombat,
   cullProjectiles,
@@ -400,6 +452,9 @@ export {
   layoutCombat,
   setCombatKind,
   syncCombatAim,
+  syncDashHud,
+  tryAttack,
   tryPlayerAttack,
+  tryPlayerDash,
 };
 export type { Combat };

@@ -11,6 +11,8 @@ import {
   CRIT_CHANCE,
   CRIT_MULTIPLIER,
   crackSize,
+  DAMAGE_CAP,
+  DAMAGE_SCALE,
   firstBlockHit,
   impactTier,
   MELEE_RANGE,
@@ -113,14 +115,33 @@ describe("meleeConnect", () => {
 });
 
 describe("attackPower", () => {
-  it("corpo a corpo usa o dano da carta e fogo usa 60%", () => {
-    expect(attackPower("melee", 40)).toBe(40);
-    expect(attackPower("fire", 40)).toBe(24);
+  it("escala o dano da carta por tipo de ataque", () => {
+    expect(DAMAGE_SCALE).toEqual({ melee: 0.3, fire: 0.18 });
+    expect(attackPower("melee", 40, 200)).toBe(12);
+    expect(attackPower("fire", 40, 200)).toBe(7);
+  });
+
+  it("limita o golpe a uma fração do HP máximo do alvo", () => {
+    expect(DAMAGE_CAP).toEqual({ melee: 0.12, fire: 0.08 });
+    expect(attackPower("melee", 120, 100)).toBe(12);
+    expect(attackPower("fire", 120, 100)).toBe(8);
+  });
+
+  it("derruba em cerca de oito golpes corpo a corpo", () => {
+    const hp = 100;
+    const hits = Math.ceil(hp / attackPower("melee", 60, hp));
+    expect(hits).toBeGreaterThanOrEqual(8);
+    expect(hits).toBeLessThanOrEqual(10);
+  });
+
+  it("acerto válido causa pelo menos 1", () => {
+    expect(attackPower("melee", 1, 100)).toBe(1);
+    expect(attackPower("fire", 10, 5)).toBe(1);
   });
 
   it("dano zero continua zero", () => {
-    expect(attackPower("melee", 0)).toBe(0);
-    expect(attackPower("fire", 0)).toBe(0);
+    expect(attackPower("melee", 0, 100)).toBe(0);
+    expect(attackPower("fire", 0, 100)).toBe(0);
   });
 });
 
@@ -225,7 +246,7 @@ describe("beamImpact", () => {
 describe("crackSize", () => {
   it("cresce com o dano e para no piso e no teto", () => {
     const low = crackSize(0);
-    const mid = crackSize(40);
+    const mid = crackSize(10);
     const high = crackSize(10_000);
 
     expect(low).toEqual(crackSize(-8));
@@ -268,12 +289,12 @@ describe("resolveDamage", () => {
 
 describe("impactTier", () => {
   it("escala pelo dano", () => {
-    expect(impactTier(10)).toBe("light");
-    expect(impactTier(30)).toBe("medium");
-    expect(impactTier(60)).toBe("heavy");
+    expect(impactTier(5)).toBe("light");
+    expect(impactTier(8)).toBe("medium");
+    expect(impactTier(14)).toBe("heavy");
   });
 
   it("crítico é sempre pesado", () => {
-    expect(impactTier(5, true)).toBe("heavy");
+    expect(impactTier(2, true)).toBe("heavy");
   });
 });

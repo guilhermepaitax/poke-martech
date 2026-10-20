@@ -68,8 +68,18 @@ const CRACK_BRANCH_MIN = 5;
 const CRACK_BRANCH_MAX = 12;
 const CRIT_CHANCE = 0.1;
 const CRIT_MULTIPLIER = 1.5;
-const MEDIUM_IMPACT = 30;
-const HEAVY_IMPACT = 60;
+const MEDIUM_IMPACT = 8;
+const HEAVY_IMPACT = 14;
+
+const DAMAGE_SCALE: Record<AttackKind, number> = {
+  melee: 0.3,
+  fire: 0.18,
+};
+
+const DAMAGE_CAP: Record<AttackKind, number> = {
+  melee: 0.12,
+  fire: 0.08,
+};
 
 const COOLDOWN_MS: Record<AttackKind, number> = {
   melee: MELEE_COOLDOWN_MS,
@@ -122,10 +132,11 @@ function meleeConnect(
   return dot > 0;
 }
 
-function attackPower(kind: AttackKind, attackDamage: number) {
+function attackPower(kind: AttackKind, attackDamage: number, targetMaxHp: number) {
   if (attackDamage <= 0) return 0;
-  if (kind === "melee") return attackDamage;
-  return Math.round(attackDamage * 0.6);
+  const base = Math.round(attackDamage * DAMAGE_SCALE[kind]);
+  const cap = Math.max(1, Math.round(targetMaxHp * DAMAGE_CAP[kind]));
+  return Math.min(Math.max(base, 1), cap);
 }
 
 function aimTip(from: Point, to: Point, maxLength = AIM_LENGTH): AimTip | null {
@@ -243,11 +254,11 @@ function crackSize(damage: number): CrackSize {
   return {
     radius: Math.min(
       CRACK_RADIUS_MAX,
-      Math.max(CRACK_RADIUS_MIN, CRACK_RADIUS_MIN + amount * 1.1),
+      Math.max(CRACK_RADIUS_MIN, CRACK_RADIUS_MIN + amount * 4),
     ),
     branches: Math.min(
       CRACK_BRANCH_MAX,
-      CRACK_BRANCH_MIN + Math.floor(amount / 20),
+      CRACK_BRANCH_MIN + Math.floor(amount / 5),
     ),
   };
 }
@@ -282,6 +293,8 @@ export {
   CRIT_CHANCE,
   CRIT_MULTIPLIER,
   crackSize,
+  DAMAGE_CAP,
+  DAMAGE_SCALE,
   firstBlockHit,
   impactTier,
   MELEE_RANGE,

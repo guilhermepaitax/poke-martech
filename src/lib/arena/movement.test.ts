@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { cardinalFacing, facingFromAim, facingFromMove, normalizeMove } from "./movement";
+import {
+  cardinalFacing,
+  dashHeading,
+  facingFromAim,
+  facingFromMove,
+  normalizeMove,
+} from "./movement";
 
 describe("normalizeMove", () => {
   it("mantém um eixo unitário", () => {
@@ -71,5 +77,22 @@ describe("cardinalFacing", () => {
     expect(cardinalFacing("south-west")).toBe("west");
     expect(cardinalFacing("north-west")).toBe("west");
     expect(cardinalFacing("north")).toBe("north");
+  });
+});
+
+describe("dashHeading", () => {
+  it("segue o input de movimento, normalizado", () => {
+    const heading = dashHeading({ x: 1, y: -1 }, "west");
+
+    expect(Math.hypot(heading.x, heading.y)).toBeCloseTo(1, 5);
+    expect(heading.x).toBeCloseTo(Math.SQRT1_2, 5);
+    expect(heading.y).toBeCloseTo(-Math.SQRT1_2, 5);
+  });
+
+  it("sem input usa a direção para onde o lutador olha", () => {
+    const heading = dashHeading({ x: 0, y: 0 }, "north");
+
+    expect(heading.x).toBeCloseTo(0, 5);
+    expect(heading.y).toBeCloseTo(-1, 5);
   });
 });

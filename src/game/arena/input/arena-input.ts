@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-const ARROW_CODES = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+const SCROLL_CODES = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"]);
 
 type ArenaKeys = {
   up: Phaser.Input.Keyboard.Key;
@@ -13,6 +13,7 @@ type ArenaKeys = {
   D: Phaser.Input.Keyboard.Key;
   one: Phaser.Input.Keyboard.Key;
   two: Phaser.Input.Keyboard.Key;
+  space: Phaser.Input.Keyboard.Key;
 };
 
 type ArenaPointerBinding = {
@@ -41,6 +42,7 @@ function bindArenaKeys(scene: Phaser.Scene) {
       D: Phaser.Input.Keyboard.KeyCodes.D,
       one: Phaser.Input.Keyboard.KeyCodes.ONE,
       two: Phaser.Input.Keyboard.KeyCodes.TWO,
+      space: Phaser.Input.Keyboard.KeyCodes.SPACE,
     },
     false,
   ) as ArenaKeys;
@@ -63,9 +65,9 @@ function bindArenaPointer(scene: Phaser.Scene, binding: ArenaPointerBinding) {
   const focusCanvas = () => {
     canvas.focus();
   };
-  const preventArrowScroll = (event: KeyboardEvent) => {
+  const preventScrollKeys = (event: KeyboardEvent) => {
     if (document.activeElement !== canvas) return;
-    if (!ARROW_CODES.has(event.code)) return;
+    if (!SCROLL_CODES.has(event.code)) return;
     event.preventDefault();
   };
   const onPointerDown = (pointer: Phaser.Input.Pointer) => {
@@ -95,14 +97,14 @@ function bindArenaPointer(scene: Phaser.Scene, binding: ArenaPointerBinding) {
   scene.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown);
   scene.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove);
   scene.input.on("wheel", onWheel);
-  window.addEventListener("keydown", preventArrowScroll);
+  window.addEventListener("keydown", preventScrollKeys);
   window.addEventListener("wheel", preventWheel, { passive: false });
 
   return () => {
     scene.input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown);
     scene.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove);
     scene.input.off("wheel", onWheel);
-    window.removeEventListener("keydown", preventArrowScroll);
+    window.removeEventListener("keydown", preventScrollKeys);
     window.removeEventListener("wheel", preventWheel);
   };
 }

@@ -1,4 +1,9 @@
-import { isDashing, startDash, type Player } from "@/game/arena/entities/player";
+import {
+  isDashing,
+  startDash,
+  type DashKind,
+  type Player,
+} from "@/game/arena/entities/player";
 import type { Point } from "@/lib/arena/combat";
 import Phaser from "phaser";
 
@@ -9,8 +14,6 @@ const SLASH_STEPS = 18;
 const SLASH_DRAW_MS = 90;
 const SLASH_FADE_MS = 150;
 const SLASH_COLOR = 0xffffff;
-const DASH_SPEED = 520;
-const DASH_MS = 90;
 const GHOST_EVERY_MS = 22;
 const GHOST_FADE_MS = 200;
 const GHOST_DEPTH = 1.9;
@@ -18,8 +21,44 @@ const TRAIL_DEPTH = 1.8;
 const TRAIL_FADE_MS = 220;
 const TRAIL_LINES = [-14, 0, 14];
 const TRAIL_LENGTH = 70;
+const DUST_DEPTH = 1.7;
+const DUST_PUFFS = 5;
+const DUST_SPREAD = 22;
+const DUST_RADIUS = 9;
+const DUST_GROW = 2.2;
+const DUST_FADE_MS = 340;
+const DUST_COLOR = 0xd8c6a4;
+const DUST_FEET_OFFSET_Y = 34;
 
-const DASH_DISTANCE = (DASH_SPEED * DASH_MS) / 1000;
+type DashStyle = {
+  kind: DashKind;
+  speed: number;
+  durationMs: number;
+  ghostTint: number;
+  ghostAlpha: number;
+};
+
+const LUNGE: DashStyle = {
+  kind: "lunge",
+  speed: 520,
+  durationMs: 90,
+  ghostTint: 0xffffff,
+  ghostAlpha: 0.45,
+};
+
+const EVADE: DashStyle = {
+  kind: "evade",
+  speed: 900,
+  durationMs: 160,
+  ghostTint: 0xffc861,
+  ghostAlpha: 0.55,
+};
+
+function dashDistance(style: DashStyle) {
+  return (style.speed * style.durationMs) / 1000;
+}
+
+const DASH_DISTANCE = dashDistance(LUNGE);
 
 function track(
   bucket: Phaser.GameObjects.GameObject[],
@@ -101,14 +140,15 @@ function spawnGhost(
   scene: Phaser.Scene,
   bucket: Phaser.GameObjects.GameObject[],
   sprite: Phaser.Physics.Arcade.Sprite,
+  style: DashStyle,
 ) {
   const ghost = scene.add
     .image(sprite.x, sprite.y, sprite.texture.key, sprite.frame.name)
     .setDisplaySize(sprite.displayWidth, sprite.displayHeight)
     .setFlipX(sprite.flipX)
-    .setTint(0xffffff)
+    .setTint(style.ghostTint)
     .setTintMode(Phaser.TintModes.FILL)
-    .setAlpha(0.45)
+    .setAlpha(style.ghostAlpha)
     .setDepth(GHOST_DEPTH);
   const release = track(bucket, ghost);
   scene.tweens.add({
@@ -124,12 +164,14 @@ function paintTrail(
   from: Point,
   to: Point,
   heading: Point,
+  style: DashStyle,
 ) {
   graphics.clear();
   const px = -heading.y;
   const py = heading.x;
-  const tailX = from.x - heading.x * (TRAIL_LENGTH - DASH_DISTANCE);
-  const tailY = from.y - heading.y * (TRAIL_LENGTH - DASH_DISTANCE);
+  const tail = Math.max(TRAIL_LENGTH - dashDistance(style), 0);
+  const tailX = from.x - heading.x * tail;
+  const tailY = from.y - heading.y * tail;
   TRAIL_LINES.forEach((offset, index) => {
     const shorten = index === 1 ? 0 : 14;
     graphics.lineStyle(index === 1 ? 3 : 2, 0xffffff, index === 1 ? 0.55 : 0.4);
@@ -142,34 +184,68 @@ function paintTrail(
   });
 }
 
+function spawnDustPuff(
+  scene: Phaser.Scene,
+  bucket: Phaser.GameObjects.GameObject[],
+  at: Point,
+  heading: Point,
+) {
+  for (let index = 0; index < DUST_PUFFS; index += 1) {
+    const spread = (index / (DUST_PUFFS - 1) - 0.5) * 2;
+    const back = 6 + Math.abs(spread) * 6;
+    const x = at.x - heading.x * back - heading.y * spread * DUST_SPREAD;
+    const y = at.y - heading.y * back + heading.x * spread * DUST_SPREAD;
+    const puff = scene.add
+      .circle(x, y, DUST_RADIUS * (1 - Math.abs(spread) * 0.3), DUST_COLOR, 0.55)
+      .setDepth(DUST_DEPTH);
+    const release = track(bucket, puff);
+    scene.tweens.add({
+      targets: puff,
+      x: x - heading.x * 18,
+      y: y - heading.y * 18 - 6,
+      scale: DUST_GROW,
+      alpha: 0,
+      duration: DUST_FADE_MS + index * 20,
+      ease: "Quad.easeOut",
+      onComplete: release,
+    });
+  }
+}
+
 function dashWithTrail(
   scene: Phaser.Scene,
   bucket: Phaser.GameObjects.GameObject[],
   player: Player,
   aim: Point,
+  style: DashStyle = LUNGE,
 ) {
   const length = Math.hypot(aim.x, aim.y);
   if (length === 0) return;
   const heading = { x: aim.x / length, y: aim.y / length };
   const sprite = player.sprite;
   const from = { x: sprite.x, y: sprite.y };
-  startDash(player, heading.x, heading.y, DASH_SPEED, DASH_MS);
+  startDash(player, heading.x, heading.y, style.speed, style.durationMs, style.kind);
+  if (style.kind === "evade") {
+    spawnDustPuff(scene, bucket, { x: from.x, y: from.y + DUST_FEET_OFFSET_Y }, heading);
+  }
   const trail = scene.add.graphics().setDepth(TRAIL_DEPTH);
   const releaseTrail = track(bucket, trail);
-  spawnGhost(scene, bucket, sprite);
+  spawnGhost(scene, bucket, sprite, style);
   const ghosts = scene.time.addEvent({
     delay: GHOST_EVERY_MS,
-    repeat: Math.ceil(DASH_MS / GHOST_EVERY_MS),
+    repeat: Math.ceil(style.durationMs / GHOST_EVERY_MS),
     callback: () => {
       if (!sprite.scene || !trail.scene) return;
-      spawnGhost(scene, bucket, sprite);
-      paintTrail(trail, from, sprite, heading);
+      spawnGhost(scene, bucket, sprite, style);
+      paintTrail(trail, from, sprite, heading, style);
     },
   });
-  scene.time.delayedCall(DASH_MS + GHOST_EVERY_MS, () => {
+  scene.time.delayedCall(style.durationMs + GHOST_EVERY_MS, () => {
     ghosts.remove(false);
     if (!trail.scene) return;
-    if (sprite.scene && !isDashing(player)) paintTrail(trail, from, sprite, heading);
+    if (sprite.scene && !isDashing(player)) {
+      paintTrail(trail, from, sprite, heading, style);
+    }
     scene.tweens.add({
       targets: trail,
       alpha: 0,
@@ -179,4 +255,4 @@ function dashWithTrail(
   });
 }
 
-export { DASH_DISTANCE, dashWithTrail, spawnSlashArc };
+export { DASH_DISTANCE, dashWithTrail, EVADE, spawnSlashArc };

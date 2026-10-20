@@ -18,6 +18,7 @@ function ArenaPickerSlot({
   label: string;
   entry: ArenaRosterEntry | null;
   active: boolean;
+  onActivate: () => void;
 }) {
   return (
     <button

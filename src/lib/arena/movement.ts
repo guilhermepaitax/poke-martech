@@ -15,6 +15,8 @@ type Facing =
   | "north"
   | "north-east";
 
+const DASH_COOLDOWN_MS = 650;
+
 const FACING_ORDER: readonly Facing[] = [
   "east",
   "south-east",
@@ -56,5 +58,19 @@ function facingVector(facing: Facing): MoveVector {
   return { x: Math.cos(angle), y: Math.sin(angle) };
 }
 
-export { cardinalFacing, facingFromAim, facingFromMove, facingVector, normalizeMove };
+function dashHeading(move: MoveVector, facing: Facing): MoveVector {
+  const heading = normalizeMove(move.x, move.y);
+  if (heading.x !== 0 || heading.y !== 0) return heading;
+  return facingVector(facing);
+}
+
+export {
+  cardinalFacing,
+  DASH_COOLDOWN_MS,
+  dashHeading,
+  facingFromAim,
+  facingFromMove,
+  facingVector,
+  normalizeMove,
+};
 export type { CardinalFacing, Facing, MoveVector };

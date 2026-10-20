@@ -12,7 +12,7 @@ Cada etapa abaixo deve poder ser jogada e verificada antes da seguinte. Não ava
 - [x] Etapa 2 — Movimentação do jogador
 - [x] Etapa 3 — Cartas fixas como lutadores
 - [x] Etapa 4 — Combate básico
-- [ ] Etapa 5 — CPU
+- [x] Etapa 5 — CPU
 - [ ] Etapa 6 — Vitória, derrota e reinício
 - [ ] Etapa 7 — HUD e encaixe visual
 - [ ] Etapa 8 — Polimento e validação final
@@ -125,12 +125,18 @@ Aceite: o mesmo projétil não aplica dano duas vezes e o HP muda de forma previ
 
 Objetivo: oponente local e reproduzível, sem aleatoriedade.
 
-- [ ] `decideCpu` puro: longe persegue, perto e pronto ataca, morto não age
-- [ ] Perseguição com vetor normalizado
-- [ ] Ataque no alcance, com o mesmo projétil da etapa 4, mirando o jogador
-- [ ] Testes da tabela de decisão
+- [x] `decideCpu` puro em `src/lib/arena/cpu.ts`: longe persegue, perto e pronto ataca, morto não age, não bate em alvo morto
+- [x] Perseguição com vetor normalizado
+- [x] Ataque no alcance, com o mesmo feixe da etapa 4, mirando o jogador. Colada usa corpo a corpo. Bloco no caminho faz perseguir em vez de atirar
+- [x] Testes da tabela de decisão
+- [x] CPU anda a 75% da velocidade do jogador e tem cooldown 1.6× maior, para dar janela de vitória
 
 Aceite: dá para vencer e perder. A CPU não lê input de outro jogador.
+
+### Ajustes junto da etapa 5
+
+- [x] Rebalanceamento: `attackPower(kind, dano, hpMaxDoAlvo)` escala o dano da carta (melee ×0.3, fogo ×0.18) e limita cada golpe a uma fração do HP do alvo (12% / 8%), mínimo 1. Cerca de 8 golpes corpo a corpo derrubam. Tiers de impacto e rachaduras recalibrados
+- [x] Dash no Espaço: direção do WASD/setas, ou do mouse sem input. Cooldown de 650 ms, sem invulnerabilidade. Clip de caminhada a 24 fps, fantasmas âmbar, rastro e poeira. Label "Espaço Dash" no HUD acende quando pronto
 
 ## Etapa 6 — Vitória, derrota e reinício
 
@@ -178,4 +184,4 @@ Aceite: uma luta inteira inicia, termina e reinicia. Pokédex, loja e admin cont
 
 ## Próximo passo
 
-A etapa 5. O oponente local persegue e ataca sem aleatoriedade.
+A etapa 6. HP zero encerra a luta e outra começa sem recarregar a página.
