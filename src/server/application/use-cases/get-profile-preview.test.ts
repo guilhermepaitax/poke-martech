@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import type { FollowRepository } from "@/server/application/contracts/repositories/follow-repository";
 import type { ProfileRepository } from "@/server/application/contracts/repositories/profile-repository";
 import { GetProfilePreview } from "@/server/application/use-cases/get-profile-preview";
-import type { ProfileLink } from "@/types/catalog";
 
 class MemoryProfiles implements ProfileRepository {
   async findByUserId() {
@@ -34,12 +33,12 @@ class MemoryFollows implements FollowRepository {
     return { followers: 4, following: 2 };
   }
 
-  async listFollowers(): Promise<ProfileLink[]> {
-    return [];
+  async listFollowers() {
+    return { items: [], hasMore: false };
   }
 
-  async listFollowing(): Promise<ProfileLink[]> {
-    return [];
+  async listFollowing() {
+    return { items: [], hasMore: false };
   }
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createBooster,
   createCard,
@@ -8,11 +8,13 @@ import {
   fetchAdminBoosters,
   fetchAdminCard,
   fetchAdminCards,
+  fetchAdminTags,
   fetchCardGeneration,
   fetchCardGenerations,
   fetchRarities,
   retryCardGeneration,
   saveRarities,
+  searchAdminCards,
   startCardGeneration,
   updateBooster,
   updateCard,
@@ -23,10 +25,29 @@ const adminCardKeys = {
   all: ["admin-cards"] as const,
   list: () => [...adminCardKeys.all, "list"] as const,
   detail: (id: string) => [...adminCardKeys.all, id] as const,
+  search: (name: string, excludeId: string | null) =>
+    [...adminCardKeys.all, "search", name, excludeId] as const,
+};
+
+const adminTagKeys = {
+  all: ["admin-tags"] as const,
 };
 
 function useAdminCards() {
   return useQuery({ queryKey: adminCardKeys.list(), queryFn: fetchAdminCards });
+}
+
+function useAdminCardSearch(name: string, excludeId: string | null, enabled: boolean) {
+  return useQuery({
+    queryKey: adminCardKeys.search(name, excludeId),
+    queryFn: () => searchAdminCards(name, excludeId),
+    enabled,
+    placeholderData: keepPreviousData,
+  });
+}
+
+function useAdminTags() {
+  return useQuery({ queryKey: adminTagKeys.all, queryFn: fetchAdminTags });
 }
 
 function useAdminCard(id: string) {
@@ -43,6 +64,7 @@ function useSaveCard(id?: string) {
     mutationFn: (input: CardInput) => (id ? updateCard(id, input) : createCard(input)),
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: adminCardKeys.all });
+      void client.invalidateQueries({ queryKey: adminTagKeys.all });
     },
   });
 }
@@ -150,7 +172,9 @@ export {
   useAdminBooster,
   useAdminBoosters,
   useAdminCard,
+  useAdminCardSearch,
   useAdminCards,
+  useAdminTags,
   useCardGeneration,
   useCardGenerations,
   useRarities,

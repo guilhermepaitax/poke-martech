@@ -1,8 +1,10 @@
 import { Layers, Package } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton, LoadingScreen, ShopGridSkeleton, Skeleton } from "@/components/ui/skeleton";
+import { notFound } from "next/navigation";
 
 export default function PreviewEstados() {
+  if (process.env.NODE_ENV === "production") notFound();
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-20 px-4 py-10">
       <LoadingScreen label="Carregando loja" className="flex flex-col gap-6">

@@ -12,12 +12,13 @@ import {
   type Rarity,
   type Stage,
 } from "@/lib/value-objects/card";
-import { normalizeCardTags } from "@/lib/value-objects/card-tag";
 import type {
   CardRepository,
+  CardSearchQuery,
   PublishedCardRecord,
 } from "@/server/application/contracts/repositories/card-repository";
 import { Card, CardAttack } from "@/server/application/entities/card";
+import { replaceCardTags, tagsByCard } from "@/server/infrastructure/db/drizzle/card-tags";
 import { db } from "@/server/infrastructure/db/drizzle/client";
 import {
   cardAttacks,
@@ -28,8 +29,8 @@ import {
   evolutionOriginsFor,
   toCardFace,
 } from "@/server/infrastructure/db/drizzle/to-card-face";
-import type { AdminCatalogCard, CardSummary } from "@/types/catalog";
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import type { AdminCatalogCard, CardOption, CardSummary } from "@/types/catalog";
+import { and, asc, eq, ilike, inArray, ne, sql } from "drizzle-orm";
 
 class DrizzleCardRepository implements CardRepository {
   async listAll(): Promise<AdminCatalogCard[]> {
@@ -46,8 +47,12 @@ class DrizzleCardRepository implements CardRepository {
       )
       .orderBy(asc(cardAttacks.sortOrder));
     const origins = await evolutionOriginsFor(db, rows);
+    const tagMap = await tagsByCard(
+      db,
+      rows.map((row) => row.id),
+    );
     return rows.map((row) => {
-      const summary = toSummary(row);
+      const summary = toSummary(row, tagMap.get(row.id) ?? []);
       const face = toCardFace(
         isFrame(row.frame) ? row : { ...row, frame: "basic" },
         attackRows,
@@ -64,7 +69,21 @@ class DrizzleCardRepository implements CardRepository {
       .from(cards)
       .where(eq(cards.published, true))
       .orderBy(asc(cards.number));
-    return rows.map(toSummary);
+    const tagMap = await tagsByCard(
+      db,
+      rows.map((row) => row.id),
+    );
+    return rows.map((row) => toSummary(row, tagMap.get(row.id) ?? []));
+  }
+
+  async search({ name, excludeId, limit }: CardSearchQuery): Promise<CardOption[]> {
+    const pattern = `%${name.trim().replace(/[\\%_]/g, "\\$&")}%`;
+    return db
+      .select({ id: cards.id, name: cards.name, imageUrl: cards.imageUrl })
+      .from(cards)
+      .where(and(ilike(cards.name, pattern), excludeId ? ne(cards.id, excludeId) : undefined))
+      .orderBy(asc(cards.name), asc(cards.number))
+      .limit(limit);
   }
 
   async listPublishedCards(): Promise<PublishedCardRecord[]> {
@@ -139,6 +158,7 @@ class DrizzleCardRepository implements CardRepository {
             .insert(cardAttacks)
             .values(card.attacks.map((attack) => toAttackInsert(id, attack)));
         }
+        await replaceCardTags(tx, id, card.tags);
       });
       return { ok: true as const, id };
     } catch (error) {
@@ -166,6 +186,7 @@ class DrizzleCardRepository implements CardRepository {
               card.attacks.map((attack) => toAttackInsert(card.id, attack)),
             );
         }
+        await replaceCardTags(tx, card.id, card.tags);
         return { ok: true as const };
       });
     } catch (error) {
@@ -181,11 +202,12 @@ class DrizzleCardRepository implements CardRepository {
       .from(cardAttacks)
       .where(eq(cardAttacks.cardId, row.id))
       .orderBy(asc(cardAttacks.sortOrder));
-    return toCard(row, attacks);
+    const tagMap = await tagsByCard(db, [row.id]);
+    return toCard(row, attacks, tagMap.get(row.id) ?? []);
   }
 }
 
-function toSummary(row: typeof cards.$inferSelect): CardSummary {
+function toSummary(row: typeof cards.$inferSelect, tags: string[]): CardSummary {
   return {
     id: row.id,
     number: row.number,
@@ -197,13 +219,14 @@ function toSummary(row: typeof cards.$inferSelect): CardSummary {
     stage: asStage(row.stage),
     rarity: asRarity(row.rarity),
     published: row.published,
-    tags: normalizeCardTags(row.tags),
+    tags,
   };
 }
 
 function toCard(
   row: typeof cards.$inferSelect,
   attacks: (typeof cardAttacks.$inferSelect)[],
+  tags: string[],
 ): Card {
   return new Card(
     row.id,
@@ -231,7 +254,7 @@ function toCard(
     asRarity(row.rarity),
     row.flavorText,
     row.published,
-    normalizeCardTags(row.tags),
+    tags,
     attacks.map(
       (attack) =>
         new CardAttack(
@@ -274,7 +297,6 @@ function toInsert(id: string, card: Card) {
     rarity: card.rarity,
     flavorText: card.flavorText,
     published: card.published,
-    tags: card.tags,
   };
 }
 

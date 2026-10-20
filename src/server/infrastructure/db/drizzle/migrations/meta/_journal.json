@@ -89,8 +89,29 @@
     {
       "idx": 12,
       "version": "7",
-      "when": 1792350905274,
-      "tag": "0012_drop_battle_tables",
+      "when": 1792509825900,
+      "tag": "0012_tags_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792515954965,
+      "tag": "0013_rate_limits",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792516593458,
+      "tag": "0014_performance_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1792526534545,
+      "tag": "0015_drop_battle_tables",
       "breakpoints": true
     }
   ]

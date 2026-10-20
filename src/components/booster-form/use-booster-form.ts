@@ -4,6 +4,7 @@ import { errorDescription, useToast } from "@/components/ui/toaster";
 import {
   useAdminBooster,
   useAdminCards,
+  useAdminTags,
   useSaveBooster,
 } from "@/hooks/use-admin";
 import { useReturnTo } from "@/hooks/use-list-location";
@@ -52,6 +53,7 @@ function useBoosterForm(boosterId?: string) {
   const { pushToast } = useToast();
   const existing = useAdminBooster(boosterId ?? "");
   const catalog = useAdminCards();
+  const cardTags = useAdminTags();
   const types = usePokemonTypes();
   const save = useSaveBooster(boosterId);
   const slugTouched = useRef(false);
@@ -99,11 +101,8 @@ function useBoosterForm(boosterId?: string) {
     [catalogCards, types.data],
   );
   const tagOptions = useMemo(
-    () =>
-      normalizeCardTags(catalogCards.flatMap((card) => card.tags)).sort(
-        (left, right) => left.localeCompare(right, "pt-BR"),
-      ),
-    [catalogCards],
+    () => (cardTags.data ?? []).map((tag) => tag.name),
+    [cardTags.data],
   );
 
   function update(patch: Partial<BoosterInput>) {

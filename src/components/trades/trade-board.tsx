@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeftRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { EmptyState, screenColumnClass } from "@/components/ui/empty-state";
 import { ProposalSkeleton } from "@/components/ui/skeleton";
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -17,7 +18,8 @@ function TradeBoard() {
   const box = searchParams.get("caixa") === "outgoing" ? "outgoing" : "incoming";
   const trades = useTrades(box);
 
-  const empty = trades.data?.length === 0;
+  const proposals = trades.data?.pages.flatMap((page) => page.items);
+  const empty = proposals?.length === 0;
 
   function setBox(value: string) {
     router.replace(
@@ -69,8 +71,18 @@ function TradeBoard() {
           }
         />
       ) : null}
-      {trades.data && trades.data.length > 0 ? (
-        <TradeProposalList proposals={trades.data} box={box} />
+      {proposals && proposals.length > 0 ? (
+        <TradeProposalList proposals={proposals} box={box} />
+      ) : null}
+      {trades.hasNextPage ? (
+        <Button
+          variant="outline"
+          className="self-center"
+          disabled={trades.isFetchingNextPage}
+          onClick={() => void trades.fetchNextPage()}
+        >
+          {trades.isFetchingNextPage ? "Carregando…" : "Carregar mais propostas"}
+        </Button>
       ) : null}
     </div>
   );

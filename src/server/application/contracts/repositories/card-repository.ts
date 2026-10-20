@@ -1,5 +1,5 @@
 import type { Card } from "@/server/application/entities/card";
-import type { AdminCatalogCard, CardFace, CardSummary } from "@/types/catalog";
+import type { AdminCatalogCard, CardFace, CardOption, CardSummary } from "@/types/catalog";
 
 type PublishedCardRecord = {
   id: string;
@@ -7,10 +7,17 @@ type PublishedCardRecord = {
   face: CardFace;
 };
 
+type CardSearchQuery = {
+  name: string;
+  excludeId: string | null;
+  limit: number;
+};
+
 interface CardRepository {
   listAll(): Promise<AdminCatalogCard[]>;
   listPublished(): Promise<CardSummary[]>;
   listPublishedCards(): Promise<PublishedCardRecord[]>;
+  search(query: CardSearchQuery): Promise<CardOption[]>;
   findById(id: string): Promise<Card | null>;
   findPublishedById(id: string): Promise<Card | null>;
   findPublishedBySlug(slug: string): Promise<Card | null>;
@@ -23,4 +30,4 @@ interface CardRepository {
   ): Promise<{ ok: true } | { ok: false; reason: "conflict" | "not_found" }>;
 }
 
-export type { CardRepository, PublishedCardRecord };
+export type { CardRepository, CardSearchQuery, PublishedCardRecord };

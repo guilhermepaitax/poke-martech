@@ -3,19 +3,29 @@ import { NextResponse } from "next/server";
 import type { ZodType } from "zod";
 import { isFeatureEnabled, type FeatureFlag } from "@/lib/feature-flags";
 import { getActor } from "@/lib/session";
+import { idParamSchema } from "@/server/adapters/next/schemas";
 import { trackFeatureFlag } from "@/lib/track-feature-flags";
 import type { Actor } from "@/server/application/actor";
+import type { RateLimitRule } from "@/server/application/contracts/services/rate-limiter";
+import { container } from "@/server/container";
 import type { AppError } from "@/server/shared/app-error";
 import type { Result } from "@/server/shared/result";
 
 type AuthMode = "public" | "user" | "admin";
 
-function nextRouteAdapter<TInput, TOutput>(
-  handler: (input: TInput, actor: Actor | null) => Promise<Result<TOutput, AppError>>,
+function nextRouteAdapter<TInput, TOutput, TQuery = undefined>(
+  handler: (
+    input: TInput,
+    actor: Actor | null,
+    query: TQuery,
+  ) => Promise<Result<TOutput, AppError>>,
   options?: {
     schema?: ZodType<TInput>;
+    query?: ZodType<TQuery>;
     auth?: AuthMode;
     feature?: FeatureFlag;
+    ids?: string[];
+    rateLimit?: RateLimitRule & { name: string };
   },
 ) {
   return async (req: Request) => {
@@ -37,6 +47,26 @@ function nextRouteAdapter<TInput, TOutput>(
         return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
       }
 
+      if (options?.rateLimit && actor) {
+        const limited = await rateLimited(options.rateLimit, actor);
+        if (limited) return limited;
+      }
+
+      if (options?.ids?.some((id) => !idParamSchema.safeParse(id).success)) {
+        return NextResponse.json({ error: "Não encontrado." }, { status: 404 });
+      }
+
+      let query = undefined as TQuery;
+      if (options?.query) {
+        const params = Object.fromEntries(new URL(req.url).searchParams);
+        const parsed = options.query.safeParse(params);
+        if (!parsed.success) {
+          const message = parsed.error.issues.map((issue) => issue.message).join(", ");
+          return NextResponse.json({ error: message }, { status: 400 });
+        }
+        query = parsed.data;
+      }
+
       let input = undefined as TInput;
       if (options?.schema) {
         const body: unknown = await req.json();
@@ -48,7 +78,7 @@ function nextRouteAdapter<TInput, TOutput>(
         input = parsed.data;
       }
 
-      const result = await handler(input, actor);
+      const result = await handler(input, actor, query);
       if (!result.ok) {
         if (result.error.statusCode >= 500) {
           const exception = new Error(result.error.message);
@@ -69,4 +99,13 @@ function nextRouteAdapter<TInput, TOutput>(
   };
 }
 
-export { nextRouteAdapter };
+async function rateLimited(rule: RateLimitRule & { name: string }, actor: Actor) {
+  const decision = await container.rateLimiter.consume(`${rule.name}:${actor.id}`, rule);
+  if (decision.allowed) return null;
+  return NextResponse.json(
+    { error: "Muitas tentativas. Aguarde um pouco e tente de novo." },
+    { status: 429, headers: { "Retry-After": String(decision.retryAfterSeconds) } },
+  );
+}
+
+export { nextRouteAdapter, rateLimited };

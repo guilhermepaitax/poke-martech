@@ -21,7 +21,7 @@ function PublicProfile({
 }) {
   const screen = usePublicProfileScreen(username, inviteFollow);
 
-  if (screen.profile.isLoading) {
+  if (screen.profile.isLoading || screen.cards.isLoading) {
     return (
       <LoadingScreen label="Carregando perfil" className="flex flex-col gap-8">
         <div className="glass flex items-start gap-4 rounded-3xl p-5">
@@ -46,6 +46,7 @@ function PublicProfile({
   }
 
   const person = screen.profile.data;
+  const cardPages = screen.cards.data?.pages ?? [];
   const people =
     screen.peopleList === "following" ? screen.following : screen.followers;
   const inviteVisible = screen.inviteOpen && !person.isSelf;
@@ -79,7 +80,13 @@ function PublicProfile({
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Coleção</h2>
         <PokedexGrid
-          entries={person.pokedex}
+          filters={screen.cardFilters}
+          entries={cardPages.flatMap((page) => page.items)}
+          owned={cardPages[0]?.total ?? 0}
+          total={cardPages[0]?.total ?? 0}
+          hasMore={screen.cards.hasNextPage}
+          isFetchingMore={screen.cards.isFetchingNextPage}
+          onLoadMore={() => void screen.cards.fetchNextPage()}
           ownedOnly
           markMissing={!person.isSelf}
           onPropose={person.isSelf ? undefined : screen.setTradeEntry}
@@ -102,8 +109,11 @@ function PublicProfile({
       <ProfilePeopleDialog
         open={screen.peopleList !== null}
         title={screen.peopleList === "following" ? "Seguindo" : "Seguidores"}
-        people={people.data ?? []}
+        people={people.data?.pages.flatMap((page) => page.items) ?? []}
         isLoading={screen.peopleList !== null && people.isLoading}
+        hasMore={people.hasNextPage}
+        isFetchingMore={people.isFetchingNextPage}
+        onLoadMore={() => void people.fetchNextPage()}
         onOpenChange={(open) => {
           if (!open) screen.setPeopleList(null);
         }}

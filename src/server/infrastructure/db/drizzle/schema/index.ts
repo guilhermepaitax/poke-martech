@@ -1,6 +1,7 @@
 export {
   account,
   accountRelations,
+  rateLimit,
   session,
   sessionRelations,
   user,
@@ -8,6 +9,7 @@ export {
   verification,
 } from "@/server/infrastructure/db/drizzle/schema/auth";
 export {
+  appRateLimits,
   boosterCards,
   boosters,
   cardAttacks,
@@ -16,12 +18,14 @@ export {
   cardGenerationItems,
   cards,
   cardsRelations,
+  cardTags,
   coinLedger,
   follows,
   packOpeningCards,
   packOpenings,
   pokemonTypes,
   rarityWeights,
+  tags,
   tradeProposals,
   userCards,
   wallets,

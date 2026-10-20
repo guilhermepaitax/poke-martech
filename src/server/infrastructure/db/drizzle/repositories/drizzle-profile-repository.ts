@@ -1,5 +1,9 @@
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, sql, type SQL } from "drizzle-orm";
+import { RARITY_RANK } from "@/lib/value-objects/card";
+import type { PokedexSortKey } from "@/lib/value-objects/pokedex";
+import { sliceRows, type PageRequest, type PageSlice } from "@/server/application/page";
 import type {
+  PokedexFilters,
   PokedexRepository,
   ProfileRepository,
 } from "@/server/application/contracts/repositories/profile-repository";
@@ -86,41 +90,96 @@ class DrizzleProfileRepository implements ProfileRepository {
 }
 
 class DrizzlePokedexRepository implements PokedexRepository {
-  async listForUser(userId: string): Promise<PokedexEntry[]> {
+  async page(
+    userId: string,
+    filters: PokedexFilters,
+    request: PageRequest,
+  ): Promise<PageSlice<PokedexEntry>> {
+    const owned = ownedByUser(userId);
+    const discovered = sql`${owned.cardId} is not null`;
+    const term = filters.query.trim();
+    const where = and(
+      eq(cards.published, true),
+      filters.ownedOnly || term || filters.type ? discovered : undefined,
+      term ? ilike(cards.name, `%${term.replace(/[\\%_]/g, "\\$&")}%`) : undefined,
+      filters.type ? eq(cards.energyType, filters.type) : undefined,
+    );
     const rows = await db
-      .select({
-        card: cards,
-        ownedCount: sql<number>`count(${userCards.id})::int`,
-      })
+      .select({ card: cards, ownedCount: sql<number>`coalesce(${owned.count}, 0)::int` })
       .from(cards)
-      .leftJoin(
-        userCards,
-        and(eq(userCards.cardId, cards.id), eq(userCards.userId, userId)),
-      )
-      .where(eq(cards.published, true))
-      .groupBy(cards.id)
-      .orderBy(asc(cards.number));
-    const owned = rows.flatMap((row) => (row.ownedCount > 0 ? [row.card] : []));
-    const attackRows = await attacksFor(owned.map((card) => card.id));
-    const origins = await evolutionOriginsFor(db, owned);
-
-    return rows.flatMap((row): PokedexEntry[] => {
-      if (row.ownedCount === 0) {
-        return [{ id: row.card.id, number: row.card.number, ownedCount: 0, card: null }];
-      }
-      const face = toCardFace(row.card, attackRows, origins);
-      if (!face) return [];
-      return [{ id: row.card.id, number: row.card.number, ownedCount: row.ownedCount, card: face }];
-    });
+      .leftJoin(owned, eq(owned.cardId, cards.id))
+      .where(where)
+      .orderBy(...pokedexOrder(filters.sort, discovered), asc(cards.number))
+      .limit(request.limit + 1)
+      .offset(request.cursor);
+    const slice = sliceRows(rows, request);
+    const ownedCards = slice.items.flatMap((row) => (row.ownedCount > 0 ? [row.card] : []));
+    const [attackRows, origins] = await Promise.all([
+      attacksFor(ownedCards.map((card) => card.id)),
+      evolutionOriginsFor(db, ownedCards),
+    ]);
+    return {
+      hasMore: slice.hasMore,
+      items: slice.items.flatMap((row): PokedexEntry[] => {
+        if (row.ownedCount === 0) {
+          return [{ id: row.card.id, number: row.card.number, ownedCount: 0, card: null }];
+        }
+        const face = toCardFace(row.card, attackRows, origins);
+        if (!face) return [];
+        return [{ id: row.card.id, number: row.card.number, ownedCount: row.ownedCount, card: face }];
+      }),
+    };
   }
 
-  async ownedCardIds(userId: string): Promise<string[]> {
+  async totals(userId: string): Promise<{ owned: number; total: number }> {
+    const owned = ownedByUser(userId);
+    const rows = await db
+      .select({
+        owned: sql<number>`count(${owned.cardId})::int`,
+        total: sql<number>`count(*)::int`,
+      })
+      .from(cards)
+      .leftJoin(owned, eq(owned.cardId, cards.id))
+      .where(eq(cards.published, true));
+    return { owned: rows[0]?.owned ?? 0, total: rows[0]?.total ?? 0 };
+  }
+
+  async ownedCardIdsAmong(userId: string, cardIds: string[]): Promise<string[]> {
+    if (cardIds.length === 0) return [];
     const rows = await db
       .selectDistinct({ cardId: userCards.cardId })
       .from(userCards)
-      .where(eq(userCards.userId, userId));
+      .where(and(eq(userCards.userId, userId), inArray(userCards.cardId, cardIds)));
     return rows.map((row) => row.cardId);
   }
+}
+
+function ownedByUser(userId: string) {
+  return db
+    .select({
+      cardId: userCards.cardId,
+      count: sql<number>`count(*)`.as("owned_count"),
+    })
+    .from(userCards)
+    .where(eq(userCards.userId, userId))
+    .groupBy(userCards.cardId)
+    .as("owned");
+}
+
+function pokedexOrder(sort: PokedexSortKey, discovered: SQL): SQL[] {
+  if (sort === "number") return [];
+  const onlyDiscovered = (value: SQL) => sql`case when ${discovered} then ${value} end`;
+  const missingLast = sql`(${discovered}) desc`;
+  if (sort === "name") return [missingLast, asc(onlyDiscovered(sql`lower(${cards.name})`))];
+  if (sort === "hp") return [missingLast, desc(onlyDiscovered(sql`${cards.hp}`))];
+  return [missingLast, desc(onlyDiscovered(rarityRank()))];
+}
+
+function rarityRank(): SQL {
+  const branches = Object.entries(RARITY_RANK).map(
+    ([rarity, rank]) => sql`when ${rarity} then ${sql.raw(String(Number(rank)))}`,
+  );
+  return sql`case ${cards.rarity} ${sql.join(branches, sql` `)} end`;
 }
 
 function attacksFor(cardIds: string[]) {

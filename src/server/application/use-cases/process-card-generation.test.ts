@@ -169,6 +169,10 @@ class MemoryCards implements CardRepository {
     return [];
   }
 
+  async search() {
+    return [];
+  }
+
   async findById() {
     return null;
   }

@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, gt, gte, inArray, sql } from "drizzle-orm";
 import { isFinish, isRarity, type Finish } from "@/lib/value-objects/card";
 import type {
   OpeningRepository,
@@ -24,14 +24,28 @@ import {
 } from "@/server/infrastructure/db/drizzle/to-card-face";
 import type { OpeningCard, PackOpening } from "@/types/catalog";
 
+class PurchaseAborted extends Error {
+  constructor(readonly status: "out_of_stock") {
+    super(status);
+  }
+}
+
 class DrizzlePackPurchaseRepository implements PackPurchaseRepository {
   async purchase(input: Parameters<PackPurchaseRepository["purchase"]>[0]) {
+    try {
+      return await this.purchaseInTransaction(input);
+    } catch (error) {
+      if (error instanceof PurchaseAborted) return { status: error.status };
+      throw error;
+    }
+  }
+
+  private purchaseInTransaction(input: Parameters<PackPurchaseRepository["purchase"]>[0]) {
     return db.transaction(async (tx) => {
       const boosterRows = await tx
         .select()
         .from(boosters)
         .where(eq(boosters.slug, input.boosterSlug))
-        .for("update")
         .limit(1);
       const booster = boosterRows[0];
       if (!booster) return { status: "not_found" as const };
@@ -39,16 +53,6 @@ class DrizzlePackPurchaseRepository implements PackPurchaseRepository {
       if (booster.stock !== null && booster.stock <= 0) {
         return { status: "out_of_stock" as const };
       }
-
-      const walletRows = await tx
-        .select()
-        .from(wallets)
-        .where(eq(wallets.userId, input.userId))
-        .for("update")
-        .limit(1);
-      const wallet = walletRows[0];
-      if (!wallet) return { status: "no_wallet" as const };
-      if (wallet.coins < booster.price) return { status: "insufficient_coins" as const };
 
       const poolRows = await tx
         .select({
@@ -81,17 +85,28 @@ class DrizzlePackPurchaseRepository implements PackPurchaseRepository {
       });
       if (!drawn.ok) return { status: drawn.reason };
 
-      const balanceAfter = wallet.coins - booster.price;
-      await tx
+      const debited = await tx
         .update(wallets)
-        .set({ coins: balanceAfter })
-        .where(eq(wallets.userId, input.userId));
+        .set({ coins: sql`${wallets.coins} - ${booster.price}` })
+        .where(and(eq(wallets.userId, input.userId), gte(wallets.coins, booster.price)))
+        .returning({ coins: wallets.coins });
+      const balanceAfter = debited[0]?.coins;
+      if (balanceAfter === undefined) {
+        const wallet = await tx
+          .select({ userId: wallets.userId })
+          .from(wallets)
+          .where(eq(wallets.userId, input.userId))
+          .limit(1);
+        return { status: wallet.length ? ("insufficient_coins" as const) : ("no_wallet" as const) };
+      }
 
       if (booster.stock !== null) {
-        await tx
+        const reserved = await tx
           .update(boosters)
-          .set({ stock: booster.stock - 1, updatedAt: new Date() })
-          .where(eq(boosters.id, booster.id));
+          .set({ stock: sql`${boosters.stock} - 1`, updatedAt: new Date() })
+          .where(and(eq(boosters.id, booster.id), gt(boosters.stock, 0)))
+          .returning({ id: boosters.id });
+        if (reserved.length === 0) throw new PurchaseAborted("out_of_stock");
       }
 
       const openingId = crypto.randomUUID();
@@ -117,29 +132,29 @@ class DrizzlePackPurchaseRepository implements PackPurchaseRepository {
         .orderBy(asc(cardAttacks.sortOrder));
       const origins = await evolutionOriginsFor(tx, details);
       const byId = new Map(details.map((card) => [card.id, card]));
-      const openingCards: OpeningCard[] = [];
 
-      for (const [slot, cardId] of drawn.cardIds.entries()) {
+      const drawnCards = drawn.cardIds.map((cardId, slot) => {
         const card = byId.get(cardId);
         const openingCard = card ? toOpeningCard(card, slot, attackRows, origins) : null;
-        if (!openingCard) {
-          throw new Error("Carta sorteada inválida.");
-        }
-        const userCardId = crypto.randomUUID();
-        await tx.insert(userCards).values({
-          id: userCardId,
+        if (!openingCard) throw new Error("Carta sorteada inválida.");
+        return { cardId, slot, userCardId: crypto.randomUUID(), openingCard };
+      });
+      await tx.insert(userCards).values(
+        drawnCards.map((item) => ({
+          id: item.userCardId,
           userId: input.userId,
-          cardId,
+          cardId: item.cardId,
           boosterId: booster.id,
-        });
-        await tx.insert(packOpeningCards).values({
+        })),
+      );
+      await tx.insert(packOpeningCards).values(
+        drawnCards.map((item) => ({
           packOpeningId: openingId,
-          userCardId,
-          cardId,
-          slot,
-        });
-        openingCards.push(openingCard);
-      }
+          userCardId: item.userCardId,
+          cardId: item.cardId,
+          slot: item.slot,
+        })),
+      );
 
       return {
         status: "ok" as const,
@@ -148,7 +163,7 @@ class DrizzlePackPurchaseRepository implements PackPurchaseRepository {
           boosterName: booster.name,
           boosterImageUrl: booster.imageUrl,
           boosterFinish: asFinish(booster.finish),
-          cards: openingCards,
+          cards: drawnCards.map((item) => item.openingCard),
         },
       };
     });

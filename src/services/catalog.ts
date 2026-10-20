@@ -1,3 +1,5 @@
+import type { EnergyType } from "@/lib/value-objects/card";
+import type { PokedexSortKey } from "@/lib/value-objects/pokedex";
 import { api } from "@/services/http";
 import type {
   BoosterDetail,
@@ -8,10 +10,13 @@ import type {
   CardGenerationInput,
   CardGenerationSummary,
   CardInput,
+  CardOption,
+  CardTag,
   AdminCatalogCard,
   PackOpening,
-  PokedexEntry,
+  PokedexPage,
   Profile,
+  PublicPokedexPage,
   PublicProfile,
   PokemonType,
   RarityWeight,
@@ -21,8 +26,29 @@ function fetchProfile() {
   return api<Profile>("/api/me");
 }
 
-function fetchPokedex() {
-  return api<PokedexEntry[]>("/api/pokedex");
+type PokedexQuery = {
+  query: string;
+  type: EnergyType | "all";
+  sort: PokedexSortKey;
+};
+
+function pokedexSearch(filters: PokedexQuery, cursor: string | null) {
+  const params = new URLSearchParams();
+  if (filters.query.trim()) params.set("q", filters.query.trim());
+  if (filters.type !== "all") params.set("tipo", filters.type);
+  if (filters.sort !== "number") params.set("ordem", filters.sort);
+  if (cursor) params.set("cursor", cursor);
+  return params.toString();
+}
+
+function fetchPokedexPage(filters: PokedexQuery, cursor: string | null) {
+  return api<PokedexPage>(`/api/pokedex/cards?${pokedexSearch(filters, cursor)}`);
+}
+
+function fetchProfileCards(username: string, filters: PokedexQuery, cursor: string | null) {
+  return api<PublicPokedexPage>(
+    `/api/profiles/${username}/cards?${pokedexSearch(filters, cursor)}`,
+  );
 }
 
 function fetchPublicProfile(username: string) {
@@ -38,7 +64,7 @@ function fetchBoosters() {
 }
 
 function fetchBooster(slug: string) {
-  return api<BoosterDetail>(`/api/boosters/${slug}`);
+  return api<BoosterSummary>(`/api/boosters/${slug}`);
 }
 
 function openBooster(slug: string) {
@@ -51,6 +77,16 @@ function fetchOpening(id: string) {
 
 function fetchAdminCards() {
   return api<AdminCatalogCard[]>("/api/admin/cards");
+}
+
+function searchAdminCards(name: string, excludeId: string | null) {
+  const params = new URLSearchParams({ q: name });
+  if (excludeId) params.set("exclude", excludeId);
+  return api<CardOption[]>(`/api/admin/cards/search?${params}`);
+}
+
+function fetchAdminTags() {
+  return api<CardTag[]>("/api/admin/tags");
 }
 
 function fetchAdminCard(id: string) {
@@ -134,13 +170,15 @@ export {
   fetchAdminBoosters,
   fetchAdminCard,
   fetchAdminCards,
+  fetchAdminTags,
   fetchBooster,
   fetchBoosters,
   fetchCard,
   fetchCardGeneration,
   fetchCardGenerations,
   fetchOpening,
-  fetchPokedex,
+  fetchPokedexPage,
+  fetchProfileCards,
   fetchPokemonTypes,
   fetchProfile,
   fetchPublicProfile,
@@ -148,7 +186,9 @@ export {
   openBooster,
   retryCardGeneration,
   saveRarities,
+  searchAdminCards,
   startCardGeneration,
   updateBooster,
   updateCard,
 };
+export type { PokedexQuery };

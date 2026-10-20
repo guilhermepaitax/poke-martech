@@ -89,6 +89,10 @@ class MemoryRosterCards implements CardRepository {
     return this.cards.map(record);
   }
 
+  async search() {
+    return [];
+  }
+
   async findById() {
     return null;
   }
