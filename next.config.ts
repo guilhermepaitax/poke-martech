@@ -14,8 +14,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   images: {
-    loader: "custom",
-    loaderFile: "./src/lib/image-loader.ts",
+    unoptimized: true,
   },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
