@@ -21,6 +21,13 @@ function fitArena(game: ArenaGameInstance, parent: HTMLElement) {
 
 function useArenaGame(matchup: ArenaMatchup) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const matchupRef = useRef(matchup);
+  const playerId = matchup.player.id;
+  const opponentId = matchup.opponent.id;
+
+  useEffect(() => {
+    matchupRef.current = matchup;
+  }, [matchup]);
 
   useEffect(() => {
     const parent = parentRef.current;
@@ -36,7 +43,7 @@ function useArenaGame(matchup: ArenaMatchup) {
     void (async () => {
       const { createArenaGame } = await import("@/game/arena/create-game");
       if (cancelled || parentRef.current !== parent) return;
-      const instance = createArenaGame(parent, matchup);
+      const instance = createArenaGame(parent, matchupRef.current);
       if (cancelled) {
         instance.destroy(true, false);
         return;
@@ -53,7 +60,7 @@ function useArenaGame(matchup: ArenaMatchup) {
       game?.destroy(true, false);
       game = null;
     };
-  }, [matchup]);
+  }, [playerId, opponentId]);
 
   return parentRef;
 }

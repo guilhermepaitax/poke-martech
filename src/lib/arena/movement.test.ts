@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { facingFromMove, normalizeMove } from "./movement";
+import { cardinalFacing, facingFromAim, facingFromMove, normalizeMove } from "./movement";
 
 describe("normalizeMove", () => {
   it("mantém um eixo unitário", () => {
@@ -44,5 +44,32 @@ describe("facingFromMove", () => {
 
   it("mantém a direção anterior sem input", () => {
     expect(facingFromMove(0, 0, "north")).toBe("north");
+  });
+});
+
+describe("facingFromAim", () => {
+  it("escolhe os oito octantes da mira", () => {
+    expect(facingFromAim(1, 0, "south")).toBe("east");
+    expect(facingFromAim(1, 1, "south")).toBe("south-east");
+    expect(facingFromAim(0, 1, "east")).toBe("south");
+    expect(facingFromAim(-1, 1, "south")).toBe("south-west");
+    expect(facingFromAim(-1, 0, "south")).toBe("west");
+    expect(facingFromAim(-1, -1, "south")).toBe("north-west");
+    expect(facingFromAim(0, -1, "east")).toBe("north");
+    expect(facingFromAim(1, -1, "south")).toBe("north-east");
+  });
+
+  it("mantém a direção anterior sem input", () => {
+    expect(facingFromAim(0, 0, "north-west")).toBe("north-west");
+  });
+});
+
+describe("cardinalFacing", () => {
+  it("leva a diagonal para o eixo horizontal da folha de ataque", () => {
+    expect(cardinalFacing("south-east")).toBe("east");
+    expect(cardinalFacing("north-east")).toBe("east");
+    expect(cardinalFacing("south-west")).toBe("west");
+    expect(cardinalFacing("north-west")).toBe("west");
+    expect(cardinalFacing("north")).toBe("north");
   });
 });

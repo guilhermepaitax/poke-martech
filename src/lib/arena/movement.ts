@@ -5,6 +5,27 @@ type MoveVector = {
 
 type CardinalFacing = "south" | "east" | "north" | "west";
 
+type Facing =
+  | "east"
+  | "south-east"
+  | "south"
+  | "south-west"
+  | "west"
+  | "north-west"
+  | "north"
+  | "north-east";
+
+const FACING_ORDER: readonly Facing[] = [
+  "east",
+  "south-east",
+  "south",
+  "south-west",
+  "west",
+  "north-west",
+  "north",
+  "north-east",
+];
+
 function normalizeMove(x: number, y: number): MoveVector {
   const length = Math.hypot(x, y);
   if (length === 0) return { x: 0, y: 0 };
@@ -17,5 +38,23 @@ function facingFromMove(x: number, y: number, previous: CardinalFacing): Cardina
   return y > 0 ? "south" : "north";
 }
 
-export { facingFromMove, normalizeMove };
-export type { CardinalFacing, MoveVector };
+function facingFromAim(x: number, y: number, previous: Facing): Facing {
+  if (x === 0 && y === 0) return previous;
+  const sector = Math.floor((Math.atan2(y, x) + Math.PI / 8) / (Math.PI / 4));
+  const index = ((sector % 8) + 8) % 8;
+  return FACING_ORDER[index] ?? previous;
+}
+
+function cardinalFacing(facing: Facing): CardinalFacing {
+  if (facing === "south-east" || facing === "north-east") return "east";
+  if (facing === "south-west" || facing === "north-west") return "west";
+  return facing;
+}
+
+function facingVector(facing: Facing): MoveVector {
+  const angle = FACING_ORDER.indexOf(facing) * (Math.PI / 4);
+  return { x: Math.cos(angle), y: Math.sin(angle) };
+}
+
+export { cardinalFacing, facingFromAim, facingFromMove, facingVector, normalizeMove };
+export type { CardinalFacing, Facing, MoveVector };

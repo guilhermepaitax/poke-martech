@@ -1,216 +1,166 @@
-import type { ArenaFighter } from "@/lib/arena/fighter";
 import {
-  facingFromMove,
-  normalizeMove,
-  type CardinalFacing,
-} from "@/lib/arena/movement";
+  characterAnimationKey,
+  characterFrameStart,
+  playClip,
+} from "@/game/arena/animations/character";
+import { CHARACTER_SHEETS, SPRITE_CELL_SIZE } from "@/game/arena/assets/catalog";
+import {
+  createMarker,
+  setMarkerHp,
+  syncMarker,
+  type PlayerMarker,
+} from "@/game/arena/entities/marker";
+import type { ArenaFighter } from "@/lib/arena/fighter";
+import { normalizeMove, type Facing } from "@/lib/arena/movement";
 import Phaser from "phaser";
 
-const PLAYER_CELL_SIZE = 128;
-const PLAYER_SHEETS = {
-  idle: {
-    key: "antoniomander-idle",
-    path: "/arena/antoniomander-idle.png",
-  },
-  walk: {
-    key: "antoniomander-walk",
-    path: "/arena/antoniomander-walk.png",
-  },
-} as const;
-const PLAYER_COLUMNS = 8;
 const PLAYER_DISPLAY_SIZE = 96;
 const PLAYER_SPEED = 340;
-// const PLAYER_SPEED = 700;
 const PLAYER_BODY_WIDTH = 60;
 const PLAYER_BODY_HEIGHT = 100;
-const PLAYER_BODY_OFFSET_X = (PLAYER_CELL_SIZE - PLAYER_BODY_WIDTH) / 2;
+const PLAYER_BODY_OFFSET_X = (SPRITE_CELL_SIZE - PLAYER_BODY_WIDTH) / 2;
 const PLAYER_BODY_OFFSET_Y = 20;
-const IDLE_FRAME_RATE = 8;
-const WALK_FRAME_RATE = 12;
 const FEET_OFFSET_Y = 36;
-const GROUND_DEPTH = 1;
 const PLAYER_DEPTH = 2;
-const PLATE_DEPTH = 3;
-const RING_WIDTH = 70;
-const RING_HEIGHT = 18;
-const SHADOW_WIDTH = 70;
-const SHADOW_HEIGHT = 22;
-const BAR_WIDTH = 70;
-const BAR_HEIGHT = 8;
-const BAR_INSET = 2;
-const BAR_OFFSET_Y = 20;
-const NAME_OFFSET_Y = 25;
 
-const DIRECTION_ROW = {
-  south: 1,
-  east: 2,
-  north: 3,
-  west: 4,
-} as const;
+type Dash = {
+  x: number;
+  y: number;
+  until: number;
+};
 
 type Player = {
   sprite: Phaser.Physics.Arcade.Sprite;
-  facing: CardinalFacing;
-  ground: Phaser.GameObjects.Container;
-  plate: Phaser.GameObjects.Container;
-  hpFill: Phaser.GameObjects.Rectangle;
+  facing: Facing;
+  marker: PlayerMarker;
   hp: number;
   maxHp: number;
   attackDamage: number;
+  attacking: boolean;
+  hurting: boolean;
+  dash: Dash | null;
+  animToken: number;
 };
-
-function animationKey(action: "idle" | "walk", facing: CardinalFacing) {
-  return `${action}-${facing}`;
-}
-
-function ensureCharacterAnimations(scene: Phaser.Scene) {
-  (
-    [
-      ["idle", IDLE_FRAME_RATE],
-      ["walk", WALK_FRAME_RATE],
-    ] as const
-  ).forEach(([action, frameRate]) => {
-    (["south", "east", "north", "west"] as const).forEach((direction) => {
-      const key = animationKey(action, direction);
-      if (scene.anims.exists(key)) return;
-      const start = DIRECTION_ROW[direction] * PLAYER_COLUMNS;
-      scene.anims.create({
-        key,
-        frames: scene.anims.generateFrameNumbers(PLAYER_SHEETS[action].key, {
-          start,
-          end: start + PLAYER_COLUMNS - 1,
-        }),
-        frameRate,
-        repeat: -1,
-      });
-    });
-  });
-}
-
-function markerFont() {
-  if (typeof document === "undefined") return "sans-serif";
-  const font = getComputedStyle(document.body).fontFamily.trim();
-  return font || "sans-serif";
-}
-
-function hpFillWidth(hp: number, maxHp: number) {
-  const span = BAR_WIDTH - BAR_INSET * 2;
-  if (maxHp <= 0) return 0;
-  const ratio = Math.min(Math.max(hp / maxHp, 0), 1);
-  return span * ratio;
-}
 
 function createPlayer(
   scene: Phaser.Scene,
   x: number,
   y: number,
   fighter: ArenaFighter,
-  facing: CardinalFacing = "south",
+  facing: Facing = "south",
 ): Player {
-  ensureCharacterAnimations(scene);
   const feetY = y + FEET_OFFSET_Y;
-  const shadow = scene.add.ellipse(
-    0,
-    3,
-    SHADOW_WIDTH,
-    SHADOW_HEIGHT,
-    0x120c08,
-    0.4,
-  );
-  const ringShade = scene.add.ellipse(
-    0,
-    1,
-    RING_WIDTH + 6,
-    RING_HEIGHT + 4,
-    0x2a1a0c,
-    0,
-  );
-  ringShade.setStrokeStyle(4, 0x2a1a0c, 0.4);
-  const ring = scene.add.ellipse(0, 0, RING_WIDTH, RING_HEIGHT, 0xffe08a, 0);
-  ring.setStrokeStyle(2, 0xffe08a, 1);
-  ring.setSmoothness(32);
-  ringShade.setSmoothness(32);
-  const ground = scene.add.container(x, feetY, [shadow, ringShade, ring]);
-  ground.setDepth(GROUND_DEPTH);
-
+  const marker = createMarker(scene, x, feetY, fighter.name, fighter.hp, fighter.hp);
   const sprite = scene.physics.add.sprite(
     x,
     y,
-    PLAYER_SHEETS.idle.key,
-    DIRECTION_ROW[facing] * PLAYER_COLUMNS,
+    CHARACTER_SHEETS.idle.key,
+    characterFrameStart("idle", facing),
   );
   sprite.setDisplaySize(PLAYER_DISPLAY_SIZE, PLAYER_DISPLAY_SIZE);
   sprite.setDepth(PLAYER_DEPTH);
-  scene.textures
-    .get(PLAYER_SHEETS.idle.key)
-    .setFilter(Phaser.Textures.FilterMode.NEAREST);
-  scene.textures
-    .get(PLAYER_SHEETS.walk.key)
-    .setFilter(Phaser.Textures.FilterMode.NEAREST);
   sprite.setCollideWorldBounds(true);
   const body = sprite.body;
   if (body instanceof Phaser.Physics.Arcade.Body) {
     body.setSize(PLAYER_BODY_WIDTH, PLAYER_BODY_HEIGHT, false);
     body.setOffset(PLAYER_BODY_OFFSET_X, PLAYER_BODY_OFFSET_Y);
   }
-  sprite.play(animationKey("idle", facing));
-
-  const hpTrack = scene.add.rectangle(
-    0,
-    BAR_OFFSET_Y,
-    BAR_WIDTH,
-    BAR_HEIGHT,
-    0x111429,
-    1,
-  );
-  const fillWidth = hpFillWidth(fighter.hp, fighter.hp);
-  const hpFill = scene.add.rectangle(
-    -BAR_WIDTH / 2 + BAR_INSET + fillWidth / 2,
-    BAR_OFFSET_Y,
-    fillWidth,
-    BAR_HEIGHT - BAR_INSET * 2,
-    0x62d26f,
-    1,
-  );
-  const nameLabel = scene.add
-    .text(0, NAME_OFFSET_Y, fighter.name, {
-      fontFamily: markerFont(),
-      fontSize: "12px",
-      color: "#f7f3ea",
-    })
-    .setOrigin(0.5, 0)
-    .setStroke("#2a1c10", 3);
-  const plate = scene.add.container(x, feetY, [hpTrack, hpFill, nameLabel]);
-  plate.setDepth(PLATE_DEPTH);
+  playClip(sprite, characterAnimationKey("idle", facing));
 
   return {
     sprite,
     facing,
-    ground,
-    plate,
-    hpFill,
+    marker,
     hp: fighter.hp,
     maxHp: fighter.hp,
     attackDamage: fighter.attackDamage,
+    attacking: false,
+    hurting: false,
+    dash: null,
+    animToken: 0,
+  };
+}
+
+function playIdle(player: Player) {
+  playClip(player.sprite, characterAnimationKey("idle", player.facing));
+}
+
+function playLockedClip(player: Player, action: "attack" | "hurt") {
+  const token = ++player.animToken;
+  player.sprite.setVelocity(0, 0);
+  playClip(player.sprite, characterAnimationKey(action, player.facing));
+  player.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+    if (player.animToken !== token) return;
+    if (action === "attack") player.attacking = false;
+    else player.hurting = false;
+    if (!player.attacking && !player.hurting) playIdle(player);
+  });
+}
+
+function playAttack(player: Player) {
+  if (player.attacking || player.hurting) return false;
+  player.attacking = true;
+  playLockedClip(player, "attack");
+  return true;
+}
+
+function playHurt(player: Player) {
+  player.dash = null;
+  player.hurting = true;
+  player.attacking = false;
+  playLockedClip(player, "hurt");
+}
+
+function setPlayerHp(player: Player, hp: number) {
+  const next = Math.max(0, Math.min(hp, player.maxHp));
+  player.hp = next;
+  setMarkerHp(player.marker, next, player.maxHp);
+}
+
+function playerAnchor(player: Player) {
+  return {
+    x: player.sprite.x,
+    y: player.sprite.y + FEET_OFFSET_Y,
   };
 }
 
 function syncPlayerMarker(player: Player) {
-  const x = player.sprite.x;
-  const feetY = player.sprite.y + FEET_OFFSET_Y;
-  player.ground.setPosition(x, feetY);
-  player.plate.setPosition(x, feetY);
+  const anchor = playerAnchor(player);
+  syncMarker(player.marker, anchor.x, anchor.y);
+}
+
+function startDash(player: Player, x: number, y: number, speed: number, durationMs: number) {
+  const length = Math.hypot(x, y);
+  if (length === 0 || speed <= 0 || durationMs <= 0) return;
+  player.dash = {
+    x: (x / length) * speed,
+    y: (y / length) * speed,
+    until: player.sprite.scene.time.now + durationMs,
+  };
+  player.sprite.setVelocity(player.dash.x, player.dash.y);
+}
+
+function isDashing(player: Player) {
+  return player.dash !== null && player.sprite.scene.time.now < player.dash.until;
 }
 
 function updatePlayer(player: Player, x: number, y: number) {
+  if (player.dash && !isDashing(player)) player.dash = null;
+  if (player.dash) {
+    player.sprite.setVelocity(player.dash.x, player.dash.y);
+    return;
+  }
+  if (player.attacking || player.hurting) {
+    player.sprite.setVelocity(0, 0);
+    return;
+  }
   const move = normalizeMove(x, y);
-  player.sprite.setVelocity(move.x * PLAYER_SPEED, move.y * PLAYER_SPEED);
-  const facing = facingFromMove(move.x, move.y, player.facing);
-  player.facing = facing;
   const moving = move.x !== 0 || move.y !== 0;
-  const animation = animationKey(moving ? "walk" : "idle", facing);
-  if (player.sprite.anims.currentAnim?.key !== animation)
-    player.sprite.play(animation);
+  player.sprite.setVelocity(move.x * PLAYER_SPEED, move.y * PLAYER_SPEED);
+  playClip(
+    player.sprite,
+    characterAnimationKey(moving ? "walk" : "idle", player.facing),
+  );
 }
 
 function placePlayer(player: Player, x: number, y: number) {
@@ -222,9 +172,13 @@ function placePlayer(player: Player, x: number, y: number) {
 
 export {
   createPlayer,
+  isDashing,
   placePlayer,
-  PLAYER_CELL_SIZE,
-  PLAYER_SHEETS,
+  playAttack,
+  playerAnchor,
+  playHurt,
+  setPlayerHp,
+  startDash,
   syncPlayerMarker,
   updatePlayer,
 };

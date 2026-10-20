@@ -3,6 +3,8 @@
 import type { ArenaRoster } from "@/lib/arena/fighter";
 import dynamic from "next/dynamic";
 
+import { unlockArenaAudio } from "@/game/arena/unlock-audio";
+
 import { useArenaCanvasLayout } from "./arena-canvas-layout";
 import { ArenaPicker } from "./arena-picker";
 import { useArenaPicker } from "./use-arena-picker";
@@ -53,6 +55,7 @@ function ArenaScreen({
 
   function start() {
     if (!picker.fight()) return;
+    unlockArenaAudio();
     canvas.setActive(true);
   }
 

@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
     loader: "custom",
     loaderFile: "./src/lib/image-loader.ts",
   },
+  experimental: {
+    // Auto eviction drops live HMR chunk versions. The server subscription
+    // then fails, refetches the open route, and loops until Turbopack panics.
+    turbopackMemoryEviction: false,
+  },
 };
 
 export default withSentryConfig(nextConfig, {

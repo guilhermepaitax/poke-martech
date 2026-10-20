@@ -11,7 +11,7 @@ Cada etapa abaixo deve poder ser jogada e verificada antes da seguinte. Não ava
 - [x] Ajustes visuais pedidos depois da etapa 1
 - [x] Etapa 2 — Movimentação do jogador
 - [x] Etapa 3 — Cartas fixas como lutadores
-- [ ] Etapa 4 — Combate básico
+- [x] Etapa 4 — Combate básico
 - [ ] Etapa 5 — CPU
 - [ ] Etapa 6 — Vitória, derrota e reinício
 - [ ] Etapa 7 — HUD e encaixe visual
@@ -107,12 +107,17 @@ Slugs fixos, os dois primeiros publicados: jogador `a1-001-calvassauro` e oponen
 
 Objetivo: o jogador mira com o mouse e causa dano uma vez por projétil.
 
-- [ ] Traço opaco do lutador até o ponteiro
-- [ ] Clique esquerdo dispara se o cooldown acabou
-- [ ] Projétil com Arcade, removido no impacto e na borda do mundo
-- [ ] Dano, cooldown e "já acertou" em funções puras, com teste
-- [ ] Cooldown pelo relógio da cena, não por `setInterval` global
-- [ ] Feedback breve no impacto
+- [x] Traço opaco do lutador até o ponteiro, com retículo
+- [x] A direção do jogador segue o mouse
+- [x] Clique esquerdo dispara se o cooldown acabou
+- [x] Dois ataques, corpo a corpo e projétil de fogo, trocados por 1, 2 ou scroll
+- [x] Projétil com Arcade, removido no impacto e na borda do mundo
+- [x] Dano, cooldown e "já acertou" em funções puras, com teste
+- [x] Cooldown pelo relógio da cena, não por `setInterval` global
+- [x] Cross Punch nos dois ataques; fogo adiciona chama no corpo
+- [x] Taking Punch quando o HP cai
+- [x] Número do dano sobe e some
+- [x] Rachaduras no chão que somem; golpe forte abre teia maior
 
 Aceite: o mesmo projétil não aplica dano duas vezes e o HP muda de forma previsível.
 
@@ -173,4 +178,4 @@ Aceite: uma luta inteira inicia, termina e reinicia. Pokédex, loja e admin cont
 
 ## Próximo passo
 
-A etapa 4. O jogador mira com o mouse e causa dano uma vez por projétil.
+A etapa 5. O oponente local persegue e ataca sem aleatoriedade.
