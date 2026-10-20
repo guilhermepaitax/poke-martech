@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/server-session";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
   const role = session && "role" in session.user ? session.user.role : null;
   if (role !== "admin") redirect("/home");
 

@@ -90,6 +90,7 @@ const cards = pgTable(
   (table) => [
     uniqueIndex("cards_slug_idx").on(table.slug),
     uniqueIndex("cards_number_idx").on(table.number),
+    index("cards_published_number_idx").on(table.published, table.number),
   ],
 );
 
@@ -198,7 +199,7 @@ const userCards = pgTable(
     obtainedAt: timestamp("obtained_at").defaultNow().notNull(),
   },
   (table) => [
-    index("user_cards_user_id_idx").on(table.userId),
+    index("user_cards_user_obtained_idx").on(table.userId, table.obtainedAt.desc()),
     index("user_cards_user_card_idx").on(table.userId, table.cardId),
   ],
 );
@@ -234,7 +235,10 @@ const packOpeningCards = pgTable(
       .references(() => cards.id, { onDelete: "restrict" }),
     slot: integer("slot").notNull(),
   },
-  (table) => [index("pack_opening_cards_opening_idx").on(table.packOpeningId)],
+  (table) => [
+    index("pack_opening_cards_opening_idx").on(table.packOpeningId),
+    index("pack_opening_cards_user_card_idx").on(table.userCardId),
+  ],
 );
 
 const cardGenerationBatches = pgTable(
@@ -415,6 +419,12 @@ const tradeProposals = pgTable(
   (table) => [
     index("trade_proposals_to_user_status_idx").on(table.toUserId, table.status),
     index("trade_proposals_from_user_status_idx").on(table.fromUserId, table.status),
+    index("trade_proposals_pending_offered_idx")
+      .on(table.offeredUserCardId)
+      .where(sql`${table.status} = 'pending'`),
+    index("trade_proposals_pending_requested_idx")
+      .on(table.requestedUserCardId)
+      .where(sql`${table.status} = 'pending'`),
     check("trade_proposals_no_self", sql`${table.fromUserId} <> ${table.toUserId}`),
     check(
       "trade_proposals_status",

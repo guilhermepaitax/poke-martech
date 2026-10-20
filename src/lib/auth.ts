@@ -96,6 +96,9 @@ const auth = betterAuth({
       "/update-user": { window: 60, max: 10 },
     },
   },
+  session: {
+    cookieCache: { enabled: true, maxAge: 5 * 60 },
+  },
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,

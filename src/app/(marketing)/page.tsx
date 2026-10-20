@@ -1,8 +1,7 @@
 import { Landing } from "@/components/landing/landing";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getServerSession } from "@/lib/server-session";
 
 export default async function LandingPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
   return <Landing signedIn={Boolean(session)} />;
 }
