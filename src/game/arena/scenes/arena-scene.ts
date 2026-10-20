@@ -1,4 +1,5 @@
 import { registerCharacterAnimations } from "@/game/arena/animations/character";
+import { ARENA_EVENTS } from "@/game/arena/arena-events";
 import { preloadArenaAssets } from "@/game/arena/assets/catalog";
 import { cssColorNumber } from "@/game/arena/css-color";
 import { playArenaAudio } from "@/game/arena/entities/audio";
@@ -19,6 +20,7 @@ import { updateCpu } from "@/game/arena/entities/cpu";
 import { createFxTextures } from "@/game/arena/entities/fx-textures";
 import {
   createPlayer,
+  haltPlayer,
   isDashing,
   playerAnchor,
   syncPlayerMarker,
@@ -29,23 +31,36 @@ import { bindArenaKeys, bindArenaPointer, readMoveAxes, type ArenaKeys } from "@
 import {
   createArenaWorld,
   layoutArena,
-  opponentSpawnPoint,
   type ArenaWorld,
   type FighterAnchors,
 } from "@/game/arena/world/layout";
 import { selectAttack } from "@/lib/arena/combat";
+import {
+  CPU_PROFILES,
+  DEFAULT_DIFFICULTY,
+  isArenaDifficulty,
+  type CpuProfile,
+} from "@/lib/arena/cpu";
 import type { ArenaMatchup } from "@/lib/arena/fighter";
 import { facingFromAim } from "@/lib/arena/movement";
+import { resolveOutcome, type ArenaOutcome } from "@/lib/arena/outcome";
+import { spawnPoints } from "@/lib/arena/spawn";
 import Phaser from "phaser";
 
 const BLOCK_COLORS = ["--energy-metal", "--energy-fighting"] as const;
 const BLOCK_FALLBACKS = [0x7e95a8, 0xc46a32] as const;
+const DEFEATED_ALPHA = 0.45;
 
 function readMatchup(registry: Phaser.Data.DataManager): ArenaMatchup | null {
   const value: unknown = registry.get("matchup");
   if (!value || typeof value !== "object") return null;
   if (!("player" in value) || !("opponent" in value)) return null;
   return value as ArenaMatchup;
+}
+
+function readCpuProfile(registry: Phaser.Data.DataManager): CpuProfile {
+  const value: unknown = registry.get("difficulty");
+  return CPU_PROFILES[isArenaDifficulty(value) ? value : DEFAULT_DIFFICULTY];
 }
 
 function freshAnchors(): FighterAnchors {
@@ -61,6 +76,8 @@ class ArenaScene extends Phaser.Scene {
   private keys: ArenaKeys | null = null;
   private anchors: FighterAnchors = freshAnchors();
   private releaseInput: (() => void) | null = null;
+  private outcome: ArenaOutcome = "ongoing";
+  private cpuProfile: CpuProfile = CPU_PROFILES[DEFAULT_DIFFICULTY];
 
   constructor() {
     super("arena");
@@ -75,6 +92,7 @@ class ArenaScene extends Phaser.Scene {
     this.keys = null;
     this.anchors = freshAnchors();
     this.releaseInput = null;
+    this.outcome = "ongoing";
   }
 
   preload() {
@@ -102,11 +120,13 @@ class ArenaScene extends Phaser.Scene {
     this.events.on(Phaser.Scenes.Events.POST_UPDATE, this.syncMarkers, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdownArena, this);
     this.layout();
+    this.cpuProfile = readCpuProfile(this.game.registry);
     const matchup = readMatchup(this.game.registry);
     if (matchup) this.spawnFighters(matchup);
   }
 
   update() {
+    if (this.outcome !== "ongoing") return;
     if (!this.player || !this.keys || !this.world) return;
     this.applyAttackKeys();
     this.followPointer();
@@ -116,12 +136,46 @@ class ArenaScene extends Phaser.Scene {
     }
     updatePlayer(this.player, move.x, move.y);
     if (this.combat && this.opponent) {
-      updateCpu(this, this.combat, this.opponent, this.player);
+      updateCpu(this, this.combat, this.opponent, this.player, this.cpuProfile);
     }
     if (this.combat) {
       syncDashHud(this, this.combat, this.player);
       cullProjectiles(this, this.combat, this.world.width, this.world.height);
     }
+    this.checkOutcome();
+  }
+
+  pauseMatch() {
+    if (this.outcome !== "ongoing") return;
+    this.scene.pause();
+  }
+
+  resumeMatch() {
+    this.scene.resume();
+  }
+
+  restartMatch() {
+    this.scene.restart();
+  }
+
+  private checkOutcome() {
+    if (!this.player || !this.opponent) return;
+    const outcome = resolveOutcome(this.player.hp, this.opponent.hp);
+    if (outcome === "ongoing") return;
+    this.finishMatch(outcome);
+  }
+
+  private finishMatch(outcome: ArenaOutcome) {
+    this.outcome = outcome;
+    if (this.combat) {
+      this.combat.over = true;
+      clearCombatAim(this.combat);
+    }
+    if (this.player) haltPlayer(this.player);
+    if (this.opponent) haltPlayer(this.opponent);
+    const loser = outcome === "victory" ? this.opponent : this.player;
+    loser?.sprite.setAlpha(DEFEATED_ALPHA);
+    this.game.events.emit(ARENA_EVENTS.outcome, outcome);
   }
 
   private applyAttackKeys() {
@@ -177,9 +231,15 @@ class ArenaScene extends Phaser.Scene {
     const world = this.world;
     if (!world) return;
     const bounds = this.physics.world.bounds;
-    this.player = createPlayer(this, bounds.centerX, bounds.centerY, matchup.player);
-    const stand = opponentSpawnPoint(bounds);
-    this.opponent = createPlayer(this, stand.x, stand.y, matchup.opponent, "west");
+    const spawn = spawnPoints(bounds);
+    this.player = createPlayer(this, spawn.player.x, spawn.player.y, matchup.player, "east");
+    this.opponent = createPlayer(
+      this,
+      spawn.opponent.x,
+      spawn.opponent.y,
+      matchup.opponent,
+      "west",
+    );
     if (world.width > 0 && world.height > 0) {
       this.anchors = {
         playerX: this.player.sprite.x / world.width,

@@ -8,10 +8,37 @@ import {
 import { normalizeMove, type MoveVector } from "@/lib/arena/movement";
 
 const CPU_MELEE_RANGE = MELEE_RANGE;
-const CPU_FIRE_RANGE = Math.round(BEAM_RANGE * 0.65);
 const CPU_HOLD_DISTANCE = Math.round(MELEE_RANGE * 0.7);
-const CPU_SPEED = 255;
-const CPU_COOLDOWN_SCALE = 1.6;
+
+type ArenaDifficulty = "normal" | "hard";
+
+type CpuProfile = {
+  speed: number;
+  cooldownScale: number;
+  damageScale: number;
+  fireRange: number;
+};
+
+const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
+  normal: {
+    speed: 200,
+    cooldownScale: 2.6,
+    damageScale: 0.6,
+    fireRange: Math.round(BEAM_RANGE * 0.45),
+  },
+  hard: {
+    speed: 255,
+    cooldownScale: 1.6,
+    damageScale: 1,
+    fireRange: Math.round(BEAM_RANGE * 0.65),
+  },
+};
+
+const DEFAULT_DIFFICULTY: ArenaDifficulty = "normal";
+
+function isArenaDifficulty(value: unknown): value is ArenaDifficulty {
+  return value === "normal" || value === "hard";
+}
 
 type CpuInput = {
   self: Point;
@@ -22,6 +49,7 @@ type CpuInput = {
   now: number;
   readyAt: Record<AttackKind, number>;
   lineClear: boolean;
+  fireRange: number;
 };
 
 type CpuDecision =
@@ -46,7 +74,7 @@ function decideCpu(input: CpuInput): CpuDecision {
   }
   if (
     aimed &&
-    distance <= CPU_FIRE_RANGE &&
+    distance <= input.fireRange &&
     input.lineClear &&
     canAttack(input.now, input.readyAt.fire)
   ) {
@@ -57,11 +85,11 @@ function decideCpu(input: CpuInput): CpuDecision {
 }
 
 export {
-  CPU_COOLDOWN_SCALE,
-  CPU_FIRE_RANGE,
   CPU_HOLD_DISTANCE,
   CPU_MELEE_RANGE,
-  CPU_SPEED,
+  CPU_PROFILES,
   decideCpu,
+  DEFAULT_DIFFICULTY,
+  isArenaDifficulty,
 };
-export type { CpuDecision, CpuInput };
+export type { ArenaDifficulty, CpuDecision, CpuInput, CpuProfile };

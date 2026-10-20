@@ -13,7 +13,7 @@ Cada etapa abaixo deve poder ser jogada e verificada antes da seguinte. Não ava
 - [x] Etapa 3 — Cartas fixas como lutadores
 - [x] Etapa 4 — Combate básico
 - [x] Etapa 5 — CPU
-- [ ] Etapa 6 — Vitória, derrota e reinício
+- [x] Etapa 6 — Vitória, derrota e reinício
 - [ ] Etapa 7 — HUD e encaixe visual
 - [ ] Etapa 8 — Polimento e validação final
 
@@ -142,13 +142,27 @@ Aceite: dá para vencer e perder. A CPU não lê input de outro jogador.
 
 Objetivo: HP zero encerra a luta e outra começa sem recarregar a página.
 
-- [ ] `resolveOutcome`
-- [ ] Se os dois chegarem a zero no mesmo passo, a derrota é do jogador
-- [ ] Bloquear movimento, ataque e CPU depois do fim
-- [ ] Reinício com `shutdown` antes de recriar entidades, timers e projéteis
-- [ ] Testes de vitória, derrota e empate simultâneo
+- [x] `resolveOutcome` em `src/lib/arena/outcome.ts`
+- [x] Se os dois chegarem a zero no mesmo passo, a derrota é do jogador
+- [x] Bloquear movimento, ataque e CPU depois do fim (`combat.over`, `update` parado, lutadores sem velocidade)
+- [x] Reinício com `scene.restart()`: `shutdown` antes de recriar entidades, timers e projéteis
+- [x] Testes de vitória, derrota e empate simultâneo
 
 Aceite: a segunda luta começa com HP cheio e sem projéteis da anterior.
+
+### Ajustes junto da etapa 6
+
+- [x] Correção: a CPU não feria o jogador. O oponente padrão (Rafrpie) não tem ataque com dano numérico, e `attackPower` devolvia 0. Agora carta sem dano usa `FALLBACK_ATTACK_DAMAGE` (30)
+- [x] Esc pausa a luta (`scene.pause()`) e abre o menu: Continuar, Reiniciar, Encerrar. Esc de novo retoma
+- [x] Fim da luta abre overlay de Vitória ou Derrota: Jogar de novo, Encerrar
+- [x] Encerrar destrói o jogo e volta ao seletor de lutadores, mantendo a escolha
+- [x] A cena avisa o React pelo evento `arena:outcome` em `game.events`. O React comanda por `arenaControls` em `create-game.ts`
+- [x] Lutadores nascem um de cada lado da arena (`spawnPoints` em `src/lib/arena/spawn.ts`, 120px da borda do bound), jogador virado para leste e CPU para oeste
+- [x] Seletor de dificuldade no picker, padrão Normal. Perfis em `CPU_PROFILES` (`src/lib/arena/cpu.ts`):
+  - Difícil é a CPU da etapa 5: velocidade 255, cooldown 1.6×, dano 1×, feixe até 65% do alcance
+  - Normal: velocidade 200, cooldown 2.6×, dano 0.6×, feixe até 45% do alcance
+- [x] Dash esquiva: durante o dash de Espaço (160 ms) o lutador não leva dano. O feixe confere a posição do alvo na chegada, então sair da linha durante a carga também esquiva. Isso substitui o "sem invulnerabilidade" da etapa 5
+- [x] Som `public/arena/audio/dash.wav` no dash
 
 ## Etapa 7 — HUD e encaixe visual
 
@@ -184,4 +198,4 @@ Aceite: uma luta inteira inicia, termina e reinicia. Pokédex, loja e admin cont
 
 ## Próximo passo
 
-A etapa 6. HP zero encerra a luta e outra começa sem recarregar a página.
+A etapa 7. HUD legível dentro do shell.

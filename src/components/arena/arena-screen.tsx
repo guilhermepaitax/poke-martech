@@ -59,13 +59,22 @@ function ArenaScreen({
     canvas.setActive(true);
   }
 
+  function exit() {
+    picker.reset();
+    canvas.setActive(false);
+  }
+
   if (roster && picker.matchup) {
     return (
       <section
         data-slot="arena-screen"
         className="box-border h-full w-full overflow-hidden border-4 border-amber-400"
       >
-        <ArenaGame matchup={picker.matchup} />
+        <ArenaGame
+          matchup={picker.matchup}
+          difficulty={picker.difficulty}
+          onExit={exit}
+        />
       </section>
     );
   }
@@ -88,6 +97,8 @@ function ArenaScreen({
         onActivate={picker.activate}
         onFight={start}
         canFight={picker.canFight}
+        difficulty={picker.difficulty}
+        onDifficulty={picker.setDifficulty}
       />
     </section>
   );

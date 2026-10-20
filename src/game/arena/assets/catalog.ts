@@ -30,6 +30,8 @@ const ARENA_AUDIO = {
   appear: { key: "arena-appear", path: "/arena/audio/appear.wav" },
   laser: { key: "arena-laser", path: "/arena/audio/laser.wav" },
   hit: { key: "arena-hit", path: "/arena/audio/hit.wav" },
+  dash: { key: "arena-dash", path: "/arena/audio/dash.wav" },
+  explosion: { key: "arena-explosion", path: "/arena/audio/explosion.wav" },
 } as const;
 
 type CharacterAction = keyof typeof CHARACTER_SHEETS;

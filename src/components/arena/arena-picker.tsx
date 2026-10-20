@@ -4,12 +4,19 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
+import { SegmentedControl } from "@/components/ui/segmented-control";
+import { isArenaDifficulty, type ArenaDifficulty } from "@/lib/arena/cpu";
 import type { ArenaRosterEntry } from "@/lib/arena/fighter";
 import type { ArenaSide } from "@/lib/arena/selection";
 import { Search } from "lucide-react";
 
 import { ArenaPickerCard } from "./arena-picker-card";
 import { ArenaPickerSlot } from "./arena-picker-slot";
+
+const DIFFICULTY_OPTIONS: { value: ArenaDifficulty; label: string }[] = [
+  { value: "normal", label: "Normal" },
+  { value: "hard", label: "Difícil" },
+];
 
 function ArenaPicker({
   entries,
@@ -25,6 +32,8 @@ function ArenaPicker({
   onActivate,
   onFight,
   canFight,
+  difficulty,
+  onDifficulty,
 }: {
   entries: ArenaRosterEntry[];
   player: ArenaRosterEntry | null;
@@ -39,6 +48,8 @@ function ArenaPicker({
   onActivate: (side: ArenaSide) => void;
   onFight: () => void;
   canFight: boolean;
+  difficulty: ArenaDifficulty;
+  onDifficulty: (value: ArenaDifficulty) => void;
 }) {
   const sideOf = (id: string): ArenaSide | null => {
     if (id === player?.id) return "player";
@@ -52,9 +63,19 @@ function ArenaPicker({
         <h1 className="max-w-xl text-3xl font-semibold tracking-tight text-foreground">
           Escolha quem entra na arena
         </h1>
-        <Button onClick={onFight} disabled={!canFight} className="sm:shrink-0">
-          Lutar
-        </Button>
+        <div className="flex flex-wrap items-center gap-3 sm:shrink-0">
+          <SegmentedControl
+            ariaLabel="Dificuldade da CPU"
+            value={difficulty}
+            options={DIFFICULTY_OPTIONS}
+            onValueChange={(value) => {
+              if (isArenaDifficulty(value)) onDifficulty(value);
+            }}
+          />
+          <Button onClick={onFight} disabled={!canFight}>
+            Lutar
+          </Button>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-4 sm:gap-10">
         <ArenaPickerSlot

@@ -22,7 +22,11 @@ const matchup = {
 export default function ArenaCheckPage() {
   return (
     <div className="fixed inset-0">
-      <ArenaGame matchup={matchup} />
+      <ArenaGame
+        matchup={matchup}
+        difficulty="normal"
+        onExit={() => window.location.reload()}
+      />
     </div>
   );
 }

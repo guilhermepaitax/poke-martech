@@ -160,6 +160,10 @@ function isDashing(player: Player) {
   return player.dash !== null && player.sprite.scene.time.now < player.dash.until;
 }
 
+function isEvading(player: Player) {
+  return player.dash?.kind === "evade" && isDashing(player);
+}
+
 function updatePlayer(player: Player, x: number, y: number, speed = PLAYER_SPEED) {
   if (player.dash && !isDashing(player)) player.dash = null;
   if (player.dash) {
@@ -182,6 +186,11 @@ function updatePlayer(player: Player, x: number, y: number, speed = PLAYER_SPEED
   );
 }
 
+function haltPlayer(player: Player) {
+  player.dash = null;
+  player.sprite.setVelocity(0, 0);
+}
+
 function placePlayer(player: Player, x: number, y: number) {
   const body = player.sprite.body;
   if (body instanceof Phaser.Physics.Arcade.Body) body.reset(x, y);
@@ -191,7 +200,9 @@ function placePlayer(player: Player, x: number, y: number) {
 
 export {
   createPlayer,
+  haltPlayer,
   isDashing,
+  isEvading,
   placePlayer,
   playAttack,
   playerAnchor,

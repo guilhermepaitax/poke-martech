@@ -27,6 +27,7 @@ import {
 } from "@/game/arena/entities/melee-fx";
 import {
   isDashing,
+  isEvading,
   playAttack,
   playHurt,
   playerAnchor,
@@ -36,6 +37,8 @@ import {
 import {
   applyHit,
   attackPower,
+  BEAM_RANGE,
+  beamImpact,
   canAttack,
   COOLDOWN_MS,
   firstBlockHit,
@@ -70,8 +73,16 @@ const IMPACT_COLOR: Record<AttackKind, number> = {
   fire: FIRE_BEAM.impact,
 };
 
+type AttackTuning = {
+  cooldownScale: number;
+  damageScale: number;
+};
+
+const PLAYER_TUNING: AttackTuning = { cooldownScale: 1, damageScale: 1 };
+
 type Combat = {
   kind: AttackKind;
+  over: boolean;
   dashReady: boolean;
   hud: AttackHud;
   projectiles: Phaser.Physics.Arcade.Group;
@@ -93,6 +104,7 @@ function createCombat(
   const projectiles = scene.physics.add.group();
   const combat: Combat = {
     kind: "melee",
+    over: false,
     dashReady: true,
     hud: createAttackHud(scene),
     projectiles,
@@ -169,7 +181,7 @@ function hurtFighter(
   direction: Point,
   color: number,
 ) {
-  const result = applyHit(target.hp, hit.damage, false);
+  const result = applyHit(target.hp, hit.damage, combat.over || isEvading(target));
   if (!result.applied) return result;
   setPlayerHp(target, result.hp);
   playHurt(target);
@@ -328,16 +340,20 @@ function tryAttack(
   target: Player,
   kind: AttackKind,
   aim: Point,
-  cooldownScale = 1,
+  tuning: AttackTuning = PLAYER_TUNING,
 ) {
+  if (combat.over) return false;
   if (attacker.attacking || attacker.hurting || isDashing(attacker)) return false;
   const now = scene.time.now;
   if (!canAttack(now, attacker.readyAt[kind])) return false;
   attacker.facing = facingFromAim(aim.x, aim.y, attacker.facing);
   if (!playAttack(attacker)) return false;
-  playArenaAudio(scene, "hit");
-  attacker.readyAt[kind] = nextReadyAt(now, COOLDOWN_MS[kind] * cooldownScale);
-  const damage = attackPower(kind, attacker.attackDamage, target.maxHp);
+  if (kind === "melee") playArenaAudio(scene, "hit");
+  attacker.readyAt[kind] = nextReadyAt(now, COOLDOWN_MS[kind] * tuning.cooldownScale);
+  const damage = Math.max(
+    1,
+    Math.round(attackPower(kind, attacker.attackDamage, target.maxHp) * tuning.damageScale),
+  );
   if (kind === "melee") {
     startMelee(scene, combat, attacker, target, aim, damage);
     return true;
@@ -354,7 +370,14 @@ function tryAttack(
     blocks: blockRects(combat),
     target: { x: target.sprite.x, y: target.sprite.y },
     onArrive: (impact) => {
-      const hit = impact.stop === "fighter" ? rollHit(damage) : null;
+      const still =
+        impact.stop === "fighter" &&
+        beamImpact(muzzle, aim, BEAM_RANGE, blockRects(combat), {
+          x: target.sprite.x,
+          y: target.sprite.y,
+        }).stop === "fighter";
+      const hit = still ? rollHit(damage) : null;
+      if (hit || impact.stop === "block") playArenaAudio(scene, "explosion");
       if (hit) {
         hurtFighter(scene, combat, target, hit, aim, IMPACT_COLOR.fire);
       }
@@ -390,6 +413,7 @@ function tryPlayerDash(
   player: Player,
   move: MoveVector,
 ) {
+  if (combat.over) return false;
   if (player.attacking || player.hurting || isDashing(player)) return false;
   const now = scene.time.now;
   if (!canAttack(now, player.dashReadyAt)) return false;
@@ -397,6 +421,7 @@ function tryPlayerDash(
   player.facing = facingFromAim(heading.x, heading.y, player.facing);
   player.dashReadyAt = nextReadyAt(now, DASH_COOLDOWN_MS);
   dashWithTrail(scene, combat.hitFx, player, heading, EVADE);
+  playArenaAudio(scene, "dash");
   syncDashHud(scene, combat, player);
   return true;
 }
@@ -457,4 +482,4 @@ export {
   tryPlayerAttack,
   tryPlayerDash,
 };
-export type { Combat };
+export type { AttackTuning, Combat };

@@ -15,8 +15,6 @@ const ARENA_BLOCKS = [
   { x: 0.68, y: 0.68, width: 48, height: 140 },
 ] as const;
 
-const OPPONENT_GAP = 180;
-const OPPONENT_EDGE_MARGIN = 48;
 
 type ArenaWorld = {
   background: Phaser.GameObjects.Image;
@@ -113,13 +111,5 @@ function layoutArena(
   return next;
 }
 
-function opponentSpawnPoint(bounds: { centerX: number; centerY: number; right: number }) {
-  const room = bounds.right - bounds.centerX - OPPONENT_EDGE_MARGIN;
-  return {
-    x: bounds.centerX + Math.max(Math.min(OPPONENT_GAP, room), 0),
-    y: bounds.centerY,
-  };
-}
-
-export { createArenaWorld, layoutArena, opponentSpawnPoint };
+export { createArenaWorld, layoutArena };
 export type { ArenaWorld, FighterAnchors };

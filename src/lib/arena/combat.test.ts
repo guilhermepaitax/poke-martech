@@ -13,6 +13,7 @@ import {
   crackSize,
   DAMAGE_CAP,
   DAMAGE_SCALE,
+  FALLBACK_ATTACK_DAMAGE,
   firstBlockHit,
   impactTier,
   MELEE_RANGE,
@@ -139,9 +140,11 @@ describe("attackPower", () => {
     expect(attackPower("fire", 10, 5)).toBe(1);
   });
 
-  it("dano zero continua zero", () => {
-    expect(attackPower("melee", 0, 100)).toBe(0);
-    expect(attackPower("fire", 0, 100)).toBe(0);
+  it("carta sem dano usa o dano padrão", () => {
+    expect(FALLBACK_ATTACK_DAMAGE).toBe(30);
+    expect(attackPower("melee", 0, 100)).toBe(attackPower("melee", 30, 100));
+    expect(attackPower("fire", 0, 100)).toBe(attackPower("fire", 30, 100));
+    expect(attackPower("melee", 0, 100)).toBeGreaterThan(0);
   });
 });
 

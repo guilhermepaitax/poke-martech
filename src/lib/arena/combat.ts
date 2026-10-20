@@ -70,6 +70,7 @@ const CRIT_CHANCE = 0.1;
 const CRIT_MULTIPLIER = 1.5;
 const MEDIUM_IMPACT = 8;
 const HEAVY_IMPACT = 14;
+const FALLBACK_ATTACK_DAMAGE = 30;
 
 const DAMAGE_SCALE: Record<AttackKind, number> = {
   melee: 0.3,
@@ -133,8 +134,8 @@ function meleeConnect(
 }
 
 function attackPower(kind: AttackKind, attackDamage: number, targetMaxHp: number) {
-  if (attackDamage <= 0) return 0;
-  const base = Math.round(attackDamage * DAMAGE_SCALE[kind]);
+  const power = attackDamage > 0 ? attackDamage : FALLBACK_ATTACK_DAMAGE;
+  const base = Math.round(power * DAMAGE_SCALE[kind]);
   const cap = Math.max(1, Math.round(targetMaxHp * DAMAGE_CAP[kind]));
   return Math.min(Math.max(base, 1), cap);
 }
@@ -295,6 +296,7 @@ export {
   crackSize,
   DAMAGE_CAP,
   DAMAGE_SCALE,
+  FALLBACK_ATTACK_DAMAGE,
   firstBlockHit,
   impactTier,
   MELEE_RANGE,

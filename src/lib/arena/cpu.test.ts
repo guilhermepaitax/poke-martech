@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
-  CPU_FIRE_RANGE,
   CPU_HOLD_DISTANCE,
   CPU_MELEE_RANGE,
+  CPU_PROFILES,
   decideCpu,
+  isArenaDifficulty,
   type CpuInput,
 } from "./cpu";
+
+const CPU_FIRE_RANGE = CPU_PROFILES.hard.fireRange;
 
 function input(overrides: Partial<CpuInput> = {}): CpuInput {
   return {
@@ -17,6 +20,7 @@ function input(overrides: Partial<CpuInput> = {}): CpuInput {
     now: 1000,
     readyAt: { melee: 0, fire: 0 },
     lineClear: true,
+    fireRange: CPU_FIRE_RANGE,
     ...overrides,
   };
 }
@@ -112,5 +116,32 @@ describe("decideCpu", () => {
     const state = input({ target: { x: 120, y: 80 } });
 
     expect(decideCpu(state)).toEqual(decideCpu(state));
+  });
+});
+
+describe("CPU_PROFILES", () => {
+  it("normal é mais lenta, espera mais e bate mais fraco que difícil", () => {
+    const { normal, hard } = CPU_PROFILES;
+
+    expect(normal.speed).toBeLessThan(hard.speed);
+    expect(normal.cooldownScale).toBeGreaterThan(hard.cooldownScale);
+    expect(normal.damageScale).toBeLessThan(hard.damageScale);
+    expect(normal.fireRange).toBeLessThan(hard.fireRange);
+  });
+
+  it("no normal não atira de onde o difícil atiraria", () => {
+    const target = { x: CPU_PROFILES.hard.fireRange - 10, y: 0 };
+
+    expect(decideCpu(input({ target })).action).toBe("attack");
+    expect(
+      decideCpu(input({ target, fireRange: CPU_PROFILES.normal.fireRange })),
+    ).toEqual({ action: "chase", move: { x: 1, y: 0 } });
+  });
+
+  it("reconhece só as dificuldades conhecidas", () => {
+    expect(isArenaDifficulty("normal")).toBe(true);
+    expect(isArenaDifficulty("hard")).toBe(true);
+    expect(isArenaDifficulty("easy")).toBe(false);
+    expect(isArenaDifficulty(undefined)).toBe(false);
   });
 });

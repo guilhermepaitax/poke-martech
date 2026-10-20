@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_DIFFICULTY, type ArenaDifficulty } from "@/lib/arena/cpu";
 import type { ArenaRosterEntry } from "@/lib/arena/fighter";
 import {
   canStartArena,
@@ -17,6 +18,7 @@ function useArenaPicker(
   const [current, setCurrent] = useState(selection);
   const [query, setQuery] = useState("");
   const [started, setStarted] = useState(false);
+  const [difficulty, setDifficulty] = useState<ArenaDifficulty>(DEFAULT_DIFFICULTY);
   const term = query.trim().toLocaleLowerCase();
   const [pageState, setPageState] = useState({ key: term, page: 1 });
   if (pageState.key !== term) setPageState({ key: term, page: 1 });
@@ -41,6 +43,10 @@ function useArenaPicker(
     setCurrent((previous) => ({ ...previous, active: side }));
   }
 
+  function reset() {
+    setStarted(false);
+  }
+
   function fight() {
     if (!canStartArena(current) || !player || !opponent) return false;
     setStarted(true);
@@ -61,6 +67,9 @@ function useArenaPicker(
     choose,
     activate,
     fight,
+    reset,
+    difficulty,
+    setDifficulty,
     canFight: canStartArena(current),
     matchup:
       started && player && opponent
