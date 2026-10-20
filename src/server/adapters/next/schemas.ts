@@ -7,6 +7,7 @@ import { BATTLE_DIFFICULTIES } from "@/lib/value-objects/battle";
 import { ENERGY_TYPES, FINISHES, FRAMES, RARITIES, STAGES } from "@/lib/value-objects/card";
 import { MAX_CARD_TAGS, MAX_CARD_TAG_LENGTH, normalizeCardTags } from "@/lib/value-objects/card-tag";
 import { MAX_GENERATION_CARDS, POKEMON_ZONE_CARD_URL } from "@/lib/value-objects/card-generation";
+import { POKEDEX_SORT_KEYS } from "@/lib/value-objects/pokedex";
 
 const energyCostSchema = z.object({
   type: z.enum(ENERGY_TYPES),
@@ -225,6 +226,21 @@ const createTradeSchema = z.object({
 
 const idParamSchema = z.string().uuid();
 
+const pageQuerySchema = z.object({
+  cursor: z.coerce.number().int().min(0).max(100_000).default(0),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+
+const pokedexQuerySchema = pageQuerySchema.extend({
+  q: z.string().trim().max(60).default(""),
+  tipo: z.enum(ENERGY_TYPES).optional(),
+  ordem: z.enum(POKEDEX_SORT_KEYS).default("number"),
+});
+
+const tradesQuerySchema = pageQuerySchema.extend({
+  box: z.enum(["incoming", "outgoing"], "Informe se a lista é recebida ou enviada."),
+});
+
 export {
   battleDeckSchema,
   battleOpponentSchema,
@@ -235,7 +251,10 @@ export {
   createTradeSchema,
   forfeitBattleSchema,
   idParamSchema,
+  pageQuerySchema,
+  pokedexQuerySchema,
   rarityWeightsSchema,
   startBattleSchema,
   submitBattleActionSchema,
+  tradesQuerySchema,
 };

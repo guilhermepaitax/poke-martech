@@ -55,8 +55,8 @@ class MemoryTrades implements TradeRepository {
     return this.proposals.find((proposal) => proposal.id === id) ?? null;
   }
 
-  async list(): Promise<TradeProposalView[]> {
-    return [];
+  async list() {
+    return { items: [], hasMore: false };
   }
 
   async pendingIncoming(): Promise<TradeProposalView[]> {

@@ -1,3 +1,4 @@
+import type { PageRequest, PageSlice } from "@/server/application/page";
 import type { TradableCard, TradeProposalView, TradeStatus } from "@/types/catalog";
 
 type TradeRecord = {
@@ -29,7 +30,11 @@ interface TradeRepository {
   oldestFreeCopy(userId: string, cardId: string): Promise<{ id: string } | null>;
   insert(input: NewTrade): Promise<{ id: string } | null>;
   findById(id: string): Promise<TradeRecord | null>;
-  list(userId: string, box: "incoming" | "outgoing"): Promise<TradeProposalView[]>;
+  list(
+    userId: string,
+    box: "incoming" | "outgoing",
+    request: PageRequest,
+  ): Promise<PageSlice<TradeProposalView>>;
   pendingIncoming(userId: string, limit: number): Promise<TradeProposalView[]>;
   countPendingFrom(userId: string): Promise<number>;
   listFreeOffers(userId: string): Promise<TradableCard[]>;

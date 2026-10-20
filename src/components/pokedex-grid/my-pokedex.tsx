@@ -1,13 +1,15 @@
 "use client";
 
 import { PokedexGrid } from "@/components/pokedex-grid/pokedex-grid";
+import { usePokedexFilters } from "@/components/pokedex-grid/use-pokedex-filters";
 import { screenColumnClass } from "@/components/ui/empty-state";
 import { CardGridSkeleton, LoadingScreen, Skeleton } from "@/components/ui/skeleton";
-import { usePokedex } from "@/hooks/use-pokedex";
+import { useMyPokedexPages } from "@/hooks/use-pokedex";
 import { cn } from "@/lib/utils";
 
 function MyPokedex() {
-  const pokedex = usePokedex();
+  const filters = usePokedexFilters();
+  const pokedex = useMyPokedexPages(filters.applied);
   if (pokedex.isLoading) {
     return (
       <LoadingScreen label="Carregando Pokédex" className="flex flex-col gap-6">
@@ -27,11 +29,21 @@ function MyPokedex() {
   if (pokedex.isError || !pokedex.data) {
     return <p className="text-destructive">Não foi possível carregar a Pokédex.</p>;
   }
-  const empty = pokedex.data.length === 0;
+  const first = pokedex.data.pages[0];
+  const empty = !first || first.total === 0;
   return (
     <div data-slot="my-pokedex" className={cn("flex flex-col gap-6", empty && screenColumnClass)}>
       <h1 className="text-3xl font-semibold">Pokédex</h1>
-      <PokedexGrid entries={pokedex.data} emptyPlacement={empty ? "fill" : "section"} />
+      <PokedexGrid
+        filters={filters}
+        entries={pokedex.data.pages.flatMap((page) => page.items)}
+        owned={first?.owned ?? 0}
+        total={first?.total ?? 0}
+        hasMore={pokedex.hasNextPage}
+        isFetchingMore={pokedex.isFetchingNextPage}
+        onLoadMore={() => void pokedex.fetchNextPage()}
+        emptyPlacement={empty ? "fill" : "section"}
+      />
     </div>
   );
 }

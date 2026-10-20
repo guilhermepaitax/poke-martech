@@ -1,4 +1,5 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, or, sql } from "drizzle-orm";
+import { sliceRows, type PageRequest, type PageSlice } from "@/server/application/page";
 import type { FollowRepository } from "@/server/application/contracts/repositories/follow-repository";
 import { db } from "@/server/infrastructure/db/drizzle/client";
 import { follows, user } from "@/server/infrastructure/db/drizzle/schema";
@@ -25,33 +26,38 @@ class DrizzleFollowRepository implements FollowRepository {
   }
 
   async counts(userId: string): Promise<{ followers: number; following: number }> {
-    const [followers] = await db
-      .select({ value: sql<number>`count(*)::int` })
+    const [row] = await db
+      .select({
+        followers: sql<number>`count(*) filter (where ${follows.followingId} = ${userId})::int`,
+        following: sql<number>`count(*) filter (where ${follows.followerId} = ${userId})::int`,
+      })
       .from(follows)
-      .where(eq(follows.followingId, userId));
-    const [following] = await db
-      .select({ value: sql<number>`count(*)::int` })
-      .from(follows)
-      .where(eq(follows.followerId, userId));
-    return { followers: followers?.value ?? 0, following: following?.value ?? 0 };
+      .where(or(eq(follows.followingId, userId), eq(follows.followerId, userId)));
+    return { followers: row?.followers ?? 0, following: row?.following ?? 0 };
   }
 
-  async listFollowers(userId: string): Promise<ProfileLink[]> {
-    return db
+  async listFollowers(userId: string, request: PageRequest): Promise<PageSlice<ProfileLink>> {
+    const rows = await db
       .select({ username: user.username, name: user.name })
       .from(follows)
       .innerJoin(user, eq(user.id, follows.followerId))
       .where(eq(follows.followingId, userId))
-      .orderBy(asc(user.username));
+      .orderBy(asc(user.username))
+      .limit(request.limit + 1)
+      .offset(request.cursor);
+    return sliceRows(rows, request);
   }
 
-  async listFollowing(userId: string): Promise<ProfileLink[]> {
-    return db
+  async listFollowing(userId: string, request: PageRequest): Promise<PageSlice<ProfileLink>> {
+    const rows = await db
       .select({ username: user.username, name: user.name })
       .from(follows)
       .innerJoin(user, eq(user.id, follows.followingId))
       .where(eq(follows.followerId, userId))
-      .orderBy(asc(user.username));
+      .orderBy(asc(user.username))
+      .limit(request.limit + 1)
+      .offset(request.cursor);
+    return sliceRows(rows, request);
   }
 }
 

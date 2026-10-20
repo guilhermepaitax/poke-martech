@@ -43,6 +43,8 @@ import { ListAdminTags } from "@/server/application/use-cases/list-admin-tags";
 import { SearchAdminCards } from "@/server/application/use-cases/search-admin-cards";
 import { ListBoosters } from "@/server/application/use-cases/list-boosters";
 import { ListPokedex } from "@/server/application/use-cases/list-pokedex";
+import { ListPokedexPage } from "@/server/application/use-cases/list-pokedex-page";
+import { ListProfileCards } from "@/server/application/use-cases/list-profile-cards";
 import { ListPokemonTypes } from "@/server/application/use-cases/list-pokemon-types";
 import { OpenPack } from "@/server/application/use-cases/open-pack";
 import {
@@ -109,7 +111,8 @@ const container = {
   rateLimiter,
   grantSignupBonus: new GrantSignupBonus(wallets),
   getMyProfile: new GetMyProfile(profiles, follows, trades),
-  getPublicProfile: new GetPublicProfile(profiles, pokedex, follows),
+  getPublicProfile: new GetPublicProfile(profiles, follows),
+  listProfileCards: new ListProfileCards(profiles, pokedex),
   getProfilePreview: new GetProfilePreview(profiles, follows),
   followUser: new FollowUser(profiles, follows),
   unfollowUser: new UnfollowUser(profiles, follows),
@@ -122,6 +125,7 @@ const container = {
   rejectTrade: new RejectTrade(trades),
   cancelTrade: new CancelTrade(trades),
   listPokedex: new ListPokedex(pokedex),
+  listPokedexPage: new ListPokedexPage(pokedex),
   listPokemonTypes: new ListPokemonTypes(pokemonTypes),
   getCard: new GetCard(cards),
   listBoosters: new ListBoosters(boosters),

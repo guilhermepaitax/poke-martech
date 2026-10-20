@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray, ne, notExists, or, sql, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { isTradeStatus } from "@/lib/value-objects/trade";
+import { sliceRows, type PageRequest, type PageSlice } from "@/server/application/page";
 import type {
   ExchangeResult,
   NewTrade,
@@ -88,9 +89,14 @@ class DrizzleTradeRepository implements TradeRepository {
     };
   }
 
-  async list(userId: string, box: "incoming" | "outgoing"): Promise<TradeProposalView[]> {
+  async list(
+    userId: string,
+    box: "incoming" | "outgoing",
+    request: PageRequest,
+  ): Promise<PageSlice<TradeProposalView>> {
     const column = box === "incoming" ? tradeProposals.toUserId : tradeProposals.fromUserId;
-    return this.selectViews(eq(column, userId));
+    const rows = await this.selectViews(eq(column, userId), request.limit + 1, request.cursor);
+    return sliceRows(rows, request);
   }
 
   async pendingIncoming(userId: string, limit: number): Promise<TradeProposalView[]> {
@@ -185,7 +191,11 @@ class DrizzleTradeRepository implements TradeRepository {
     return rows.length > 0;
   }
 
-  private async selectViews(where: SQL | undefined, limit?: number): Promise<TradeProposalView[]> {
+  private async selectViews(
+    where: SQL | undefined,
+    limit: number,
+    offset = 0,
+  ): Promise<TradeProposalView[]> {
     const offeredCopy = alias(userCards, "offered_copy");
     const requestedCopy = alias(userCards, "requested_copy");
     const offeredCard = alias(cards, "offered_card");
@@ -218,8 +228,10 @@ class DrizzleTradeRepository implements TradeRepository {
       .innerJoin(requestedCopy, eq(requestedCopy.id, tradeProposals.requestedUserCardId))
       .innerJoin(requestedCard, eq(requestedCard.id, requestedCopy.cardId))
       .where(where)
-      .orderBy(desc(tradeProposals.createdAt));
-    const rows = await (limit === undefined ? query : query.limit(limit));
+      .orderBy(desc(tradeProposals.createdAt), desc(tradeProposals.id))
+      .limit(limit)
+      .offset(offset);
+    const rows = await query;
     return rows.flatMap((row) => {
       if (!isTradeStatus(row.status)) return [];
       return [

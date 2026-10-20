@@ -192,6 +192,20 @@ type PublicPokedexEntry = PokedexEntry & {
   viewerOwns: boolean;
 };
 
+type Page<T> = {
+  items: T[];
+  nextCursor: string | null;
+};
+
+type PokedexPage = Page<PokedexEntry> & {
+  owned: number;
+  total: number;
+};
+
+type PublicPokedexPage = Page<PublicPokedexEntry> & {
+  total: number;
+};
+
 type PublicProfile = {
   username: string;
   name: string;
@@ -201,7 +215,6 @@ type PublicProfile = {
   isFollowing: boolean;
   followerCount: number;
   followingCount: number;
-  pokedex: PublicPokedexEntry[];
 };
 
 type ProfilePreview = {
@@ -282,13 +295,16 @@ export type {
   EnergyCost,
   OpeningCard,
   PackOpening,
+  Page,
   PokedexEntry,
+  PokedexPage,
   PokemonType,
   Profile,
   ProfileBase,
   ProfileLink,
   ProfilePreview,
   PublicPokedexEntry,
+  PublicPokedexPage,
   PublicProfile,
   RarityWeight,
   RecentCard,

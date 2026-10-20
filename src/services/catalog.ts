@@ -1,3 +1,5 @@
+import type { EnergyType } from "@/lib/value-objects/card";
+import type { PokedexSortKey } from "@/lib/value-objects/pokedex";
 import { api } from "@/services/http";
 import type {
   BoosterDetail,
@@ -13,7 +15,9 @@ import type {
   AdminCatalogCard,
   PackOpening,
   PokedexEntry,
+  PokedexPage,
   Profile,
+  PublicPokedexPage,
   PublicProfile,
   PokemonType,
   RarityWeight,
@@ -25,6 +29,31 @@ function fetchProfile() {
 
 function fetchPokedex() {
   return api<PokedexEntry[]>("/api/pokedex");
+}
+
+type PokedexQuery = {
+  query: string;
+  type: EnergyType | "all";
+  sort: PokedexSortKey;
+};
+
+function pokedexSearch(filters: PokedexQuery, cursor: string | null) {
+  const params = new URLSearchParams();
+  if (filters.query.trim()) params.set("q", filters.query.trim());
+  if (filters.type !== "all") params.set("tipo", filters.type);
+  if (filters.sort !== "number") params.set("ordem", filters.sort);
+  if (cursor) params.set("cursor", cursor);
+  return params.toString();
+}
+
+function fetchPokedexPage(filters: PokedexQuery, cursor: string | null) {
+  return api<PokedexPage>(`/api/pokedex/cards?${pokedexSearch(filters, cursor)}`);
+}
+
+function fetchProfileCards(username: string, filters: PokedexQuery, cursor: string | null) {
+  return api<PublicPokedexPage>(
+    `/api/profiles/${username}/cards?${pokedexSearch(filters, cursor)}`,
+  );
 }
 
 function fetchPublicProfile(username: string) {
@@ -154,6 +183,8 @@ export {
   fetchCardGenerations,
   fetchOpening,
   fetchPokedex,
+  fetchPokedexPage,
+  fetchProfileCards,
   fetchPokemonTypes,
   fetchProfile,
   fetchPublicProfile,
@@ -166,3 +197,4 @@ export {
   updateBooster,
   updateCard,
 };
+export type { PokedexQuery };

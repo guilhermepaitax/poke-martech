@@ -19,8 +19,10 @@ class GetMyProfile {
     if (!auth.ok) return auth;
     const profile = await this.profiles.findByUserId(auth.value.id);
     if (!profile) return err(new NotFoundError("Perfil"));
-    const counts = await this.follows.counts(auth.value.id);
-    const pendingTrades = await this.trades.pendingIncoming(auth.value.id, 3);
+    const [counts, pendingTrades] = await Promise.all([
+      this.follows.counts(auth.value.id),
+      this.trades.pendingIncoming(auth.value.id, 3),
+    ]);
     return success({
       ...profile,
       followerCount: counts.followers,

@@ -1,9 +1,8 @@
 import { isEnergyType, type EnergyType } from "@/lib/value-objects/card";
 import { hrefWithQuery } from "@/lib/search-href";
+import { isPokedexSortKey, type PokedexSortKey } from "@/lib/value-objects/pokedex";
 
-const SORT_KEYS = ["number", "name", "hp", "rarity"] as const;
-
-type SortKey = (typeof SORT_KEYS)[number];
+type SortKey = PokedexSortKey;
 
 type PokedexFilterState = {
   query: string;
@@ -11,17 +10,13 @@ type PokedexFilterState = {
   sort: SortKey;
 };
 
-function isSortKey(value: string | null): value is SortKey {
-  return SORT_KEYS.some((sort) => sort === value);
-}
-
 function pokedexFiltersFromSearch(params: URLSearchParams): PokedexFilterState {
   const type = params.get("tipo");
   const sort = params.get("ordem");
   return {
     query: params.get("q") ?? "",
     type: type && isEnergyType(type) ? type : "all",
-    sort: isSortKey(sort) ? sort : "number",
+    sort: isPokedexSortKey(sort) ? sort : "number",
   };
 }
 
