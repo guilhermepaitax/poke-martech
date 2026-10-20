@@ -40,7 +40,7 @@ function fetchBoosters() {
 }
 
 function fetchBooster(slug: string) {
-  return api<BoosterDetail>(`/api/boosters/${slug}`);
+  return api<BoosterSummary>(`/api/boosters/${slug}`);
 }
 
 function openBooster(slug: string) {

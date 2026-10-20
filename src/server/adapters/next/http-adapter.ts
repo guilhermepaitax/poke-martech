@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { ZodType } from "zod";
 import { isFeatureEnabled, type FeatureFlag } from "@/lib/feature-flags";
 import { getActor } from "@/lib/session";
+import { idParamSchema } from "@/server/adapters/next/schemas";
 import { trackFeatureFlag } from "@/lib/track-feature-flags";
 import type { Actor } from "@/server/application/actor";
 import type { AppError } from "@/server/shared/app-error";
@@ -16,6 +17,7 @@ function nextRouteAdapter<TInput, TOutput>(
     schema?: ZodType<TInput>;
     auth?: AuthMode;
     feature?: FeatureFlag;
+    ids?: string[];
   },
 ) {
   return async (req: Request) => {
@@ -35,6 +37,10 @@ function nextRouteAdapter<TInput, TOutput>(
       }
       if (auth === "admin" && actor?.role !== "admin") {
         return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
+      }
+
+      if (options?.ids?.some((id) => !idParamSchema.safeParse(id).success)) {
+        return NextResponse.json({ error: "Não encontrado." }, { status: 404 });
       }
 
       let input = undefined as TInput;

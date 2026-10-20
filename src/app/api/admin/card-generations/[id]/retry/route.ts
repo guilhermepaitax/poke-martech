@@ -13,7 +13,7 @@ async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
       if (result.ok) after(() => container.processCardGeneration.execute(result.value.id));
       return result;
     },
-    { auth: "admin", feature: FEATURE_FLAGS.aiCardGeneration },
+    { ids: [id], auth: "admin", feature: FEATURE_FLAGS.aiCardGeneration },
   )(req);
 }
 

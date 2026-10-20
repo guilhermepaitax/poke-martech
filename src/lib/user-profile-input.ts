@@ -1,3 +1,5 @@
+import { isStorageUrl } from "@/lib/storage-url";
+
 const MAX_NAME_LENGTH = 60;
 const MAX_BIO_LENGTH = 280;
 const LOCKED_UPDATE_FIELDS = ["username", "imageUseConsent", "role", "banned"] as const;
@@ -7,12 +9,6 @@ type ProfileInputError = { code: string; message: string };
 function field(body: unknown, key: string) {
   if (!body || typeof body !== "object" || !(key in body)) return undefined;
   return (body as Record<string, unknown>)[key];
-}
-
-function isAllowedImageUrl(value: string, publicUrl: string | undefined) {
-  const base = publicUrl?.replace(/\/$/, "");
-  if (!base) return false;
-  return value.startsWith(`${base}/`);
 }
 
 function profileInputError(
@@ -51,7 +47,7 @@ function profileInputError(
     image !== undefined &&
     image !== null &&
     image !== "" &&
-    (typeof image !== "string" || !isAllowedImageUrl(image, publicUrl))
+    (typeof image !== "string" || !publicUrl || !isStorageUrl(image, publicUrl))
   ) {
     return { code: "INVALID_IMAGE", message: "Envie a foto pelo upload do app." };
   }

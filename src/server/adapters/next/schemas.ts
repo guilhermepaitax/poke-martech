@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { USERNAME_PATTERN } from "@/lib/auth-form-errors";
+import { isStorageUrl } from "@/lib/storage-url";
 import { CARD_DECORATION_IDS } from "@/lib/card-decorations";
 import { MAX_ATTACK_EFFECTS, STATUS_CONDITIONS } from "@/lib/value-objects/attack-effect";
 import { BATTLE_DIFFICULTIES } from "@/lib/value-objects/battle";
@@ -118,7 +120,7 @@ const boosterSchema = z.object({
   featuredSlotMinRarity: z.enum(RARITIES).nullable(),
   finish: z.enum(FINISHES),
   active: z.boolean(),
-  cards: z.array(boosterCardSchema).min(1),
+  cards: z.array(boosterCardSchema).min(1).max(500),
 });
 
 const cardGenerationSchema = z
@@ -129,7 +131,11 @@ const cardGenerationSchema = z
       .trim()
       .min(10, "Descreva a pessoa com pelo menos 10 caracteres.")
       .max(600),
-    personImageUrl: z.string().trim().url("Envie a foto da pessoa."),
+    personImageUrl: z
+      .string()
+      .trim()
+      .url("Envie a foto da pessoa.")
+      .refine((value) => isStorageUrl(value), "Envie a foto pelo upload do app."),
     sourceUrls: z
       .array(z.string().trim().regex(POKEMON_ZONE_CARD_URL, "Link do pokemon-zone inválido."))
       .max(MAX_GENERATION_CARDS),
@@ -145,12 +151,14 @@ const cardGenerationSchema = z
     }
   });
 
-const rarityWeightsSchema = z.array(
-  z.object({
-    rarity: z.enum(RARITIES),
-    weight: z.number().int().min(1).max(100000),
-  }),
-);
+const rarityWeightsSchema = z
+  .array(
+    z.object({
+      rarity: z.enum(RARITIES),
+      weight: z.number().int().min(1).max(100000),
+    }),
+  )
+  .max(RARITIES.length);
 
 const deckCardSchema = z.object({
   cardId: z.string().uuid(),
@@ -210,10 +218,12 @@ const forfeitBattleSchema = z.object({
 });
 
 const createTradeSchema = z.object({
-  targetUsername: z.string().trim().min(1),
+  targetUsername: z.string().trim().toLowerCase().min(1).max(100).regex(USERNAME_PATTERN),
   requestedCardId: z.string().uuid(),
   offeredCardId: z.string().uuid(),
 });
+
+const idParamSchema = z.string().uuid();
 
 export {
   battleDeckSchema,
@@ -224,6 +234,7 @@ export {
   cardSearchSchema,
   createTradeSchema,
   forfeitBattleSchema,
+  idParamSchema,
   rarityWeightsSchema,
   startBattleSchema,
   submitBattleActionSchema,

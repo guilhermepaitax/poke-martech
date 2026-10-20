@@ -4,6 +4,7 @@ import { container } from "@/server/container";
 async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   return nextRouteAdapter((_input, actor) => container.rejectTrade.execute({ id }, actor), {
+    ids: [id],
     auth: "user",
   })(req);
 }
