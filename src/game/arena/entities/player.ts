@@ -122,7 +122,8 @@ function playIdle(player: Player) {
 
 function playLockedClip(player: Player, action: "attack" | "shoot" | "hurt") {
   const token = ++player.animToken;
-  player.sprite.setVelocity(0, 0);
+  // Golpe não trava o passo: só o hurt congela o lutador.
+  if (action === "hurt") player.sprite.setVelocity(0, 0);
   playPlayerClip(player, action);
   player.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
     if (player.animToken !== token) return;
@@ -207,7 +208,7 @@ function updatePlayer(
     }
     return;
   }
-  if (player.attacking || player.hurting) {
+  if (player.hurting) {
     player.sprite.setVelocity(0, 0);
     return;
   }
@@ -215,6 +216,8 @@ function updatePlayer(
   const moving = move.x !== 0 || move.y !== 0;
   const pace = speed * buffScale(player.buffs, "haste", player.sprite.scene.time.now);
   player.sprite.setVelocity(move.x * pace, move.y * pace);
+  // Durante o ataque desliza mantendo o clip do golpe até ele terminar.
+  if (player.attacking) return;
   playPlayerClip(player, moving ? "walk" : "idle");
 }
 

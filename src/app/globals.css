@@ -173,6 +173,8 @@
   --landing-dusk: #2a1810;
   --landing-gold: #e4b23c;
   --landing-paper: #fff6e8;
+  --arena-screen: #0e0818;
+  --arena-header: #ffffff;
 }
 
 @theme inline {
@@ -211,6 +213,8 @@
   --color-landing-dusk: var(--landing-dusk);
   --color-landing-gold: var(--landing-gold);
   --color-landing-paper: var(--landing-paper);
+  --color-arena-screen: var(--arena-screen);
+  --color-arena-header: var(--arena-header);
 }
 
 html {
@@ -1273,7 +1277,12 @@ body {
 
 .arena-cta {
   clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%);
-  background: linear-gradient(180deg, #e2ff7a 0%, var(--arena-cta) 50%, #96cc12 100%);
+  background: linear-gradient(
+    180deg,
+    #e2ff7a 0%,
+    var(--arena-cta) 50%,
+    #96cc12 100%
+  );
   color: var(--arena-cta-ink);
   cursor: pointer;
   transition:
@@ -1364,7 +1373,12 @@ body {
   --slot-ink: var(--arena-cta-ink);
   --slot-glow: color-mix(in srgb, var(--arena-cta) 45%, transparent);
   border-color: var(--arena-ink);
-  background: linear-gradient(180deg, #e2ff7a 0%, var(--arena-cta) 50%, #96cc12 100%);
+  background: linear-gradient(
+    180deg,
+    #e2ff7a 0%,
+    var(--arena-cta) 50%,
+    #96cc12 100%
+  );
 }
 
 .arena-slot[data-charge="1"] {
@@ -1529,7 +1543,8 @@ body {
   text-shadow:
     0 0 12px var(--energy-psychic),
     3px 3px 0 color-mix(in srgb, var(--foreground) 80%, black);
-  animation: arena-stamp 240ms cubic-bezier(0.2, 1.6, 0.4, 1) both,
+  animation:
+    arena-stamp 240ms cubic-bezier(0.2, 1.6, 0.4, 1) both,
     arena-stamp-pulse 420ms ease-in-out 240ms infinite alternate;
 }
 
@@ -1597,7 +1612,8 @@ body {
   width: 10px;
   height: 4px;
   background: var(--confetti);
-  animation: arena-confetti var(--confetti-ms) ease-out var(--confetti-delay) infinite;
+  animation: arena-confetti var(--confetti-ms) ease-out var(--confetti-delay)
+    infinite;
 }
 
 .arena-reward {
@@ -1605,7 +1621,11 @@ body {
   clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
   border-radius: 6px 0 0 6px;
   background:
-    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--reward-tone) 35%, transparent), transparent 60%),
+    radial-gradient(
+      circle at 0% 0%,
+      color-mix(in srgb, var(--reward-tone) 35%, transparent),
+      transparent 60%
+    ),
     linear-gradient(180deg, rgb(255 255 255 / 0.08), transparent 40%),
     color-mix(in srgb, var(--foreground) 85%, black);
   box-shadow: inset 4px 0 0 var(--reward-tone);

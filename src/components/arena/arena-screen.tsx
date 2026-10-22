@@ -21,7 +21,11 @@ const ArenaGame = dynamic(
 
 function ArenaGameFallback() {
   return (
-    <div data-slot="arena-game-loading" role="status" className="relative h-full w-full">
+    <div
+      data-slot="arena-game-loading"
+      role="status"
+      className="relative h-full w-full"
+    >
       <ArenaTitleCard title="Carregando" accent="arena" tone="loading" />
     </div>
   );
@@ -52,7 +56,7 @@ function ArenaScreen() {
     return (
       <section
         data-slot="arena-screen"
-        className="box-border h-full w-full overflow-hidden border-4 border-amber-400"
+        className="box-border h-full w-full overflow-hidden border-4 border-[#e17100]"
       >
         <ArenaGame
           matchup={picker.matchup}

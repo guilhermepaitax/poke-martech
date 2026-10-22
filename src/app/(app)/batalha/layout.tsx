@@ -22,7 +22,7 @@ export default async function BatalhaLayout({
   children: React.ReactNode;
 }) {
   if (!(await isFeatureEnabled(FEATURE_FLAGS.arena))) {
-    return <FeatureUnavailable title="Batalha" />;
+    return <FeatureUnavailable title="Arena" />;
   }
 
   return (

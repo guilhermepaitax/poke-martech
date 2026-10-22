@@ -67,7 +67,8 @@ function AppShellFrame({ role, username, children }: AppShellProps) {
   const pokedexEnabled = useFeatureFlag(FEATURE_FLAGS.pokedex);
   const tradesEnabled = useFeatureFlag(FEATURE_FLAGS.trocas);
   const canvas = useArenaCanvasLayout();
-  const arenaLayout = pathname === "/batalha" && canvas.active;
+  const arenaScreen = pathname.startsWith("/batalha");
+  const arenaLayout = arenaScreen && canvas.active;
   const headerRef = useRef<HTMLElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
 
@@ -106,8 +107,8 @@ function AppShellFrame({ role, username, children }: AppShellProps) {
       ? [
           {
             href: "/batalha",
-            label: "Batalha",
-            active: pathname.startsWith("/batalha"),
+            label: "Arena",
+            active: arenaScreen,
           },
         ]
       : []),
@@ -133,12 +134,20 @@ function AppShellFrame({ role, username, children }: AppShellProps) {
   ];
 
   return (
-    <div data-slot="app-shell" className="min-h-full">
+    <div
+      data-slot="app-shell"
+      className={cn("min-h-full", arenaScreen && "min-h-dvh bg-arena-screen")}
+    >
       <header
         ref={headerRef}
         className="pointer-events-none fixed inset-x-0 top-0 z-40 px-3 pt-3"
       >
-        <div className="glass pointer-events-auto mx-auto flex max-w-5xl items-center gap-2 rounded-full px-3 py-2">
+        <div
+          className={cn(
+            "glass pointer-events-auto mx-auto flex max-w-5xl items-center gap-2 rounded-full px-3 py-2",
+            arenaScreen && "bg-arena-header!",
+          )}
+        >
           <Link
             href="/home"
             className="shrink-0 px-2 text-sm font-semibold text-foreground"
@@ -184,7 +193,12 @@ function AppShellFrame({ role, username, children }: AppShellProps) {
             </Button>
           </div>
         </div>
-        <nav className="glass pointer-events-auto mx-auto mt-2 flex max-w-5xl items-center justify-center gap-1 rounded-full px-2 py-1.5 md:hidden">
+        <nav
+          className={cn(
+            "glass pointer-events-auto mx-auto mt-2 flex max-w-5xl items-center justify-center gap-1 rounded-full px-2 py-1.5 md:hidden",
+            arenaScreen && "bg-arena-header!",
+          )}
+        >
           {links.map((link) => (
             <NavLink
               key={link.href}
