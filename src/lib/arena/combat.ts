@@ -98,6 +98,13 @@ const BONE_RANGE = 420;
 const BONE_RADIUS = 14;
 const BONE_SPREAD = Math.PI / 10;
 const BONE_CATCH_RADIUS = 28;
+// Estrelas do Meteoro: curvam para o alvo com giro limitado, então o dash
+// ou uma curva fechada ainda escapam.
+const STAR_SPEED = 700;
+const STAR_RANGE = 680;
+const STAR_RADIUS = 12;
+const STAR_SPREAD = Math.PI / 9;
+const STAR_TURN_RATE = Math.PI * 1.1;
 const CRACK_RADIUS_MIN = 36;
 const CRACK_RADIUS_MAX = 140;
 const CRACK_BRANCH_MIN = 5;
@@ -316,6 +323,28 @@ function boneVolley(aim: Point, charge: ChargeLevel): Point[] {
   return [rotate(center, -BONE_SPREAD), rotate(center, BONE_SPREAD)];
 }
 
+const STAR_COUNT: Record<ChargeLevel, number> = { 0: 2, 1: 3, 2: 5 };
+
+function starVolley(aim: Point, charge: ChargeLevel): Point[] {
+  const length = Math.hypot(aim.x, aim.y);
+  if (length === 0) return [];
+  const center = { x: aim.x / length, y: aim.y / length };
+  const count = STAR_COUNT[charge];
+  return Array.from({ length: count }, (_, index) =>
+    rotate(center, (index - (count - 1) / 2) * STAR_SPREAD),
+  );
+}
+
+// Gira o rumo unitário em direção ao alvo, no máximo `maxTurn` radianos.
+function steerToward(heading: Point, toTarget: Point | null, maxTurn: number): Point {
+  if (!toTarget || Math.hypot(toTarget.x, toTarget.y) === 0) return heading;
+  const angle = Math.atan2(
+    heading.x * toTarget.y - heading.y * toTarget.x,
+    heading.x * toTarget.x + heading.y * toTarget.y,
+  );
+  return rotate(heading, Math.max(-maxTurn, Math.min(maxTurn, angle)));
+}
+
 function throwBone(from: Point, direction: Point): BoneFlight | null {
   const length = Math.hypot(direction.x, direction.y);
   if (length === 0) return null;
@@ -459,6 +488,13 @@ export {
   resolveDamage,
   rollCritical,
   selectAttack,
+  STAR_RADIUS,
+  STAR_RANGE,
+  STAR_SPEED,
+  STAR_SPREAD,
+  STAR_TURN_RATE,
+  starVolley,
+  steerToward,
   throwBone,
 };
 export type {

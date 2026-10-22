@@ -8,12 +8,15 @@ const FX_TEXTURES = {
   streak: "fx-streak",
   pixel: "fx-pixel",
   bone: "fx-bone",
+  swift: "fx-swift",
 } as const;
 
 const GLOW_SIZE = 64;
 const SPARK_SIZE = 8;
 const STAR_SIZE = 64;
 const STAR_POINTS = 8;
+const SWIFT_SIZE = 32;
+const SWIFT_POINTS = 5;
 const SCORCH_SIZE = 128;
 const STREAK_WIDTH = 28;
 const STREAK_HEIGHT = 4;
@@ -50,10 +53,10 @@ function paintRadial(
   }
 }
 
-function starPoints(size: number, points: number) {
+function starPoints(size: number, points: number, innerRatio = 0.42) {
   const center = size / 2;
   const outer = center;
-  const inner = center * 0.42;
+  const inner = center * innerRatio;
   const vertices: Phaser.Math.Vector2[] = [];
   for (let index = 0; index < points * 2; index += 1) {
     const radius = index % 2 === 0 ? outer : inner;
@@ -94,6 +97,10 @@ function createFxTextures(scene: Phaser.Scene) {
   bake(scene, FX_TEXTURES.star, STAR_SIZE, STAR_SIZE, (graphics) => {
     graphics.fillStyle(0xffffff, 1);
     graphics.fillPoints(starPoints(STAR_SIZE, STAR_POINTS), true);
+  });
+  bake(scene, FX_TEXTURES.swift, SWIFT_SIZE, SWIFT_SIZE, (graphics) => {
+    graphics.fillStyle(0xffffff, 1);
+    graphics.fillPoints(starPoints(SWIFT_SIZE, SWIFT_POINTS, 0.48), true);
   });
   bake(scene, FX_TEXTURES.scorch, SCORCH_SIZE, SCORCH_SIZE, (graphics) => {
     paintRadial(graphics, SCORCH_SIZE, 0xffffff, 12, 0.5);

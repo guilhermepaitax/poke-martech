@@ -1,6 +1,6 @@
 import type { FighterEnergy } from "@/lib/arena/fighter";
 import type { LucideIcon } from "lucide-react";
-import { Bone, Flame, Leaf, Sun } from "lucide-react";
+import { Bone, Flame, Leaf, Sparkles, Star, Sun } from "lucide-react";
 
 type FighterAppearance = {
   label: string;
@@ -28,6 +28,12 @@ const FIGHTER_APPEARANCE: Record<FighterEnergy, FighterAppearance> = {
     icon: Bone,
     rangedIcon: Bone,
     color: "var(--energy-ground)",
+  },
+  colorless: {
+    label: "Normal",
+    icon: Star,
+    rangedIcon: Sparkles,
+    color: "var(--energy-colorless)",
   },
 };
 

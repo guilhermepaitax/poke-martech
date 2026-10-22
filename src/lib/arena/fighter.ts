@@ -1,9 +1,9 @@
 import type { AttackKind } from "./combat";
 import type { Facing } from "./movement";
 
-type FighterEnergy = "fire" | "grass" | "ground";
+type FighterEnergy = "fire" | "grass" | "ground" | "colorless";
 
-type RangedStyle = "beam" | "orb" | "bone";
+type RangedStyle = "beam" | "orb" | "bone" | "star";
 
 type FighterAction = "idle" | "walk" | "attack" | "shoot" | "hurt";
 
@@ -39,6 +39,8 @@ type FighterTuning = {
   depth: number;
   // Lado do quadrado exibido em px do mundo. Sem valor, usa o padrão da arena.
   displaySize?: number;
+  // Multiplica velocidade e duração da investida do corpo a corpo.
+  lungeScale?: number;
 };
 
 type FighterBanner = {

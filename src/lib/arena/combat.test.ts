@@ -30,6 +30,9 @@ import {
   resolveDamage,
   rollCritical,
   selectAttack,
+  STAR_SPREAD,
+  starVolley,
+  steerToward,
   throwBone,
   type Rect,
 } from "./combat";
@@ -364,6 +367,47 @@ describe("boneVolley", () => {
 
   it("não lança sem direção", () => {
     expect(boneVolley({ x: 0, y: 0 }, 2)).toEqual([]);
+  });
+});
+
+describe("starVolley", () => {
+  it("lança 2, 3 e 5 estrelas por nível de carga", () => {
+    expect(starVolley({ x: 1, y: 0 }, 0)).toHaveLength(2);
+    expect(starVolley({ x: 1, y: 0 }, 1)).toHaveLength(3);
+    expect(starVolley({ x: 1, y: 0 }, 2)).toHaveLength(5);
+  });
+
+  it("abre o leque simétrico em volta da mira, com vetores unitários", () => {
+    const stars = starVolley({ x: 0, y: 4 }, 1);
+    stars.forEach((star) => expect(Math.hypot(star.x, star.y)).toBeCloseTo(1));
+    const [left, center, right] = stars;
+    expect(center?.x).toBeCloseTo(0);
+    expect(center?.y).toBeCloseTo(1);
+    expect(Math.atan2(right?.y ?? 0, right?.x ?? 0) - Math.PI / 2).toBeCloseTo(STAR_SPREAD);
+    expect(Math.atan2(left?.y ?? 0, left?.x ?? 0) - Math.PI / 2).toBeCloseTo(-STAR_SPREAD);
+  });
+
+  it("não lança sem mira", () => {
+    expect(starVolley({ x: 0, y: 0 }, 2)).toEqual([]);
+  });
+});
+
+describe("steerToward", () => {
+  it("gira no máximo o limite em direção ao alvo", () => {
+    const next = steerToward({ x: 1, y: 0 }, { x: 0, y: 10 }, 0.2);
+    expect(Math.atan2(next.y, next.x)).toBeCloseTo(0.2);
+    const back = steerToward({ x: 1, y: 0 }, { x: 0, y: -10 }, 0.2);
+    expect(Math.atan2(back.y, back.x)).toBeCloseTo(-0.2);
+  });
+
+  it("alinha com o alvo quando o ângulo cabe no limite", () => {
+    const next = steerToward({ x: 1, y: 0 }, { x: 10, y: 1 }, 0.5);
+    expect(Math.atan2(next.y, next.x)).toBeCloseTo(Math.atan2(1, 10));
+  });
+
+  it("mantém o rumo sem alvo", () => {
+    expect(steerToward({ x: 0, y: 1 }, null, 1)).toEqual({ x: 0, y: 1 });
+    expect(steerToward({ x: 0, y: 1 }, { x: 0, y: 0 }, 1)).toEqual({ x: 0, y: 1 });
   });
 });
 

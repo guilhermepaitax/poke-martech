@@ -37,6 +37,14 @@ import {
   type OrbShot,
 } from "@/game/arena/entities/orb";
 import {
+  clearStars,
+  launchStar,
+  stepStars,
+  SWIFT_STAR,
+  SWIFT_STAR_CHARGED,
+  type StarShot,
+} from "@/game/arena/entities/star";
+import {
   hitObstacle,
   obstacleRect,
   type Obstacle,
@@ -78,6 +86,7 @@ import {
   orbVolley,
   resolveDamage,
   rollCritical,
+  starVolley,
   type AttackKind,
   type BeamEnd,
   type Point,
@@ -114,6 +123,7 @@ const CHARGE_COLOR: Record<ChargeLevel, number> = {
 const MELEE_REACH: Record<ChargeLevel, number> = { 0: 1, 1: 1.12, 2: 1.28 };
 const BEAM_WIDTH: Record<ChargeLevel, number> = { 0: 1, 1: 1.5, 2: 2.1 };
 const ORB_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.8, 2: 1.2 };
+const STAR_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.45, 2: 1.15 };
 const BONE_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.5, 2: 1.15 };
 const BONE_SPEED_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.15, 2: 1.1 };
 const SLASH_LOOK: Record<ChargeLevel, SlashLook> = {
@@ -146,6 +156,7 @@ type Combat = {
   beams: BeamShot[];
   orbs: OrbShot[];
   bones: BoneShot[];
+  stars: StarShot[];
   overlap: Phaser.Physics.Arcade.Collider;
   blockOverlap: Phaser.Physics.Arcade.Collider;
   obstacles: Obstacle[];
@@ -172,6 +183,7 @@ function createCombat(
     beams: [],
     orbs: [],
     bones: [],
+    stars: [],
     obstacles,
     overlap: scene.physics.add.overlap(
       projectiles,
@@ -423,7 +435,9 @@ function startMelee(
   damage: number,
   charge: ChargeLevel,
 ) {
-  const lunge = LUNGE_BY_CHARGE[charge];
+  const scale = player.fighter.tuning.lungeScale ?? 1;
+  const base = LUNGE_BY_CHARGE[charge];
+  const lunge = { ...base, speed: base.speed * scale, durationMs: base.durationMs * scale };
   player.guardUntil = scene.time.now + lunge.durationMs + MELEE_GUARD_MS;
   const distance = (lunge.speed * lunge.durationMs) / 1000;
   const reach = Math.min(
@@ -519,6 +533,47 @@ function fireOrbs(
   }
 }
 
+function fireStars(
+  scene: Phaser.Scene,
+  combat: Combat,
+  target: Player,
+  muzzle: Point,
+  aim: Point,
+  damage: number,
+  charge: ChargeLevel,
+  obstacles: Obstacle[],
+) {
+  const style = charge === 2 ? SWIFT_STAR_CHARGED : SWIFT_STAR;
+  const volley = starVolley(aim, charge);
+  // O dano do golpe se divide entre as estrelas do leque.
+  const share = Math.max(1, Math.round(damage / volley.length));
+  playArenaAudio(scene, "laser");
+  for (const direction of volley) {
+    launchStar(scene, combat.stars, {
+      from: muzzle,
+      direction,
+      style,
+      scale: STAR_SCALE[charge],
+      target: () => (target.sprite.scene ? { x: target.sprite.x, y: target.sprite.y } : null),
+      onArrive: (impact) => {
+        landRanged(
+          scene,
+          combat,
+          target,
+          impact,
+          impact.stop === "fighter",
+          share,
+          charge,
+          direction,
+          style.impact,
+          obstacles,
+          false,
+        );
+      },
+    });
+  }
+}
+
 function throwBones(
   scene: Phaser.Scene,
   combat: Combat,
@@ -560,10 +615,13 @@ function throwBones(
 }
 
 function stepCombat(scene: Phaser.Scene, combat: Combat, deltaMs: number) {
-  if (combat.orbs.length === 0 && combat.bones.length === 0) return;
+  if (combat.orbs.length === 0 && combat.bones.length === 0 && combat.stars.length === 0) {
+    return;
+  }
   const blocks = blockRects(combat);
   if (combat.orbs.length > 0) stepOrbs(scene, combat.orbs, deltaMs, blocks);
   if (combat.bones.length > 0) stepBones(scene, combat.bones, deltaMs, blocks);
+  if (combat.stars.length > 0) stepStars(scene, combat.stars, deltaMs, blocks);
 }
 
 function tryAttack(
@@ -616,6 +674,10 @@ function tryAttack(
   const obstacles = liveObstacles(combat);
   if (attacker.fighter.ranged === "bone") {
     throwBones(scene, combat, attacker, target, muzzle, aim, damage, charge);
+    return true;
+  }
+  if (attacker.fighter.ranged === "star") {
+    fireStars(scene, combat, target, muzzle, aim, damage, charge, obstacles);
     return true;
   }
   if (attacker.fighter.ranged === "orb") {
@@ -725,6 +787,7 @@ function destroyCombat(scene: Phaser.Scene, combat: Combat) {
   clearBeams(scene, combat.beams);
   clearOrbs(scene, combat.orbs);
   clearBones(combat.bones);
+  clearStars(scene, combat.stars);
   combat.projectiles.destroy(true);
   combat.aim.destroy();
   clearBanner(scene, combat.banner);
