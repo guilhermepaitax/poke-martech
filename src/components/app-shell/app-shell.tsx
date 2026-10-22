@@ -63,6 +63,9 @@ function AppShellFrame({ role, username, children }: AppShellProps) {
   const pathname = usePathname();
   const profile = useProfile();
   const arenaEnabled = useFeatureFlag(FEATURE_FLAGS.arena);
+  const shopEnabled = useFeatureFlag(FEATURE_FLAGS.loja);
+  const pokedexEnabled = useFeatureFlag(FEATURE_FLAGS.pokedex);
+  const tradesEnabled = useFeatureFlag(FEATURE_FLAGS.trocas);
   const canvas = useArenaCanvasLayout();
   const arenaLayout = pathname === "/batalha" && canvas.active;
   const headerRef = useRef<HTMLElement>(null);
@@ -86,13 +89,19 @@ function AppShellFrame({ role, username, children }: AppShellProps) {
     active: boolean;
     target?: string;
   }[] = [
-    { href: "/loja", label: "Loja", active: pathname.startsWith("/loja") },
-    {
-      href: "/pokedex",
-      label: "Pokédex",
-      active: pathname.startsWith("/pokedex"),
-      target: "pokedex",
-    },
+    ...(shopEnabled
+      ? [{ href: "/loja", label: "Loja", active: pathname.startsWith("/loja") }]
+      : []),
+    ...(pokedexEnabled
+      ? [
+          {
+            href: "/pokedex",
+            label: "Pokédex",
+            active: pathname.startsWith("/pokedex"),
+            target: "pokedex",
+          },
+        ]
+      : []),
     ...(arenaEnabled
       ? [
           {
@@ -102,11 +111,15 @@ function AppShellFrame({ role, username, children }: AppShellProps) {
           },
         ]
       : []),
-    {
-      href: "/trocas",
-      label: "Trocas",
-      active: pathname.startsWith("/trocas"),
-    },
+    ...(tradesEnabled
+      ? [
+          {
+            href: "/trocas",
+            label: "Trocas",
+            active: pathname.startsWith("/trocas"),
+          },
+        ]
+      : []),
     { href: profileHref, label: "Perfil", active: pathname === profileHref },
     ...(role === "admin"
       ? [

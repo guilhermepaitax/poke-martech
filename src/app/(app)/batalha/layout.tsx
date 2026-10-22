@@ -1,5 +1,6 @@
 import { FeatureUnavailable } from "@/components/feature-flags/feature-unavailable";
-import { FEATURE_FLAGS, isFeatureEnabled } from "@/lib/feature-flags";
+import { FEATURE_FLAGS } from "@/lib/feature-flags";
+import { isFeatureEnabled } from "@/lib/feature-flags.server";
 import { Press_Start_2P, Rubik } from "next/font/google";
 
 const pixel = Press_Start_2P({
@@ -15,10 +16,18 @@ const title = Rubik({
   subsets: ["latin"],
 });
 
-export default function BatalhaLayout({ children }: { children: React.ReactNode }) {
-  if (!isFeatureEnabled(FEATURE_FLAGS.arena)) {
+export default async function BatalhaLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  if (!(await isFeatureEnabled(FEATURE_FLAGS.arena))) {
     return <FeatureUnavailable title="Batalha" />;
   }
 
-  return <div className={`${pixel.variable} ${title.variable} contents`}>{children}</div>;
+  return (
+    <div className={`${pixel.variable} ${title.variable} contents`}>
+      {children}
+    </div>
+  );
 }

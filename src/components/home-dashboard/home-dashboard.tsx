@@ -1,5 +1,6 @@
 "use client";
 
+import { useFeatureFlag } from "@/components/feature-flags/use-feature-flags";
 import { HoloCard } from "@/components/holo-card/holo-card";
 import { TradeProposalList } from "@/components/trades/trade-proposal-list";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { CardGridSkeleton, LoadingScreen, ProposalSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { useProfile } from "@/hooks/use-profile";
 import { formatCardNumber } from "@/lib/card-number";
+import { FEATURE_FLAGS } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 import { ArrowLeftRight, Coins, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +30,9 @@ function HomeDashboard() {
   const profile = useProfile();
   const router = useRouter();
   const [username, setUsername] = useState("");
+  const tradesEnabled = useFeatureFlag(FEATURE_FLAGS.trocas);
+  const shopEnabled = useFeatureFlag(FEATURE_FLAGS.loja);
+  const pokedexEnabled = useFeatureFlag(FEATURE_FLAGS.pokedex);
 
   if (profile.isLoading) {
     return (
@@ -40,12 +45,14 @@ function HomeDashboard() {
             <Skeleton className="h-9 w-24 rounded-full" />
           </div>
         </div>
-        <div className="flex flex-col gap-3">
-          <Skeleton className="h-6 w-48" />
-          <ProposalSkeleton />
-        </div>
+        {tradesEnabled ? (
+          <div className="flex flex-col gap-3">
+            <Skeleton className="h-6 w-48" />
+            <ProposalSkeleton />
+          </div>
+        ) : null}
         <div className="grid gap-4 md:grid-cols-2">
-          <Skeleton className="h-36 rounded-3xl" />
+          {shopEnabled ? <Skeleton className="h-36 rounded-3xl" /> : null}
           <Skeleton className="h-36 rounded-3xl" />
         </div>
         <div className="flex flex-col gap-3">
@@ -97,41 +104,45 @@ function HomeDashboard() {
           </Link>
         </div>
       </div>
-      <section className="flex flex-col gap-3">
-        <div className="flex items-end justify-between gap-3">
-          <h2 className="text-lg font-semibold">Propostas recebidas</h2>
-          <Link
-            href="/trocas"
-            className="text-sm font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Ver trocas
-          </Link>
-        </div>
-        {me.pendingTrades.length === 0 ? (
-          <EmptyState
-            placement="section"
-            icon={ArrowLeftRight}
-            title="Nenhuma proposta esperando você"
-            description="As trocas que outros treinadores enviarem aparecem aqui, prontas para aceitar ou recusar."
-          />
-        ) : (
-          <TradeProposalList proposals={me.pendingTrades} box="incoming" />
-        )}
-      </section>
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Loja</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-foreground-subtle">
-              Abra um pacote com as moedas da conta.
-            </p>
-            <Link href="/loja" className={cn(buttonVariants(), "mt-4")}>
-              Abrir pacotes
+      {tradesEnabled ? (
+        <section className="flex flex-col gap-3">
+          <div className="flex items-end justify-between gap-3">
+            <h2 className="text-lg font-semibold">Propostas recebidas</h2>
+            <Link
+              href="/trocas"
+              className="text-sm font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Ver trocas
             </Link>
-          </CardContent>
-        </Card>
+          </div>
+          {me.pendingTrades.length === 0 ? (
+            <EmptyState
+              placement="section"
+              icon={ArrowLeftRight}
+              title="Nenhuma proposta esperando você"
+              description="As trocas que outros treinadores enviarem aparecem aqui, prontas para aceitar ou recusar."
+            />
+          ) : (
+            <TradeProposalList proposals={me.pendingTrades} box="incoming" />
+          )}
+        </section>
+      ) : null}
+      <div className="grid gap-4 md:grid-cols-2">
+        {shopEnabled ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Loja</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-foreground-subtle">
+                Abra um pacote com as moedas da conta.
+              </p>
+              <Link href="/loja" className={cn(buttonVariants(), "mt-4")}>
+                Abrir pacotes
+              </Link>
+            </CardContent>
+          </Card>
+        ) : null}
         <Card>
           <CardHeader>
             <CardTitle>Buscar outro treinador</CardTitle>
@@ -163,21 +174,24 @@ function HomeDashboard() {
             placement="section"
             icon={Sparkles}
             title="Nenhuma carta ainda"
-            description="Abra um pacote na loja para a primeira carta entrar na sua coleção."
+            description={
+              shopEnabled
+                ? "Abra um pacote na loja para a primeira carta entrar na sua coleção."
+                : "As cartas que você desbloquear aparecem aqui."
+            }
             action={
-              <Link href="/loja" className={buttonVariants()}>
-                Ir para a loja
-              </Link>
+              shopEnabled ? (
+                <Link href="/loja" className={buttonVariants()}>
+                  Ir para a loja
+                </Link>
+              ) : undefined
             }
           />
         ) : (
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {me.recentCards.map((card) => (
-              <li key={card.id}>
-                <Link
-                  href={`/pokedex/${card.cardId}`}
-                  className="flex h-full flex-col gap-2 rounded-[4%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
+            {me.recentCards.map((card) => {
+              const content = (
+                <>
                   <HoloCard {...card.card} />
                   <p className="text-center text-sm font-semibold tabular-nums text-foreground-subtle">
                     {formatCardNumber(card.number)}
@@ -185,9 +199,22 @@ function HomeDashboard() {
                   <p className="text-center text-sm text-foreground-subtle">
                     {formatWhen(card.obtainedAt)}
                   </p>
-                </Link>
-              </li>
-            ))}
+                </>
+              );
+              const className =
+                "flex h-full flex-col gap-2 rounded-[4%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+              return (
+                <li key={card.id}>
+                  {pokedexEnabled ? (
+                    <Link href={`/pokedex/${card.cardId}`} className={className}>
+                      {content}
+                    </Link>
+                  ) : (
+                    <div className={className}>{content}</div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

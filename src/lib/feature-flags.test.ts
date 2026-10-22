@@ -1,37 +1,67 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { isFeatureEnabled, readFeatureFlags } from "@/lib/feature-flags";
+import { isFeatureEnabled, readFeatureFlags } from "@/lib/feature-flags.server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const ENV_KEYS = ["FEATURE_FLAG_AI_CARD_GENERATION", "FEATURE_FLAG_ARENA"] as const;
+const { evaluate, flagFns } = vi.hoisted(() => ({
+  evaluate: vi.fn(),
+  flagFns: {
+    aiCardGeneration: vi.fn(),
+    arena: vi.fn(),
+    pokedex: vi.fn(),
+    trocas: vi.fn(),
+    loja: vi.fn(),
+  },
+}));
+
+vi.mock("flags/next", () => ({ evaluate }));
+vi.mock("@/flags", () => flagFns);
+
+const allOn = {
+  "ai-card-generation": true,
+  arena: true,
+  pokedex: true,
+  trocas: true,
+  loja: true,
+};
 
 describe("readFeatureFlags", () => {
-  afterEach(() => {
-    for (const key of ENV_KEYS) delete process.env[key];
+  beforeEach(() => {
+    evaluate.mockReset();
+    for (const fn of Object.values(flagFns)) fn.mockReset();
   });
 
-  it("mantém as funcionalidades ativas quando as variáveis não estão definidas", () => {
-    expect(readFeatureFlags()).toEqual({
-      "ai-card-generation": true,
-      arena: true,
+  it("monta o mapa a partir das avaliações", async () => {
+    evaluate.mockResolvedValue(allOn);
+
+    await expect(readFeatureFlags()).resolves.toEqual(allOn);
+    expect(evaluate).toHaveBeenCalledWith({
+      "ai-card-generation": flagFns.aiCardGeneration,
+      arena: flagFns.arena,
+      pokedex: flagFns.pokedex,
+      trocas: flagFns.trocas,
+      loja: flagFns.loja,
     });
   });
 
-  it("desativa só a flag informada", () => {
-    process.env.FEATURE_FLAG_AI_CARD_GENERATION = "off";
+  it("mantém as outras flags quando uma avaliação vem desligada", async () => {
+    evaluate.mockResolvedValue({ ...allOn, arena: false });
 
-    expect(isFeatureEnabled("ai-card-generation")).toBe(false);
-    expect(isFeatureEnabled("arena")).toBe(true);
+    await expect(readFeatureFlags()).resolves.toEqual({
+      ...allOn,
+      arena: false,
+    });
   });
 
-  it("desliga a arena sem afetar as outras flags", () => {
-    process.env.FEATURE_FLAG_ARENA = "off";
+  it("desliga só a flag informada", async () => {
+    flagFns.aiCardGeneration.mockResolvedValue(false);
+    flagFns.arena.mockResolvedValue(true);
+    flagFns.pokedex.mockResolvedValue(true);
+    flagFns.trocas.mockResolvedValue(true);
+    flagFns.loja.mockResolvedValue(true);
 
-    expect(isFeatureEnabled("arena")).toBe(false);
-    expect(isFeatureEnabled("ai-card-generation")).toBe(true);
-  });
-
-  it("aceita valores afirmativos sem diferenciar maiúsculas", () => {
-    process.env.FEATURE_FLAG_AI_CARD_GENERATION = "TRUE";
-
-    expect(isFeatureEnabled("ai-card-generation")).toBe(true);
+    await expect(isFeatureEnabled("ai-card-generation")).resolves.toBe(false);
+    await expect(isFeatureEnabled("arena")).resolves.toBe(true);
+    await expect(isFeatureEnabled("pokedex")).resolves.toBe(true);
+    await expect(isFeatureEnabled("trocas")).resolves.toBe(true);
+    await expect(isFeatureEnabled("loja")).resolves.toBe(true);
   });
 });

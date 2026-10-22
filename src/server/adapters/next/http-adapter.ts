@@ -1,15 +1,16 @@
-import * as Sentry from "@sentry/nextjs";
-import { NextResponse } from "next/server";
-import type { ZodType } from "zod";
-import { isFeatureEnabled, type FeatureFlag } from "@/lib/feature-flags";
+import type { FeatureFlag } from "@/lib/feature-flags";
+import { isFeatureEnabled } from "@/lib/feature-flags.server";
 import { getActor } from "@/lib/session";
-import { idParamSchema } from "@/server/adapters/next/schemas";
 import { trackFeatureFlag } from "@/lib/track-feature-flags";
+import { idParamSchema } from "@/server/adapters/next/schemas";
 import type { Actor } from "@/server/application/actor";
 import type { RateLimitRule } from "@/server/application/contracts/services/rate-limiter";
 import { container } from "@/server/container";
 import type { AppError } from "@/server/shared/app-error";
 import type { Result } from "@/server/shared/result";
+import * as Sentry from "@sentry/nextjs";
+import { NextResponse } from "next/server";
+import type { ZodType } from "zod";
 
 type AuthMode = "public" | "user" | "admin";
 
@@ -31,17 +32,23 @@ function nextRouteAdapter<TInput, TOutput, TQuery = undefined>(
   return async (req: Request) => {
     try {
       if (options?.feature) {
-        const enabled = isFeatureEnabled(options.feature);
+        const enabled = await isFeatureEnabled(options.feature);
         trackFeatureFlag(options.feature, enabled);
         if (!enabled) {
-          return NextResponse.json({ error: "Funcionalidade indisponível." }, { status: 404 });
+          return NextResponse.json(
+            { error: "Funcionalidade indisponível." },
+            { status: 404 },
+          );
         }
       }
 
       const actor = await getActor(req.headers);
       const auth = options?.auth ?? "public";
       if ((auth === "user" || auth === "admin") && !actor) {
-        return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+        return NextResponse.json(
+          { error: "Não autenticado." },
+          { status: 401 },
+        );
       }
       if (auth === "admin" && actor?.role !== "admin") {
         return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
@@ -61,7 +68,9 @@ function nextRouteAdapter<TInput, TOutput, TQuery = undefined>(
         const params = Object.fromEntries(new URL(req.url).searchParams);
         const parsed = options.query.safeParse(params);
         if (!parsed.success) {
-          const message = parsed.error.issues.map((issue) => issue.message).join(", ");
+          const message = parsed.error.issues
+            .map((issue) => issue.message)
+            .join(", ");
           return NextResponse.json({ error: message }, { status: 400 });
         }
         query = parsed.data;
@@ -72,7 +81,9 @@ function nextRouteAdapter<TInput, TOutput, TQuery = undefined>(
         const body: unknown = await req.json();
         const parsed = options.schema.safeParse(body);
         if (!parsed.success) {
-          const message = parsed.error.issues.map((issue) => issue.message).join(", ");
+          const message = parsed.error.issues
+            .map((issue) => issue.message)
+            .join(", ");
           return NextResponse.json({ error: message }, { status: 400 });
         }
         input = parsed.data;
@@ -99,12 +110,21 @@ function nextRouteAdapter<TInput, TOutput, TQuery = undefined>(
   };
 }
 
-async function rateLimited(rule: RateLimitRule & { name: string }, actor: Actor) {
-  const decision = await container.rateLimiter.consume(`${rule.name}:${actor.id}`, rule);
+async function rateLimited(
+  rule: RateLimitRule & { name: string },
+  actor: Actor,
+) {
+  const decision = await container.rateLimiter.consume(
+    `${rule.name}:${actor.id}`,
+    rule,
+  );
   if (decision.allowed) return null;
   return NextResponse.json(
     { error: "Muitas tentativas. Aguarde um pouco e tente de novo." },
-    { status: 429, headers: { "Retry-After": String(decision.retryAfterSeconds) } },
+    {
+      status: 429,
+      headers: { "Retry-After": String(decision.retryAfterSeconds) },
+    },
   );
 }
 
