@@ -150,7 +150,12 @@ const tradesQuerySchema = pageQuerySchema.extend({
   box: z.enum(["incoming", "outgoing"], "Informe se a lista é recebida ou enviada."),
 });
 
+const arenaMatchSchema = z.object({
+  difficulty: z.enum(["normal", "hard"]),
+});
+
 export {
+  arenaMatchSchema,
   boosterSchema,
   cardGenerationSchema,
   cardSchema,

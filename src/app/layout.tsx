@@ -1,5 +1,5 @@
 import { Providers } from "@/components/providers/providers";
-import { readFeatureFlags } from "@/lib/feature-flags";
+import { readFeatureFlags } from "@/lib/feature-flags.server";
 import { siteMetadata } from "@/lib/site-metadata";
 import { trackFeatureFlags } from "@/lib/track-feature-flags";
 import { Sora } from "next/font/google";
@@ -17,7 +17,7 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   await connection();
-  const featureFlags = readFeatureFlags();
+  const featureFlags = await readFeatureFlags();
   trackFeatureFlags(featureFlags);
 
   return (

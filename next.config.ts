@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
+  experimental: {
+    // Auto eviction drops live HMR chunk versions. The server subscription
+    // then fails, refetches the open route, and loops until Turbopack panics.
+    turbopackMemoryEviction: false,
+  },
 };
 
 export default withSentryConfig(nextConfig, {

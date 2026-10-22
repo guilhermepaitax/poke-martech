@@ -28,6 +28,7 @@
   --energy-metal: #7e95a8;
   --energy-dragon: #c9a227;
   --energy-colorless: #8b949e;
+  --energy-ground: #c9a25a;
   --card-frame-matte: linear-gradient(
     160deg,
     #c3c6c9 0%,
@@ -202,8 +203,10 @@
   --color-energy-metal: var(--energy-metal);
   --color-energy-dragon: var(--energy-dragon);
   --color-energy-colorless: var(--energy-colorless);
+  --color-energy-ground: var(--energy-ground);
   --font-sans: var(--font-sora);
   --font-display: var(--font-bricolage, var(--font-sora)), sans-serif;
+  --font-arena-title: var(--font-title), var(--font-sora), sans-serif;
   --color-landing-ink: var(--landing-ink);
   --color-landing-dusk: var(--landing-dusk);
   --color-landing-gold: var(--landing-gold);
@@ -1075,7 +1078,235 @@ body {
   animation: landing-deal 900ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
 }
 
+.arena-picker,
+.arena-hud-frame {
+  --arena-bg: #150e27;
+  --arena-ink: #f7f3ff;
+  --arena-ink-subtle: #bdb2da;
+  --arena-line: rgb(255 255 255 / 0.14);
+  --arena-panel: rgb(20 12 38 / 0.82);
+  --arena-cta: #c6f135;
+  --arena-cta-ink: #1c2905;
+}
+
+.arena-picker {
+  background:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 36px
+      36px,
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 /
+      36px 36px,
+    var(--arena-bg);
+  color: var(--arena-ink);
+}
+
+.arena-banner {
+  transition:
+    opacity 450ms ease-out,
+    transform 700ms cubic-bezier(0.16, 0.84, 0.3, 1);
+}
+
+.arena-banner[data-hidden] {
+  opacity: 0;
+  transform: scale(1.04) translateX(-2%);
+}
+
+.arena-banner-shade {
+  background: linear-gradient(
+    180deg,
+    rgb(21 14 39 / 0.35) 0%,
+    transparent 30%,
+    transparent 60%,
+    var(--arena-bg) 100%
+  );
+}
+
+.arena-name {
+  color: var(--arena-ink);
+  text-shadow:
+    0 3px 0 rgb(0 0 0 / 0.6),
+    0 0 28px rgb(0 0 0 / 0.55);
+}
+
+.arena-tab {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  background: var(--arena-ink);
+  color: var(--arena-bg);
+}
+
+.arena-picker-panel {
+  background: var(--arena-panel);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--arena-line);
+}
+
+@media (min-width: 64rem) {
+  .arena-banner-shade {
+    background:
+      linear-gradient(
+        90deg,
+        transparent 45%,
+        rgb(21 14 39 / 0.6) 66%,
+        rgb(21 14 39 / 0.9) 100%
+      ),
+      linear-gradient(180deg, rgb(21 14 39 / 0.45) 0%, transparent 25%);
+  }
+
+  .arena-picker-panel {
+    border-top: none;
+    border-left: 1px solid var(--arena-line);
+  }
+}
+
+.arena-picker-meter {
+  transform: skewX(-12deg);
+  background: var(--arena-line);
+}
+
+.arena-picker-meter-fill {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--energy) 70%, white),
+    var(--energy)
+  );
+}
+
+.arena-picker-key {
+  transform: skewX(-8deg);
+  background: var(--energy);
+  color: white;
+}
+
+.arena-side-slot {
+  border: 2px solid var(--arena-line);
+  background: rgb(255 255 255 / 0.04);
+  transform: skewX(-8deg);
+  transition:
+    border-color 160ms ease-out,
+    background-color 160ms ease-out;
+}
+
+.arena-side-slot > * {
+  transform: skewX(8deg);
+}
+
+.arena-side-slot:hover {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.arena-side-slot[data-active] {
+  border-color: var(--energy, var(--arena-ink));
+  background: color-mix(in srgb, var(--energy, white) 22%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--energy, white) 45%, transparent);
+}
+
+.arena-roster-tile {
+  overflow: hidden;
+  border: 2px solid var(--arena-line);
+  background: color-mix(in srgb, var(--energy) 35%, var(--arena-bg));
+  transition:
+    border-color 160ms ease-out,
+    box-shadow 160ms ease-out,
+    transform 160ms ease-out;
+}
+
+.arena-roster-tile:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--energy) 60%, white);
+}
+
+.arena-roster-tile[data-current] {
+  border-color: var(--arena-ink);
+  box-shadow:
+    0 0 0 2px var(--energy),
+    0 0 22px color-mix(in srgb, var(--energy) 60%, transparent);
+}
+
+.arena-roster-badge {
+  background: var(--arena-ink);
+  color: var(--arena-bg);
+}
+
+.arena-roster-badge[data-side="opponent"] {
+  background: var(--arena-bg);
+  color: var(--arena-ink);
+}
+
+.arena-choice {
+  --choice-tone: #7fd3ff;
+  transform: skewX(-8deg);
+  border: 2px solid var(--arena-line);
+  background: rgb(255 255 255 / 0.04);
+  color: var(--arena-ink-subtle);
+  transition:
+    border-color 160ms ease-out,
+    background-color 160ms ease-out,
+    color 160ms ease-out;
+}
+
+.arena-choice[data-level="hard"] {
+  --choice-tone: #ff6b5a;
+}
+
+.arena-choice > * {
+  transform: skewX(8deg);
+}
+
+.arena-choice:hover {
+  color: var(--arena-ink);
+  border-color: color-mix(in srgb, var(--choice-tone) 50%, transparent);
+}
+
+.arena-choice[data-selected] {
+  border-color: var(--choice-tone);
+  background: color-mix(in srgb, var(--choice-tone) 20%, transparent);
+  color: var(--arena-ink);
+}
+
+.arena-choice-icon {
+  color: var(--choice-tone);
+}
+
+.arena-cta-shadow {
+  filter: drop-shadow(0 6px 0 rgb(0 0 0 / 0.55))
+    drop-shadow(0 0 18px color-mix(in srgb, var(--arena-cta) 35%, transparent));
+}
+
+.arena-cta {
+  clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%);
+  background: linear-gradient(180deg, #e2ff7a 0%, var(--arena-cta) 50%, #96cc12 100%);
+  color: var(--arena-cta-ink);
+  cursor: pointer;
+  transition:
+    filter 160ms ease-out,
+    transform 160ms ease-out;
+}
+
+.arena-cta:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.arena-cta:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+.arena-cta:focus-visible {
+  filter: brightness(1.15);
+  outline: none;
+}
+
+.arena-cta-shadow:has(.arena-cta:focus-visible) {
+  filter: drop-shadow(0 0 2px white) drop-shadow(0 0 2px white)
+    drop-shadow(0 6px 0 rgb(0 0 0 / 0.55));
+}
+
+.arena-cta:disabled {
+  cursor: not-allowed;
+  filter: grayscale(1) brightness(0.7);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .arena-banner,
   .pack-rip,
   [data-ripping] .pack-cap,
   .card-deal,
@@ -1088,5 +1319,518 @@ body {
   .pack-opening-burst {
     animation: none;
     transition: none;
+  }
+}
+
+.arena-hud-frame[data-paused] *,
+.arena-hud-frame[data-paused] *::before,
+.arena-hud-frame[data-paused] *::after {
+  animation-play-state: paused !important;
+}
+
+.arena-bar-strip {
+  clip-path: polygon(3% 0, 100% 0, 97% 100%, 0 100%);
+  border-top: 2px solid var(--arena-line);
+  background:
+    linear-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px) 0 0 / 12px
+      12px,
+    var(--arena-panel);
+  backdrop-filter: blur(8px);
+}
+
+.arena-slot {
+  --slot-ink: var(--arena-ink);
+  --slot-glow: transparent;
+  transform: skewX(-12deg);
+  border: 2px solid var(--arena-line);
+  background: var(--arena-panel);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 5px 0 rgb(0 0 0 / 0.6),
+    0 0 18px var(--slot-glow);
+  color: var(--slot-ink);
+  transition:
+    transform 160ms ease-out,
+    filter 200ms ease-out,
+    opacity 200ms ease-out,
+    box-shadow 200ms ease-out;
+}
+
+.arena-slot-unskew {
+  transform: skewX(12deg);
+}
+
+.arena-slot[data-selected] {
+  --slot-ink: var(--arena-cta-ink);
+  --slot-glow: color-mix(in srgb, var(--arena-cta) 45%, transparent);
+  border-color: var(--arena-ink);
+  background: linear-gradient(180deg, #e2ff7a 0%, var(--arena-cta) 50%, #96cc12 100%);
+}
+
+.arena-slot[data-charge="1"] {
+  --slot-glow: color-mix(in srgb, var(--energy-fire) 70%, transparent);
+  border-color: var(--energy-fire);
+}
+
+.arena-slot[data-charge="2"] {
+  --slot-glow: color-mix(in srgb, var(--energy-psychic) 85%, transparent);
+  border-color: var(--energy-psychic);
+  animation: arena-slot-max 180ms ease-in-out infinite alternate;
+}
+
+.arena-slot[data-cooling] {
+  opacity: 0.5;
+  filter: grayscale(0.85);
+}
+
+.arena-slot-key {
+  background: rgb(0 0 0 / 0.45);
+  color: var(--arena-ink-subtle);
+}
+
+.arena-slot-keycap {
+  background: var(--arena-line);
+  color: var(--arena-ink);
+}
+
+.arena-slot[data-selected] .arena-slot-keycap,
+.arena-slot[data-selected] .arena-slot-key {
+  background: var(--arena-bg);
+  color: var(--arena-ink);
+}
+
+.arena-slot-shade {
+  background: rgb(0 0 0 / 0.65);
+  animation: arena-cooldown-shade var(--cooldown) linear forwards;
+  animation-delay: var(--cooldown-delay);
+}
+
+.arena-slot-scan {
+  top: 0;
+  height: 2px;
+  background: var(--arena-cta);
+  box-shadow: 0 0 10px 2px var(--arena-cta);
+  animation: arena-cooldown-scan var(--cooldown) linear forwards;
+  animation-delay: var(--cooldown-delay);
+}
+
+.arena-slot-flash {
+  background: white;
+  animation: arena-slot-ready 360ms ease-out forwards;
+}
+
+.arena-charge-fill {
+  transform-origin: left;
+  animation: arena-charge-fill var(--charge-duration, 2000ms) linear forwards;
+  animation-delay: var(--charge-delay);
+}
+
+[data-charge="1"] .arena-charge-fill {
+  background: linear-gradient(90deg, var(--accent), var(--energy-fire));
+}
+
+[data-charge="2"] .arena-charge-fill {
+  background: linear-gradient(90deg, var(--energy-fire), var(--energy-psychic));
+}
+
+.arena-plate {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
+  border-top: 2px solid var(--energy);
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--energy) 32%, transparent),
+      transparent 55%
+    ),
+    var(--arena-panel);
+  backdrop-filter: blur(8px);
+}
+
+.arena-plate[data-side="opponent"] {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 18px 100%);
+  background:
+    linear-gradient(
+      260deg,
+      color-mix(in srgb, var(--energy) 32%, transparent),
+      transparent 55%
+    ),
+    var(--arena-panel);
+}
+
+.arena-portrait {
+  border: 2px solid var(--arena-ink);
+  background: color-mix(in srgb, var(--energy) 40%, var(--arena-bg));
+  box-shadow:
+    0 0 0 2px var(--energy),
+    0 0 16px color-mix(in srgb, var(--energy) 55%, transparent);
+}
+
+.arena-side-tag {
+  background: var(--arena-ink);
+  color: var(--arena-bg);
+}
+
+.arena-hp-track {
+  transform: skewX(-14deg);
+  border: 1px solid var(--arena-line);
+  background: rgb(0 0 0 / 0.55);
+}
+
+.arena-hp-lag {
+  background: rgb(255 255 255 / 0.7);
+}
+
+.arena-hp-fill[data-tone="high"] {
+  background: linear-gradient(90deg, #8fd61a, var(--arena-cta));
+}
+
+.arena-hp-fill[data-tone="mid"] {
+  background: linear-gradient(90deg, var(--energy-fire), var(--accent));
+}
+
+.arena-hp-fill[data-tone="low"] {
+  background: linear-gradient(90deg, var(--destructive), var(--energy-fire));
+}
+
+.arena-hp-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 55% 0;
+  background: rgb(255 255 255 / 0.3);
+}
+
+.arena-meter {
+  transform: skewX(-14deg);
+  background: rgb(0 0 0 / 0.55);
+  border: 1px solid var(--arena-line);
+}
+
+.arena-meter[data-segment="1"] .arena-meter-fill {
+  background: linear-gradient(90deg, var(--accent), var(--energy-fire));
+}
+
+.arena-meter[data-segment="2"] .arena-meter-fill {
+  background: linear-gradient(90deg, var(--energy-fire), var(--energy-psychic));
+}
+
+.arena-clock {
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 100%, 0 100%);
+  border-bottom: 2px solid var(--arena-cta);
+  background: var(--arena-panel);
+  backdrop-filter: blur(8px);
+  color: var(--arena-ink);
+  text-shadow: 0 2px 0 rgb(0 0 0 / 0.6);
+}
+
+.arena-stamp {
+  color: var(--accent);
+  -webkit-text-stroke: 2px color-mix(in srgb, var(--foreground) 80%, black);
+  paint-order: stroke fill;
+  text-shadow:
+    0 0 12px var(--energy-psychic),
+    3px 3px 0 color-mix(in srgb, var(--foreground) 80%, black);
+  animation: arena-stamp 240ms cubic-bezier(0.2, 1.6, 0.4, 1) both,
+    arena-stamp-pulse 420ms ease-in-out 240ms infinite alternate;
+}
+
+.arena-title {
+  --title-tone: var(--energy-water);
+  --title-deep: color-mix(in srgb, var(--energy-water) 55%, #1a2a6a);
+}
+
+.arena-title[data-tone="victory"] {
+  --title-tone: var(--accent);
+  --title-deep: color-mix(in srgb, var(--energy-water) 55%, #1a2a6a);
+}
+
+.arena-title[data-tone="defeat"] {
+  --title-tone: var(--destructive);
+  --title-deep: color-mix(in srgb, var(--destructive) 50%, #2a0f12);
+}
+
+.arena-title[data-tone="neutral"] {
+  --title-tone: var(--energy-metal);
+  --title-deep: color-mix(in srgb, var(--energy-metal) 45%, #121a24);
+}
+
+.arena-title-backdrop {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 20%, rgb(0 0 0 / 0.55) 75%),
+    var(--title-deep);
+}
+
+.arena-title-rays {
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgb(255 255 255 / 0.1) 0deg 7deg,
+    transparent 7deg 18deg
+  );
+  animation: arena-rays 24s linear infinite;
+}
+
+.arena-title-star {
+  color: var(--title-tone);
+  filter: drop-shadow(0 6px 0 color-mix(in srgb, var(--title-deep) 70%, black));
+  animation: arena-title-star 900ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.arena-title-ribbon {
+  transform: rotate(-4deg) skewX(-14deg);
+  background: white;
+  box-shadow:
+    10px 10px 0 var(--title-tone),
+    0 18px 40px rgb(0 0 0 / 0.35);
+  animation: arena-title-in 520ms cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.arena-title-ribbon > * {
+  transform: skewX(14deg);
+}
+
+.arena-title-accent {
+  color: var(--title-tone);
+  -webkit-text-stroke: 2px var(--title-deep);
+  paint-order: stroke fill;
+}
+
+.arena-title-confetti {
+  width: 10px;
+  height: 4px;
+  background: var(--confetti);
+  animation: arena-confetti var(--confetti-ms) ease-out var(--confetti-delay) infinite;
+}
+
+.arena-reward {
+  --reward-tone: var(--accent);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+  border-radius: 6px 0 0 6px;
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--reward-tone) 35%, transparent), transparent 60%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.08), transparent 40%),
+    color-mix(in srgb, var(--foreground) 85%, black);
+  box-shadow: inset 4px 0 0 var(--reward-tone);
+  animation: arena-reward-in 420ms cubic-bezier(0.2, 1.4, 0.4, 1) 400ms both;
+}
+
+.arena-reward[data-tone="muted"],
+.arena-reward[data-tone="pending"] {
+  --reward-tone: var(--energy-metal);
+}
+
+.arena-reward[data-tone="error"] {
+  --reward-tone: var(--destructive);
+}
+
+.arena-reward-coin {
+  color: color-mix(in srgb, var(--reward-tone) 35%, black);
+  background:
+    radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.7), transparent 45%),
+    var(--reward-tone);
+  box-shadow:
+    0 3px 0 color-mix(in srgb, var(--reward-tone) 45%, black),
+    0 0 18px color-mix(in srgb, var(--reward-tone) 60%, transparent);
+}
+
+.arena-reward[data-tone="granted"] .arena-reward-coin {
+  animation: arena-reward-coin 700ms cubic-bezier(0.2, 1.4, 0.4, 1) 550ms both;
+}
+
+.arena-reward[data-tone="pending"] .arena-reward-coin {
+  animation: arena-reward-spin 900ms linear infinite;
+}
+
+.arena-reward[data-tone="muted"] .arena-reward-coin {
+  filter: grayscale(1);
+  opacity: 0.7;
+}
+
+.arena-reward-amount {
+  color: white;
+}
+
+.arena-reward[data-tone="granted"] .arena-reward-amount {
+  color: var(--accent);
+  -webkit-text-stroke: 2px color-mix(in srgb, var(--accent) 30%, black);
+  paint-order: stroke fill;
+}
+
+.arena-reward[data-tone="muted"] .arena-reward-amount,
+.arena-reward[data-tone="error"] .arena-reward-amount {
+  color: rgb(255 255 255 / 0.55);
+}
+
+.arena-reward-pip {
+  transform: skewX(-14deg);
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.14);
+}
+
+.arena-reward-pip[data-filled] {
+  background: var(--reward-tone);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--reward-tone) 60%, transparent);
+}
+
+.arena-reward-pip[data-fresh] {
+  animation: arena-reward-pip 900ms ease-out 750ms both;
+}
+
+@keyframes arena-reward-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes arena-reward-coin {
+  0% {
+    transform: scale(0.3) rotateY(0deg);
+  }
+  60% {
+    transform: scale(1.2) rotateY(540deg);
+  }
+  100% {
+    transform: scale(1) rotateY(720deg);
+  }
+}
+
+@keyframes arena-reward-spin {
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes arena-reward-pip {
+  0% {
+    background: rgb(255 255 255 / 0.14);
+    box-shadow: none;
+  }
+  40% {
+    background: white;
+    box-shadow: 0 0 16px white;
+  }
+  100% {
+    background: var(--reward-tone);
+  }
+}
+
+@keyframes arena-cooldown-shade {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    clip-path: inset(100% 0 0 0);
+  }
+}
+
+@keyframes arena-cooldown-scan {
+  from {
+    top: 0;
+    opacity: 1;
+  }
+  to {
+    top: 100%;
+    opacity: 0.4;
+  }
+}
+
+@keyframes arena-slot-ready {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes arena-slot-max {
+  to {
+    box-shadow:
+      0 6px 0 black,
+      0 0 28px var(--slot-glow),
+      inset 0 1px 0 rgb(255 255 255 / 0.18);
+  }
+}
+
+@keyframes arena-charge-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes arena-stamp {
+  from {
+    opacity: 0;
+    transform: rotate(-8deg) scale(2.2);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-8deg) scale(1);
+  }
+}
+
+@keyframes arena-stamp-pulse {
+  to {
+    transform: rotate(-8deg) scale(1.08);
+  }
+}
+
+@keyframes arena-rays {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes arena-title-in {
+  from {
+    opacity: 0;
+    transform: rotate(-4deg) skewX(-14deg) scale(1.7);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-4deg) skewX(-14deg) scale(1);
+  }
+}
+
+@keyframes arena-title-star {
+  from {
+    opacity: 0;
+    transform: rotate(-60deg) scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-14deg) scale(1);
+  }
+}
+
+@keyframes arena-confetti {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--confetti-x), var(--confetti-y)) rotate(540deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-title-rays,
+  .arena-title-confetti,
+  .arena-stamp,
+  .arena-slot[data-charge="2"],
+  .arena-reward,
+  .arena-reward-coin,
+  .arena-reward-pip {
+    animation: none !important;
   }
 }

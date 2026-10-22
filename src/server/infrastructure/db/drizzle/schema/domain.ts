@@ -48,6 +48,22 @@ const coinLedger = pgTable(
   (table) => [index("coin_ledger_user_id_idx").on(table.userId)],
 );
 
+const arenaMatches = pgTable(
+  "arena_matches",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    difficulty: text("difficulty").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    outcome: text("outcome"),
+    reward: integer("reward"),
+  },
+  (table) => [index("arena_matches_user_finished_idx").on(table.userId, table.finishedAt)],
+);
+
 const cards = pgTable(
   "cards",
   {
@@ -359,6 +375,7 @@ const appRateLimits = pgTable("app_rate_limits", {
 
 export {
   appRateLimits,
+  arenaMatches,
   boosterCards,
   boosters,
   cardAttacks,

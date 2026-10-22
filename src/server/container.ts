@@ -9,6 +9,7 @@ import { GetAdminCard } from "@/server/application/use-cases/get-admin-card";
 import { GetBooster } from "@/server/application/use-cases/get-booster";
 import { GetCard } from "@/server/application/use-cases/get-card";
 import { AcceptTrade } from "@/server/application/use-cases/accept-trade";
+import { ClaimArenaWin } from "@/server/application/use-cases/claim-arena-win";
 import { CancelTrade } from "@/server/application/use-cases/cancel-trade";
 import { CreateTrade } from "@/server/application/use-cases/create-trade";
 import { FollowUser } from "@/server/application/use-cases/follow-user";
@@ -20,6 +21,7 @@ import { ListFollowers } from "@/server/application/use-cases/list-followers";
 import { ListFollowing } from "@/server/application/use-cases/list-following";
 import { ListTradableCards } from "@/server/application/use-cases/list-tradable-cards";
 import { ListTrades } from "@/server/application/use-cases/list-trades";
+import { RecordArenaDefeat } from "@/server/application/use-cases/record-arena-defeat";
 import { RejectTrade } from "@/server/application/use-cases/reject-trade";
 import { UnfollowUser } from "@/server/application/use-cases/unfollow-user";
 import { GrantSignupBonus } from "@/server/application/use-cases/grant-signup-bonus";
@@ -41,8 +43,10 @@ import { GetCardGeneration } from "@/server/application/use-cases/get-card-gener
 import { ListCardGenerations } from "@/server/application/use-cases/list-card-generations";
 import { ProcessCardGeneration } from "@/server/application/use-cases/process-card-generation";
 import { RetryCardGeneration } from "@/server/application/use-cases/retry-card-generation";
+import { StartArenaMatch } from "@/server/application/use-cases/start-arena-match";
 import { StartCardGeneration } from "@/server/application/use-cases/start-card-generation";
 import { DrizzleRateLimiter } from "@/server/infrastructure/db/drizzle/drizzle-rate-limiter";
+import { DrizzleArenaMatchRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-arena-match-repository";
 import { DrizzleBoosterRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-booster-repository";
 import { DrizzleCardGenerationRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-card-generation-repository";
 import { DrizzleCardRepository } from "@/server/infrastructure/db/drizzle/repositories/drizzle-card-repository";
@@ -75,6 +79,7 @@ const profiles = new DrizzleProfileRepository();
 const pokedex = new DrizzlePokedexRepository();
 const follows = new DrizzleFollowRepository();
 const trades = new DrizzleTradeRepository();
+const arenaMatches = new DrizzleArenaMatchRepository();
 const purchases = new DrizzlePackPurchaseRepository();
 const openings = new DrizzleOpeningRepository();
 const storage = new R2Storage();
@@ -109,6 +114,9 @@ const container = {
   getBooster: new GetBooster(boosters),
   openPack: new OpenPack(purchases),
   getOpening: new GetOpening(openings),
+  startArenaMatch: new StartArenaMatch(arenaMatches),
+  claimArenaWin: new ClaimArenaWin(arenaMatches),
+  recordArenaDefeat: new RecordArenaDefeat(arenaMatches),
   listAdminCards: new ListAdminCards(cards),
   searchAdminCards: new SearchAdminCards(cards),
   listAdminTags: new ListAdminTags(tags),
@@ -122,7 +130,11 @@ const container = {
   listRarityWeights: new ListRarityWeights(rarities),
   upsertRarityWeights: new UpsertRarityWeights(rarities),
   uploadImage: new UploadImage(storage),
-  startCardGeneration: new StartCardGeneration(cardGenerations, cardIdeas, images),
+  startCardGeneration: new StartCardGeneration(
+    cardGenerations,
+    cardIdeas,
+    images,
+  ),
   processCardGeneration: new ProcessCardGeneration(
     cardGenerations,
     cards,
