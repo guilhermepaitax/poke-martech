@@ -1,29 +1,11 @@
+import type { ArenaFighter, FighterAction } from "@/lib/arena/fighter";
 import Phaser from "phaser";
 
-const SPRITE_CELL_SIZE = 128;
+const FIGHTER_ACTIONS: readonly FighterAction[] = ["idle", "walk", "attack", "hurt"];
 
 const ARENA_FLOOR = {
   key: "arena-floor",
   path: "/arena/backgrounds/floor.jpg",
-} as const;
-
-const CHARACTER_SHEETS = {
-  idle: {
-    key: "antoniomander-idle",
-    path: "/arena/characters/antoniomander/idle.png",
-  },
-  walk: {
-    key: "antoniomander-walk",
-    path: "/arena/characters/antoniomander/walk.png",
-  },
-  attack: {
-    key: "antoniomander-attack",
-    path: "/arena/characters/antoniomander/attack.png",
-  },
-  hurt: {
-    key: "antoniomander-hurt",
-    path: "/arena/characters/antoniomander/hurt.png",
-  },
 } as const;
 
 const ARENA_AUDIO = {
@@ -34,16 +16,22 @@ const ARENA_AUDIO = {
   explosion: { key: "arena-explosion", path: "/arena/audio/explosion.wav" },
 } as const;
 
-type CharacterAction = keyof typeof CHARACTER_SHEETS;
 type ArenaCue = keyof typeof ARENA_AUDIO;
 
-function preloadArenaAssets(scene: Phaser.Scene) {
+function fighterSheetKey(fighter: ArenaFighter, action: FighterAction) {
+  return `${fighter.id}-${action}`;
+}
+
+function preloadArenaAssets(scene: Phaser.Scene, fighters: readonly ArenaFighter[]) {
   scene.load.image(ARENA_FLOOR.key, ARENA_FLOOR.path);
-  (Object.keys(CHARACTER_SHEETS) as CharacterAction[]).forEach((action) => {
-    const sheet = CHARACTER_SHEETS[action];
-    scene.load.spritesheet(sheet.key, sheet.path, {
-      frameWidth: SPRITE_CELL_SIZE,
-      frameHeight: SPRITE_CELL_SIZE,
+  fighters.forEach((fighter) => {
+    FIGHTER_ACTIONS.forEach((action) => {
+      const key = fighterSheetKey(fighter, action);
+      if (scene.textures.exists(key)) return;
+      scene.load.spritesheet(key, fighter.sprite.sheets[action].path, {
+        frameWidth: fighter.sprite.cellSize,
+        frameHeight: fighter.sprite.cellSize,
+      });
     });
   });
   (Object.keys(ARENA_AUDIO) as ArenaCue[]).forEach((cue) => {
@@ -52,9 +40,9 @@ function preloadArenaAssets(scene: Phaser.Scene) {
   });
 }
 
-function applyNearestCharacterFilter(scene: Phaser.Scene) {
-  (Object.keys(CHARACTER_SHEETS) as CharacterAction[]).forEach((action) => {
-    const key = CHARACTER_SHEETS[action].key;
+function applyNearestCharacterFilter(scene: Phaser.Scene, fighter: ArenaFighter) {
+  FIGHTER_ACTIONS.forEach((action) => {
+    const key = fighterSheetKey(fighter, action);
     if (!scene.textures.exists(key)) return;
     scene.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
   });
@@ -63,9 +51,8 @@ function applyNearestCharacterFilter(scene: Phaser.Scene) {
 export {
   ARENA_AUDIO,
   ARENA_FLOOR,
-  CHARACTER_SHEETS,
-  preloadArenaAssets,
-  SPRITE_CELL_SIZE,
   applyNearestCharacterFilter,
+  fighterSheetKey,
+  preloadArenaAssets,
 };
-export type { ArenaCue, CharacterAction };
+export type { ArenaCue };

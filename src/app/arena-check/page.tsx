@@ -1,22 +1,12 @@
 "use client";
 
 import { ArenaGame } from "@/components/arena/arena-game";
+import { antoniomander } from "@/lib/arena/fighters/antoniomander";
+import { calvossauro } from "@/lib/arena/fighters/calvossauro";
 
 const matchup = {
-  player: {
-    id: "player",
-    name: "Ash",
-    hp: 80,
-    imageUrl: null,
-    attackDamage: 30,
-  },
-  opponent: {
-    id: "opponent",
-    name: "Gary",
-    hp: 70,
-    imageUrl: null,
-    attackDamage: 20,
-  },
+  player: antoniomander,
+  opponent: calvossauro,
 };
 
 export default function ArenaCheckPage() {

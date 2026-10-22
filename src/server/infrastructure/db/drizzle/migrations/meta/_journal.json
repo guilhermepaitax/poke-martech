@@ -113,6 +113,20 @@
       "when": 1792526534545,
       "tag": "0015_drop_battle_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1792587363528,
+      "tag": "0016_arena_matches",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792592904965,
+      "tag": "0017_arena_match_outcome",
+      "breakpoints": true
     }
   ]
 }

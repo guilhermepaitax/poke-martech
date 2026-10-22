@@ -1,28 +1,22 @@
 import {
+  CHARACTER_DISPLAY_SIZE,
   characterAnimationKey,
   characterFrameStart,
   playClip,
+  type CharacterClip,
 } from "@/game/arena/animations/character";
-import { CHARACTER_SHEETS, SPRITE_CELL_SIZE } from "@/game/arena/assets/catalog";
+import { fighterSheetKey } from "@/game/arena/assets/catalog";
 import {
   createMarker,
   setMarkerHp,
   syncMarker,
+  type MarkerSide,
   type PlayerMarker,
 } from "@/game/arena/entities/marker";
 import type { AttackKind } from "@/lib/arena/combat";
 import type { ArenaFighter } from "@/lib/arena/fighter";
 import { normalizeMove, type Facing } from "@/lib/arena/movement";
 import Phaser from "phaser";
-
-const PLAYER_DISPLAY_SIZE = 96;
-const PLAYER_SPEED = 340;
-const PLAYER_BODY_WIDTH = 60;
-const PLAYER_BODY_HEIGHT = 100;
-const PLAYER_BODY_OFFSET_X = (SPRITE_CELL_SIZE - PLAYER_BODY_WIDTH) / 2;
-const PLAYER_BODY_OFFSET_Y = 20;
-const FEET_OFFSET_Y = 36;
-const PLAYER_DEPTH = 2;
 
 type DashKind = "lunge" | "evade";
 
@@ -34,12 +28,12 @@ type Dash = {
 };
 
 type Player = {
+  fighter: ArenaFighter;
   sprite: Phaser.Physics.Arcade.Sprite;
   facing: Facing;
   marker: PlayerMarker;
   hp: number;
   maxHp: number;
-  attackDamage: number;
   attacking: boolean;
   hurting: boolean;
   dash: Dash | null;
@@ -54,32 +48,49 @@ function createPlayer(
   y: number,
   fighter: ArenaFighter,
   facing: Facing = "south",
+  side: MarkerSide = "player",
+  mirrored = false,
 ): Player {
-  const feetY = y + FEET_OFFSET_Y;
-  const marker = createMarker(scene, x, feetY, fighter.name, fighter.hp, fighter.hp);
+  const { tuning } = fighter;
+  const feetY = y + tuning.feetOffsetY;
+  const marker = createMarker(
+    scene,
+    x,
+    feetY,
+    fighter.name,
+    fighter.hp,
+    fighter.hp,
+    side,
+  );
   const sprite = scene.physics.add.sprite(
     x,
     y,
-    CHARACTER_SHEETS.idle.key,
-    characterFrameStart("idle", facing),
+    fighterSheetKey(fighter, "idle"),
+    characterFrameStart(fighter, "idle", facing),
   );
-  sprite.setDisplaySize(PLAYER_DISPLAY_SIZE, PLAYER_DISPLAY_SIZE);
-  sprite.setDepth(PLAYER_DEPTH);
+  sprite.setDisplaySize(CHARACTER_DISPLAY_SIZE, CHARACTER_DISPLAY_SIZE);
+  if (mirrored) {
+    sprite.setTint(tuning.mirrorTint).setData("baseTint", tuning.mirrorTint);
+  }
+  sprite.setDepth(tuning.depth);
   sprite.setCollideWorldBounds(true);
   const body = sprite.body;
   if (body instanceof Phaser.Physics.Arcade.Body) {
-    body.setSize(PLAYER_BODY_WIDTH, PLAYER_BODY_HEIGHT, false);
-    body.setOffset(PLAYER_BODY_OFFSET_X, PLAYER_BODY_OFFSET_Y);
+    const cell = fighter.sprite.cellSize;
+    const unit = cell / tuning.bodyReferenceCell;
+    const width = tuning.bodyWidth * unit;
+    body.setSize(width, tuning.bodyHeight * unit, false);
+    body.setOffset((cell - width) / 2, tuning.bodyOffsetY * unit);
   }
-  playClip(sprite, characterAnimationKey("idle", facing));
+  playClip(sprite, characterAnimationKey(fighter, "idle", facing));
 
   return {
+    fighter,
     sprite,
     facing,
     marker,
     hp: fighter.hp,
     maxHp: fighter.hp,
-    attackDamage: fighter.attackDamage,
     attacking: false,
     hurting: false,
     dash: null,
@@ -89,14 +100,21 @@ function createPlayer(
   };
 }
 
+function playPlayerClip(player: Player, action: CharacterClip) {
+  playClip(
+    player.sprite,
+    characterAnimationKey(player.fighter, action, player.facing),
+  );
+}
+
 function playIdle(player: Player) {
-  playClip(player.sprite, characterAnimationKey("idle", player.facing));
+  playPlayerClip(player, "idle");
 }
 
 function playLockedClip(player: Player, action: "attack" | "hurt") {
   const token = ++player.animToken;
   player.sprite.setVelocity(0, 0);
-  playClip(player.sprite, characterAnimationKey(action, player.facing));
+  playPlayerClip(player, action);
   player.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
     if (player.animToken !== token) return;
     if (action === "attack") player.attacking = false;
@@ -128,7 +146,7 @@ function setPlayerHp(player: Player, hp: number) {
 function playerAnchor(player: Player) {
   return {
     x: player.sprite.x,
-    y: player.sprite.y + FEET_OFFSET_Y,
+    y: player.sprite.y + player.fighter.tuning.feetOffsetY,
   };
 }
 
@@ -157,19 +175,26 @@ function startDash(
 }
 
 function isDashing(player: Player) {
-  return player.dash !== null && player.sprite.scene.time.now < player.dash.until;
+  return (
+    player.dash !== null && player.sprite.scene.time.now < player.dash.until
+  );
 }
 
 function isEvading(player: Player) {
   return player.dash?.kind === "evade" && isDashing(player);
 }
 
-function updatePlayer(player: Player, x: number, y: number, speed = PLAYER_SPEED) {
+function updatePlayer(
+  player: Player,
+  x: number,
+  y: number,
+  speed = player.fighter.tuning.speed,
+) {
   if (player.dash && !isDashing(player)) player.dash = null;
   if (player.dash) {
     player.sprite.setVelocity(player.dash.x, player.dash.y);
     if (player.dash.kind === "evade") {
-      playClip(player.sprite, characterAnimationKey("dash", player.facing));
+      playPlayerClip(player, "dash");
     }
     return;
   }
@@ -180,10 +205,7 @@ function updatePlayer(player: Player, x: number, y: number, speed = PLAYER_SPEED
   const move = normalizeMove(x, y);
   const moving = move.x !== 0 || move.y !== 0;
   player.sprite.setVelocity(move.x * speed, move.y * speed);
-  playClip(
-    player.sprite,
-    characterAnimationKey(moving ? "walk" : "idle", player.facing),
-  );
+  playPlayerClip(player, moving ? "walk" : "idle");
 }
 
 function haltPlayer(player: Player) {

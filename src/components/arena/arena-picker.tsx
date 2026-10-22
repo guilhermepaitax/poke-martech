@@ -1,33 +1,29 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { Pagination } from "@/components/ui/pagination";
-import { SegmentedControl } from "@/components/ui/segmented-control";
-import { isArenaDifficulty, type ArenaDifficulty } from "@/lib/arena/cpu";
-import type { ArenaRosterEntry } from "@/lib/arena/fighter";
+import type { ArenaDifficulty } from "@/lib/arena/cpu";
+import type { ArenaFighter } from "@/lib/arena/fighter";
 import type { ArenaSide } from "@/lib/arena/selection";
-import { Search } from "lucide-react";
+import { Swords } from "lucide-react";
+import type { CSSProperties } from "react";
 
-import { ArenaPickerCard } from "./arena-picker-card";
-import { ArenaPickerSlot } from "./arena-picker-slot";
+import { ArenaDifficultyPicker } from "./arena-difficulty";
+import { ArenaPanelSection } from "./arena-panel-section";
+import { fighterAppearance } from "./fighter-appearance";
+import { FighterBanner } from "./fighter-banner";
+import { ArenaMatchupSlots, FighterRoster } from "./fighter-roster";
+import { FighterStats } from "./fighter-stats";
 
-const DIFFICULTY_OPTIONS: { value: ArenaDifficulty; label: string }[] = [
-  { value: "normal", label: "Normal" },
-  { value: "hard", label: "Difícil" },
-];
+const SIDE_LABEL: Record<ArenaSide, string> = {
+  player: "Você",
+  opponent: "Oponente",
+};
 
 function ArenaPicker({
-  entries,
+  fighters,
   player,
   opponent,
+  focused,
   active,
-  query,
-  onQuery,
-  page,
-  pageCount,
-  onPageChange,
   onChoose,
   onActivate,
   onFight,
@@ -35,15 +31,11 @@ function ArenaPicker({
   difficulty,
   onDifficulty,
 }: {
-  entries: ArenaRosterEntry[];
-  player: ArenaRosterEntry | null;
-  opponent: ArenaRosterEntry | null;
+  fighters: readonly ArenaFighter[];
+  player: ArenaFighter | null;
+  opponent: ArenaFighter | null;
+  focused: ArenaFighter | null;
   active: ArenaSide;
-  query: string;
-  onQuery: (value: string) => void;
-  page: number;
-  pageCount: number;
-  onPageChange: (page: number) => void;
   onChoose: (id: string) => void;
   onActivate: (side: ArenaSide) => void;
   onFight: () => void;
@@ -51,77 +43,90 @@ function ArenaPicker({
   difficulty: ArenaDifficulty;
   onDifficulty: (value: ArenaDifficulty) => void;
 }) {
-  const sideOf = (id: string): ArenaSide | null => {
-    if (id === player?.id) return "player";
-    if (id === opponent?.id) return "opponent";
-    return null;
-  };
+  const appearance = focused ? fighterAppearance(focused.energy) : null;
+  const TypeIcon = appearance?.icon;
+  const style = appearance
+    ? ({ "--energy": appearance.color } as CSSProperties)
+    : undefined;
 
   return (
-    <div data-slot="arena-picker" className="flex flex-col gap-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <h1 className="max-w-xl text-3xl font-semibold tracking-tight text-foreground">
-          Escolha quem entra na arena
-        </h1>
-        <div className="flex flex-wrap items-center gap-3 sm:shrink-0">
-          <SegmentedControl
-            ariaLabel="Dificuldade da CPU"
-            value={difficulty}
-            options={DIFFICULTY_OPTIONS}
-            onValueChange={(value) => {
-              if (isArenaDifficulty(value)) onDifficulty(value);
-            }}
+    <div
+      data-slot="arena-picker"
+      style={style}
+      className="arena-picker relative isolate overflow-hidden rounded-[28px] lg:grid lg:min-h-[40rem] lg:grid-cols-[minmax(0,1fr)_26rem]"
+    >
+      <FighterBanner
+        fighters={fighters}
+        focused={focused}
+        className="absolute inset-x-0 top-0 -z-10 aspect-[4/3] sm:aspect-video lg:inset-0 lg:aspect-auto"
+      />
+
+      <div className="flex aspect-[4/3] flex-col items-start gap-2 p-5 sm:aspect-video sm:p-8 lg:aspect-auto">
+        <span className="arena-tab font-arena-title px-3 py-1 text-[11px] leading-none tracking-widest uppercase">
+          Escolhendo · {SIDE_LABEL[active]}
+        </span>
+        {focused ? (
+          <>
+            <h1 className="arena-name font-arena-title text-[clamp(2rem,9vw,4rem)] leading-[0.9] uppercase xl:text-7xl">
+              {focused.name}
+            </h1>
+            <p className="arena-name flex items-center gap-2 text-sm font-semibold sm:text-base">
+              {TypeIcon ? (
+                <TypeIcon aria-hidden className="size-4 text-(--energy)" />
+              ) : null}
+              {focused.title}
+            </p>
+          </>
+        ) : (
+          <h1 className="arena-name font-arena-title text-4xl uppercase sm:text-6xl">
+            Escolha um lutador
+          </h1>
+        )}
+      </div>
+
+      <aside className="arena-picker-panel flex flex-col gap-6 p-5 sm:p-6">
+        <ArenaMatchupSlots
+          player={player}
+          opponent={opponent}
+          active={active}
+          onActivate={onActivate}
+        />
+
+        <ArenaPanelSection
+          title="Lutadores"
+          aside={`para ${SIDE_LABEL[active].toLocaleLowerCase()}`}
+        >
+          <FighterRoster
+            fighters={fighters}
+            player={player}
+            opponent={opponent}
+            active={active}
+            onChoose={onChoose}
           />
-          <Button onClick={onFight} disabled={!canFight}>
-            Lutar
-          </Button>
+        </ArenaPanelSection>
+
+        {focused ? <FighterStats fighter={focused} /> : null}
+
+        <div className="mt-auto flex flex-col gap-4">
+          <ArenaPanelSection title="Dificuldade">
+            <ArenaDifficultyPicker
+              value={difficulty}
+              onValueChange={onDifficulty}
+            />
+          </ArenaPanelSection>
+          <div className="arena-cta-shadow">
+            <button
+              type="button"
+              onClick={onFight}
+              disabled={!canFight}
+              className="arena-cta flex h-14 w-full items-center justify-center gap-3 font-arena-title text-2xl uppercase focus-visible:outline-none"
+            >
+              <Swords aria-hidden className="size-6" />
+              Lutar
+            </button>
+          </div>
         </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4 sm:gap-10">
-        <ArenaPickerSlot
-          label="Você"
-          entry={player}
-          active={active === "player"}
-          onActivate={() => onActivate("player")}
-        />
-        <ArenaPickerSlot
-          label="Oponente"
-          entry={opponent}
-          active={active === "opponent"}
-          onActivate={() => onActivate("opponent")}
-        />
-      </div>
-      <Input
-        value={query}
-        onChange={(event) => onQuery(event.target.value)}
-        placeholder="Buscar lutador"
-        aria-label="Buscar lutador"
-      />
-      {entries.length === 0 ? (
-        <EmptyState
-          placement="section"
-          icon={Search}
-          title="Nenhum lutador com esse nome"
-          description="Apague a busca para ver o catálogo de novo."
-        />
-      ) : (
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {entries.map((entry) => (
-            <li key={entry.id}>
-              <ArenaPickerCard
-                entry={entry}
-                side={sideOf(entry.id)}
-                onChoose={onChoose}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
-      <Pagination
-        page={page}
-        pageCount={pageCount}
-        onPageChange={onPageChange}
-      />
+      </aside>
     </div>
   );
 }

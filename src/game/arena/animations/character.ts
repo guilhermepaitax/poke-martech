@@ -1,84 +1,52 @@
-import {
-  CHARACTER_SHEETS,
-  applyNearestCharacterFilter,
-  type CharacterAction,
-} from "@/game/arena/assets/catalog";
-import { cardinalFacing, type CardinalFacing, type Facing } from "@/lib/arena/movement";
+import { applyNearestCharacterFilter, fighterSheetKey } from "@/game/arena/assets/catalog";
+import { EIGHT_WAY_ROWS, type ArenaFighter, type FighterAction } from "@/lib/arena/fighter";
+import type { Facing } from "@/lib/arena/movement";
 import Phaser from "phaser";
 
-const SHEET_COLUMNS = 8;
 const CHARACTER_DISPLAY_SIZE = 96;
 
-const EIGHT_WAY_ROW = {
-  south: 1,
-  "south-east": 2,
-  east: 3,
-  "north-east": 4,
-  north: 5,
-  "north-west": 6,
-  west: 7,
-  "south-west": 8,
-} as const;
-
-const CARDINAL_ROW = {
-  south: 1,
-  east: 2,
-  north: 3,
-  west: 4,
-} as const;
-
 const CLIP = {
-  idle: { sheet: "idle", frameRate: 8, frames: SHEET_COLUMNS, repeat: -1, eightWay: true },
-  walk: { sheet: "walk", frameRate: 12, frames: SHEET_COLUMNS, repeat: -1, eightWay: true },
-  dash: { sheet: "walk", frameRate: 24, frames: SHEET_COLUMNS, repeat: -1, eightWay: true },
-  attack: { sheet: "attack", frameRate: 12, frames: 3, repeat: 0, eightWay: false },
-  hurt: { sheet: "hurt", frameRate: 12, frames: 6, repeat: 0, eightWay: false },
+  idle: { sheet: "idle", frameRate: 8, repeat: -1 },
+  walk: { sheet: "walk", frameRate: 12, repeat: -1 },
+  dash: { sheet: "walk", frameRate: 24, repeat: -1 },
+  attack: { sheet: "attack", frameRate: 12, repeat: 0 },
+  hurt: { sheet: "hurt", frameRate: 12, repeat: 0 },
 } as const satisfies Record<
   string,
   {
-    sheet: CharacterAction;
+    sheet: FighterAction;
     frameRate: number;
-    frames: number;
     repeat: number;
-    eightWay: boolean;
   }
 >;
 
 type CharacterClip = keyof typeof CLIP;
 
-function usesEightWay(action: CharacterClip) {
-  return CLIP[action].eightWay;
+const FACINGS = Object.keys(EIGHT_WAY_ROWS) as Facing[];
+
+function characterAnimationKey(fighter: ArenaFighter, action: CharacterClip, facing: Facing) {
+  return `${fighter.id}-${action}-${facing}`;
 }
 
-function characterAnimationKey(action: CharacterClip, facing: Facing) {
-  const direction = usesEightWay(action) ? facing : cardinalFacing(facing);
-  return `antoniomander-${action}-${direction}`;
+function characterFrameStart(fighter: ArenaFighter, action: CharacterClip, facing: Facing) {
+  const sheet = fighter.sprite.sheets[CLIP[action].sheet];
+  return sheet.rows[facing] * fighter.sprite.columns;
 }
 
-function characterFrameStart(action: CharacterClip, facing: Facing) {
-  const row = usesEightWay(action)
-    ? EIGHT_WAY_ROW[facing]
-    : CARDINAL_ROW[cardinalFacing(facing)];
-  return row * SHEET_COLUMNS;
-}
-
-function registerCharacterAnimations(scene: Phaser.Scene) {
-  applyNearestCharacterFilter(scene);
+function registerCharacterAnimations(scene: Phaser.Scene, fighter: ArenaFighter) {
+  applyNearestCharacterFilter(scene, fighter);
   (Object.keys(CLIP) as CharacterClip[]).forEach((action) => {
     const clip = CLIP[action];
-    const sheet = CHARACTER_SHEETS[clip.sheet];
-    const directions: Facing[] = clip.eightWay
-      ? (Object.keys(EIGHT_WAY_ROW) as Facing[])
-      : (Object.keys(CARDINAL_ROW) as CardinalFacing[]);
-    directions.forEach((direction) => {
-      const key = characterAnimationKey(action, direction);
+    const sheet = fighter.sprite.sheets[clip.sheet];
+    FACINGS.forEach((direction) => {
+      const key = characterAnimationKey(fighter, action, direction);
       if (scene.anims.exists(key)) return;
-      const start = characterFrameStart(action, direction);
+      const start = characterFrameStart(fighter, action, direction);
       scene.anims.create({
         key,
-        frames: scene.anims.generateFrameNumbers(sheet.key, {
+        frames: scene.anims.generateFrameNumbers(fighterSheetKey(fighter, clip.sheet), {
           start,
-          end: start + clip.frames - 1,
+          end: start + sheet.frames - 1,
         }),
         frameRate: clip.frameRate,
         repeat: clip.repeat,
@@ -93,6 +61,7 @@ function playClip(sprite: Phaser.GameObjects.Sprite, key: string) {
 }
 
 export {
+  CHARACTER_DISPLAY_SIZE,
   characterAnimationKey,
   characterFrameStart,
   playClip,

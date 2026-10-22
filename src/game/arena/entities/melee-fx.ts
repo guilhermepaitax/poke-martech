@@ -4,6 +4,7 @@ import {
   type DashKind,
   type Player,
 } from "@/game/arena/entities/player";
+import { FX_TEXTURES } from "@/game/arena/entities/fx-textures";
 import type { Point } from "@/lib/arena/combat";
 import Phaser from "phaser";
 
@@ -29,6 +30,18 @@ const DUST_GROW = 2.2;
 const DUST_FADE_MS = 340;
 const DUST_COLOR = 0xd8c6a4;
 const DUST_FEET_OFFSET_Y = 34;
+const SHOCK_DEPTH = 6.5;
+const SHOCK_MS = 420;
+const SHOCK_RINGS = 3;
+const SHOCK_STAGGER_MS = 70;
+const GLOW_TEXTURE_RADIUS = 32;
+
+type SlashLook = {
+  color: number;
+  thickness: number;
+};
+
+const PLAIN_SLASH: SlashLook = { color: SLASH_COLOR, thickness: 1 };
 
 type DashStyle = {
   kind: DashKind;
@@ -76,6 +89,7 @@ function paintSlash(
   graphics: Phaser.GameObjects.Graphics,
   radius: number,
   progress: number,
+  look: SlashLook,
 ) {
   graphics.clear();
   if (progress <= 0) return;
@@ -86,16 +100,17 @@ function paintSlash(
   for (let index = 0; index <= SLASH_STEPS; index += 1) {
     const u = index / SLASH_STEPS;
     const angle = start + span * u;
-    const thickness = SLASH_THICKNESS * Math.max(0.08, Math.sin(Math.PI * u));
+    const thickness =
+      SLASH_THICKNESS * look.thickness * Math.max(0.08, Math.sin(Math.PI * u));
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
     outer.push(new Phaser.Math.Vector2(cos * radius, sin * radius));
     inner.push(new Phaser.Math.Vector2(cos * (radius - thickness), sin * (radius - thickness)));
   }
   const ring = [...outer, ...inner.reverse()];
-  graphics.lineStyle(6, SLASH_COLOR, 0.28);
+  graphics.lineStyle(6 * look.thickness, look.color, 0.28);
   graphics.strokePoints(ring, true);
-  graphics.fillStyle(SLASH_COLOR, 0.92);
+  graphics.fillStyle(look.color, 0.92);
   graphics.fillPoints(ring, true);
 }
 
@@ -105,6 +120,7 @@ function spawnSlashArc(
   origin: Point,
   aim: Point,
   radius: number,
+  look: SlashLook = PLAIN_SLASH,
 ) {
   const graphics = scene.add
     .graphics()
@@ -119,11 +135,11 @@ function spawnSlashArc(
     duration: SLASH_DRAW_MS,
     ease: "Quad.easeOut",
     onUpdate: () => {
-      if (graphics.scene) paintSlash(graphics, radius, sweep.progress);
+      if (graphics.scene) paintSlash(graphics, radius, sweep.progress, look);
     },
     onComplete: () => {
       if (!graphics.scene) return;
-      paintSlash(graphics, radius, 1);
+      paintSlash(graphics, radius, 1, look);
       scene.tweens.add({
         targets: graphics,
         alpha: 0,
@@ -255,4 +271,47 @@ function dashWithTrail(
   });
 }
 
-export { DASH_DISTANCE, dashWithTrail, EVADE, spawnSlashArc };
+function spawnShockwave(
+  scene: Phaser.Scene,
+  bucket: Phaser.GameObjects.GameObject[],
+  at: Point,
+  color: number,
+  radius: number,
+) {
+  const flash = scene.add
+    .image(at.x, at.y, FX_TEXTURES.glow)
+    .setTint(color)
+    .setBlendMode(Phaser.BlendModes.ADD)
+    .setDepth(SHOCK_DEPTH)
+    .setScale((radius * 0.6) / GLOW_TEXTURE_RADIUS);
+  const releaseFlash = track(bucket, flash);
+  scene.tweens.add({
+    targets: flash,
+    alpha: 0,
+    scale: (radius * 1.4) / GLOW_TEXTURE_RADIUS,
+    duration: SHOCK_MS,
+    ease: "Quad.easeOut",
+    onComplete: releaseFlash,
+  });
+  for (let index = 0; index < SHOCK_RINGS; index += 1) {
+    const ring = scene.add
+      .ellipse(at.x, at.y, radius * 0.5, radius * 0.25, color, 0)
+      .setStrokeStyle(4 - index, index === 0 ? 0xffffff : color, 1)
+      .setSmoothness(40)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setDepth(SHOCK_DEPTH);
+    const release = track(bucket, ring);
+    scene.tweens.add({
+      targets: ring,
+      scale: 4 + index,
+      alpha: 0,
+      delay: index * SHOCK_STAGGER_MS,
+      duration: SHOCK_MS,
+      ease: "Cubic.easeOut",
+      onComplete: release,
+    });
+  }
+}
+
+export { DASH_DISTANCE, dashWithTrail, EVADE, LUNGE, spawnShockwave, spawnSlashArc };
+export type { DashStyle, SlashLook };

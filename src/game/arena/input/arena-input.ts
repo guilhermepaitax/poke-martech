@@ -18,6 +18,7 @@ type ArenaKeys = {
 
 type ArenaPointerBinding = {
   onPrimaryDown: (worldX: number, worldY: number) => void;
+  onPrimaryUp: (worldX: number, worldY: number) => void;
   onPointerActivity: () => void;
   onWheel: (deltaY: number) => void;
 };
@@ -76,6 +77,10 @@ function bindArenaPointer(scene: Phaser.Scene, binding: ArenaPointerBinding) {
     if (pointer.button !== 0) return;
     binding.onPrimaryDown(pointer.worldX, pointer.worldY);
   };
+  const onPointerUp = (pointer: Phaser.Input.Pointer) => {
+    if (pointer.button !== 0) return;
+    binding.onPrimaryUp(pointer.worldX, pointer.worldY);
+  };
   const onPointerMove = () => {
     binding.onPointerActivity();
   };
@@ -95,6 +100,8 @@ function bindArenaPointer(scene: Phaser.Scene, binding: ArenaPointerBinding) {
   };
 
   scene.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown);
+  scene.input.on(Phaser.Input.Events.POINTER_UP, onPointerUp);
+  scene.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, onPointerUp);
   scene.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove);
   scene.input.on("wheel", onWheel);
   window.addEventListener("keydown", preventScrollKeys);
@@ -102,6 +109,8 @@ function bindArenaPointer(scene: Phaser.Scene, binding: ArenaPointerBinding) {
 
   return () => {
     scene.input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown);
+    scene.input.off(Phaser.Input.Events.POINTER_UP, onPointerUp);
+    scene.input.off(Phaser.Input.Events.POINTER_UP_OUTSIDE, onPointerUp);
     scene.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove);
     scene.input.off("wheel", onWheel);
     window.removeEventListener("keydown", preventScrollKeys);

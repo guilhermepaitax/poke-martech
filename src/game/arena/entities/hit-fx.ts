@@ -30,6 +30,7 @@ type HitFxCast = {
   direction: Point;
   tier: ImpactTier;
   color: number;
+  stars?: boolean;
 };
 
 function track(
@@ -120,6 +121,8 @@ function flashSprite(scene: Phaser.Scene, sprite: Phaser.Physics.Arcade.Sprite) 
   scene.time.delayedCall(FLASH_MS, () => {
     if (!sprite.scene) return;
     sprite.clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
+    const base: unknown = sprite.getData("baseTint");
+    if (typeof base === "number") sprite.setTint(base);
   });
 }
 
@@ -151,8 +154,9 @@ function spawnHitFx(
 ) {
   const size = TIER_SCALE[cast.tier];
   const sprite = cast.target.sprite;
-  burstStar(scene, bucket, cast.at.x, cast.at.y, size, cast.color, 0);
-  if (cast.tier !== "light") {
+  const stars = cast.stars ?? true;
+  if (stars) burstStar(scene, bucket, cast.at.x, cast.at.y, size, cast.color, 0);
+  if (stars && cast.tier !== "light") {
     burstStar(
       scene,
       bucket,

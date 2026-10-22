@@ -13,34 +13,44 @@ const empty: ArenaSelection = {
 
 describe("chooseArenaFighter", () => {
   it("preenche você e passa o foco para o oponente", () => {
-    expect(chooseArenaFighter(empty, "calva")).toEqual({
-      playerId: "calva",
+    expect(chooseArenaFighter(empty, "calvossauro")).toEqual({
+      playerId: "calvossauro",
       opponentId: null,
       active: "opponent",
     });
   });
 
-  it("não deixa o mesmo lutador nos dois lados", () => {
+  it("aceita o mesmo lutador nos dois lados", () => {
     const chosen = chooseArenaFighter(
-      { playerId: "calva", opponentId: null, active: "opponent" },
-      "calva",
+      { playerId: "calvossauro", opponentId: null, active: "opponent" },
+      "calvossauro",
     );
 
     expect(chosen).toEqual({
-      playerId: "calva",
-      opponentId: null,
-      active: "player",
+      playerId: "calvossauro",
+      opponentId: "calvossauro",
+      active: "opponent",
     });
-    expect(canStartArena(chosen)).toBe(false);
+    expect(canStartArena(chosen)).toBe(true);
   });
 
-  it("libera a luta com dois lutadores diferentes", () => {
+  it("troca só o lado ativo quando os dois já estão escolhidos", () => {
     const chosen = chooseArenaFighter(
-      { playerId: "calva", opponentId: null, active: "opponent" },
-      "rafr",
+      { playerId: "antoniomander", opponentId: "calvossauro", active: "player" },
+      "calvossauro",
     );
 
-    expect(chosen.opponentId).toBe("rafr");
-    expect(canStartArena(chosen)).toBe(true);
+    expect(chosen).toEqual({
+      playerId: "calvossauro",
+      opponentId: "calvossauro",
+      active: "player",
+    });
+  });
+
+  it("só libera a luta com os dois lados preenchidos", () => {
+    expect(canStartArena(empty)).toBe(false);
+    expect(
+      canStartArena({ playerId: "antoniomander", opponentId: null, active: "opponent" }),
+    ).toBe(false);
   });
 });

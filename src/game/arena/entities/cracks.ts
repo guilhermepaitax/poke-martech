@@ -242,4 +242,5 @@ function clearCracks(scene: Phaser.Scene, bucket: Phaser.GameObjects.GameObject[
   bucket.length = 0;
 }
 
-export { clearCracks, spawnCracks };
+export { buildBranch, clearCracks, createRng, spawnCracks, spawnDust, strokePartial, track };
+export type { Polyline };

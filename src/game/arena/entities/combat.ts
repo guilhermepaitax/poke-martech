@@ -1,16 +1,16 @@
 import { clearAim, createAim, drawAim } from "@/game/arena/entities/aim";
-import {
-  createAttackHud,
-  destroyAttackHud,
-  layoutAttackHud,
-  paintAttackHud,
-  type AttackHud,
-} from "@/game/arena/entities/attack-hud";
 import { playArenaAudio } from "@/game/arena/entities/audio";
+import {
+  clearBanner,
+  layoutBanner,
+  spawnBanner,
+  type BannerBucket,
+} from "@/game/arena/entities/banner";
 import {
   castBeam,
   clearBeams,
   FIRE_BEAM,
+  FIRE_BEAM_CHARGED,
   type BeamShot,
 } from "@/game/arena/entities/beam";
 import { clearCracks, spawnCracks } from "@/game/arena/entities/cracks";
@@ -19,11 +19,28 @@ import {
   spawnDamageNumber,
 } from "@/game/arena/entities/damage-number";
 import { clearHitFx, spawnHitFx } from "@/game/arena/entities/hit-fx";
+import { flashMarker, spawnRingWave } from "@/game/arena/entities/marker";
 import {
-  DASH_DISTANCE,
+  clearOrbs,
+  GRASS_ORB,
+  GRASS_ORB_CHARGED,
+  launchOrb,
+  stepOrbs,
+  type OrbShot,
+} from "@/game/arena/entities/orb";
+import {
+  hitObstacle,
+  obstacleRect,
+  type Obstacle,
+} from "@/game/arena/entities/obstacle";
+import {
   dashWithTrail,
   EVADE,
+  LUNGE,
+  spawnShockwave,
   spawnSlashArc,
+  type DashStyle,
+  type SlashLook,
 } from "@/game/arena/entities/melee-fx";
 import {
   isDashing,
@@ -34,6 +51,7 @@ import {
   setPlayerHp,
   type Player,
 } from "@/game/arena/entities/player";
+import { chargedDamage, type ChargeLevel } from "@/lib/arena/charge";
 import {
   applyHit,
   attackPower,
@@ -46,9 +64,11 @@ import {
   MELEE_RANGE,
   meleeConnect,
   nextReadyAt,
+  orbVolley,
   resolveDamage,
   rollCritical,
   type AttackKind,
+  type BeamEnd,
   type Point,
   type ResolvedHit,
 } from "@/lib/arena/combat";
@@ -63,14 +83,34 @@ import Phaser from "phaser";
 
 const MUZZLE_FORWARD = 36;
 const MUZZLE_DOWN = 18;
-const MELEE_BLOCK_SPARK_GAP = 24;
 const HURT_NUMBER_OFFSET_Y = 62;
 const MELEE_CRACK_OFFSET_Y = 20;
 const HIT_FX_OFFSET_Y = 10;
 const MELEE_RESOLVE_MS = 90;
+const ATTACK_FLASH_MS = 220;
+const HURT_FLASH_MS = 320;
+const CHARGED_BEAM_MS = 90;
 const IMPACT_COLOR: Record<AttackKind, number> = {
   melee: 0xff8a2a,
   fire: FIRE_BEAM.impact,
+};
+const CHARGE_COLOR: Record<ChargeLevel, number> = {
+  0: IMPACT_COLOR.melee,
+  1: 0xff8a3a,
+  2: 0xd86bff,
+};
+const MELEE_REACH: Record<ChargeLevel, number> = { 0: 1, 1: 1.12, 2: 1.28 };
+const BEAM_WIDTH: Record<ChargeLevel, number> = { 0: 1, 1: 1.5, 2: 2.1 };
+const ORB_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.8, 2: 1.2 };
+const SLASH_LOOK: Record<ChargeLevel, SlashLook> = {
+  0: { color: 0xffffff, thickness: 1 },
+  1: { color: 0xffd0a0, thickness: 1.5 },
+  2: { color: 0xf3c4ff, thickness: 2.1 },
+};
+const LUNGE_BY_CHARGE: Record<ChargeLevel, DashStyle> = {
+  0: LUNGE,
+  1: { ...LUNGE, speed: 600, durationMs: 110, ghostTint: 0xffb066 },
+  2: { ...LUNGE, speed: 680, durationMs: 130, ghostTint: 0xd86bff, ghostAlpha: 0.6 },
 };
 
 type AttackTuning = {
@@ -83,36 +123,40 @@ const PLAYER_TUNING: AttackTuning = { cooldownScale: 1, damageScale: 1 };
 type Combat = {
   kind: AttackKind;
   over: boolean;
-  dashReady: boolean;
-  hud: AttackHud;
+  banner: BannerBucket;
+  onHpChange: () => void;
   projectiles: Phaser.Physics.Arcade.Group;
   cracks: Phaser.GameObjects.GameObject[];
   hitFx: Phaser.GameObjects.GameObject[];
   numbers: Phaser.GameObjects.Container[];
   beams: BeamShot[];
+  orbs: OrbShot[];
   overlap: Phaser.Physics.Arcade.Collider;
   blockOverlap: Phaser.Physics.Arcade.Collider;
-  blocks: Phaser.GameObjects.Rectangle[];
+  obstacles: Obstacle[];
   aim: Phaser.GameObjects.Graphics;
 };
 
 function createCombat(
   scene: Phaser.Scene,
+  player: Player,
   opponent: Player,
-  blocks: Phaser.GameObjects.Rectangle[],
+  obstacles: Obstacle[],
+  onHpChange: () => void = () => {},
 ): Combat {
   const projectiles = scene.physics.add.group();
   const combat: Combat = {
     kind: "melee",
     over: false,
-    dashReady: true,
-    hud: createAttackHud(scene),
+    banner: { current: null },
+    onHpChange,
     projectiles,
     cracks: [],
     hitFx: [],
     numbers: [],
     beams: [],
-    blocks,
+    orbs: [],
+    obstacles,
     overlap: scene.physics.add.overlap(
       projectiles,
       opponent.sprite,
@@ -122,20 +166,24 @@ function createCombat(
         strikeProjectile(scene, combat, opponent, bolt);
       },
     ),
-    blockOverlap: scene.physics.add.overlap(projectiles, blocks, (first, second) => {
-      const bolt = projectileOf(combat, first, second);
-      if (!bolt) return;
-      stopProjectile(scene, combat, bolt);
-    }),
+    blockOverlap: scene.physics.add.overlap(
+      projectiles,
+      obstacles.map((obstacle) => obstacle.body),
+      (first, second) => {
+        const bolt = projectileOf(combat, first, second);
+        if (!bolt) return;
+        const struck = obstacles.find((obstacle) => obstacle.body === first || obstacle.body === second);
+        stopProjectile(scene, combat, bolt, struck);
+      },
+    ),
     aim: createAim(scene),
   };
-  paintAttackHud(combat.hud, combat.kind, combat.dashReady);
   layoutCombat(scene, combat);
   return combat;
 }
 
 function layoutCombat(scene: Phaser.Scene, combat: Combat) {
-  layoutAttackHud(scene, combat.hud);
+  layoutBanner(scene, combat.banner);
 }
 
 function syncCombatAim(
@@ -154,14 +202,15 @@ function clearCombatAim(combat: Combat) {
 
 function setCombatKind(combat: Combat, kind: AttackKind) {
   combat.kind = kind;
-  paintAttackHud(combat.hud, kind, combat.dashReady);
 }
 
-function syncDashHud(scene: Phaser.Scene, combat: Combat, player: Player) {
-  const ready = canAttack(scene.time.now, player.dashReadyAt);
-  if (ready === combat.dashReady) return;
-  combat.dashReady = ready;
-  paintAttackHud(combat.hud, combat.kind, ready);
+function showBanner(
+  scene: Phaser.Scene,
+  combat: Combat,
+  label: string,
+  tone: Parameters<typeof spawnBanner>[3],
+) {
+  spawnBanner(scene, combat.banner, label, tone);
 }
 
 function aimVector(player: Player, worldX: number, worldY: number) {
@@ -180,17 +229,28 @@ function hurtFighter(
   hit: ResolvedHit,
   direction: Point,
   color: number,
+  stars = true,
 ) {
   const result = applyHit(target.hp, hit.damage, combat.over || isEvading(target));
   if (!result.applied) return result;
   setPlayerHp(target, result.hp);
   playHurt(target);
+  combat.onHpChange();
+  const critical = hit.tags.includes("critical");
+  const charged = hit.tags.includes("charged");
+  flashMarker(target.marker, "hurt", HURT_FLASH_MS);
+  spawnRingWave(scene, target.marker, {
+    color: target.marker.palette.hurt,
+    count: charged || critical ? 3 : 2,
+    grow: charged ? 3 : 2.4,
+  });
   spawnHitFx(scene, combat.hitFx, {
     target,
     at: { x: target.sprite.x, y: target.sprite.y - HIT_FX_OFFSET_Y },
     direction,
-    tier: impactTier(result.dealt, hit.tags.includes("critical")),
+    tier: impactTier(result.dealt, critical || charged),
     color,
+    stars,
   });
   spawnDamageNumber(
     scene,
@@ -203,8 +263,19 @@ function hurtFighter(
   return result;
 }
 
-function rollHit(base: number) {
-  return resolveDamage(base, { critical: rollCritical(Math.random) });
+function rollHit(base: number, charge: ChargeLevel = 0): ResolvedHit {
+  const hit = resolveDamage(base, { critical: rollCritical(Math.random) });
+  if (charge === 0 || hit.damage <= 0) return hit;
+  return { damage: hit.damage, tags: ["charged", ...hit.tags] };
+}
+
+function announceHit(scene: Phaser.Scene, combat: Combat, hit: ResolvedHit, charge: ChargeLevel) {
+  if (charge === 2) {
+    showBanner(scene, combat, hit.tags.includes("critical") ? "SUPER CRITICAL!" : "SUPER GOLPE!", "super");
+    scene.cameras.main.shake(180, 0.008);
+    return;
+  }
+  if (hit.tags.includes("critical")) showBanner(scene, combat, "CRITICAL!", "critical");
 }
 
 function projectileOf(combat: Combat, first: unknown, second: unknown) {
@@ -232,17 +303,12 @@ function stopProjectile(
   scene: Phaser.Scene,
   combat: Combat,
   projectile: Phaser.Physics.Arcade.Sprite,
+  obstacle?: Obstacle,
 ) {
   if (!projectile.active || projectile.getData("hit") === true) return;
   projectile.setData("hit", true);
   projectile.setVelocity(0, 0);
-  spawnCracks(
-    scene,
-    combat.cracks,
-    projectile.x,
-    projectile.y,
-    projectileDamage(projectile),
-  );
+  hitObstacle(scene, obstacle, projectileDamage(projectile), projectile);
   projectile.destroy();
 }
 
@@ -264,13 +330,12 @@ function strikeProjectile(
   projectile.destroy();
 }
 
+function liveObstacles(combat: Combat) {
+  return combat.obstacles.filter((obstacle) => !obstacle.broken);
+}
+
 function blockRects(combat: Combat) {
-  return combat.blocks.map((block) => ({
-    x: block.x,
-    y: block.y,
-    width: block.width,
-    height: block.height,
-  }));
+  return liveObstacles(combat).map(obstacleRect);
 }
 
 function resolveMelee(
@@ -280,17 +345,43 @@ function resolveMelee(
   opponent: Player,
   aim: Point,
   damage: number,
+  charge: ChargeLevel,
 ) {
-  const blocked = firstBlockHit(player.sprite, opponent.sprite, blockRects(combat));
-  if (blocked && blocked.distance <= MELEE_RANGE) {
-    if (blocked.distance > MELEE_BLOCK_SPARK_GAP) {
-      spawnCracks(scene, combat.cracks, blocked.x, blocked.y, damage);
-    }
+  const range = MELEE_RANGE * MELEE_REACH[charge];
+  const obstacles = liveObstacles(combat);
+  const rects = obstacles.map(obstacleRect);
+  const struck = firstBlockHit(
+    player.sprite,
+    { x: player.sprite.x + aim.x * range, y: player.sprite.y + aim.y * range },
+    rects,
+  );
+  if (struck) {
+    hitObstacle(scene, obstacles[struck.index], damage, struck);
+    if (charge > 0) spawnShockwave(scene, combat.hitFx, struck, CHARGE_COLOR[charge], range);
     return;
   }
-  if (!meleeConnect(player.sprite, opponent.sprite, aim, MELEE_RANGE)) return;
-  const hit = rollHit(damage);
-  hurtFighter(scene, combat, opponent, hit, aim, IMPACT_COLOR.melee);
+  const blocked = firstBlockHit(player.sprite, opponent.sprite, rects);
+  if (charge > 0) {
+    spawnShockwave(
+      scene,
+      combat.hitFx,
+      { x: player.sprite.x + aim.x * range * 0.6, y: player.sprite.y + aim.y * range * 0.6 },
+      CHARGE_COLOR[charge],
+      range,
+    );
+  }
+  if (blocked && blocked.distance <= range) return;
+  if (!meleeConnect(player.sprite, opponent.sprite, aim, range)) return;
+  const hit = rollHit(damage, charge);
+  const result = hurtFighter(
+    scene,
+    combat,
+    opponent,
+    hit,
+    aim,
+    CHARGE_COLOR[charge],
+  );
+  if (result.applied) announceHit(scene, combat, hit, charge);
   spawnCracks(
     scene,
     combat.cracks,
@@ -307,30 +398,106 @@ function startMelee(
   opponent: Player,
   aim: Point,
   damage: number,
+  charge: ChargeLevel,
 ) {
+  const lunge = LUNGE_BY_CHARGE[charge];
+  const distance = (lunge.speed * lunge.durationMs) / 1000;
   const reach = Math.min(
-    DASH_DISTANCE,
+    distance,
     firstBlockHit(
       player.sprite,
       {
-        x: player.sprite.x + aim.x * DASH_DISTANCE,
-        y: player.sprite.y + aim.y * DASH_DISTANCE,
+        x: player.sprite.x + aim.x * distance,
+        y: player.sprite.y + aim.y * distance,
       },
       blockRects(combat),
-    )?.distance ?? DASH_DISTANCE,
+    )?.distance ?? distance,
   );
   spawnSlashArc(
     scene,
     combat.hitFx,
     { x: player.sprite.x + aim.x * reach, y: player.sprite.y + aim.y * reach },
     aim,
-    MELEE_RANGE,
+    MELEE_RANGE * MELEE_REACH[charge],
+    SLASH_LOOK[charge],
   );
-  dashWithTrail(scene, combat.hitFx, player, aim);
-  scene.time.delayedCall(MELEE_RESOLVE_MS, () => {
+  dashWithTrail(scene, combat.hitFx, player, aim, lunge);
+  scene.time.delayedCall(MELEE_RESOLVE_MS + (lunge.durationMs - LUNGE.durationMs), () => {
     if (!player.sprite.scene || !opponent.sprite.scene) return;
-    resolveMelee(scene, combat, player, opponent, aim, damage);
+    resolveMelee(scene, combat, player, opponent, aim, damage, charge);
   });
+}
+
+function landRanged(
+  scene: Phaser.Scene,
+  combat: Combat,
+  target: Player,
+  impact: BeamEnd,
+  connects: boolean,
+  damage: number,
+  charge: ChargeLevel,
+  direction: Point,
+  color: number,
+  obstacles: Obstacle[],
+  stars = true,
+) {
+  const hit = connects ? rollHit(damage, charge) : null;
+  if (hit || impact.stop === "block") playArenaAudio(scene, "explosion");
+  if (charge > 0 && impact.stop !== "range") {
+    spawnShockwave(scene, combat.hitFx, impact, CHARGE_COLOR[charge], 60 + charge * 30);
+  }
+  if (hit) {
+    const result = hurtFighter(scene, combat, target, hit, direction, color, stars);
+    if (result.applied) announceHit(scene, combat, hit, charge);
+  }
+  if (impact.stop === "block") {
+    hitObstacle(scene, obstacles[impact.block ?? -1], damage, impact);
+  } else if (impact.stop === "fighter") {
+    spawnCracks(scene, combat.cracks, impact.x, impact.y, hit?.damage ?? damage);
+  }
+}
+
+function fireOrbs(
+  scene: Phaser.Scene,
+  combat: Combat,
+  target: Player,
+  muzzle: Point,
+  aim: Point,
+  damage: number,
+  charge: ChargeLevel,
+  obstacles: Obstacle[],
+) {
+  const style = charge === 2 ? GRASS_ORB_CHARGED : GRASS_ORB;
+  playArenaAudio(scene, "laser");
+  for (const direction of orbVolley(aim, charge)) {
+    launchOrb(scene, combat.orbs, {
+      from: muzzle,
+      direction,
+      style,
+      scale: ORB_SCALE[charge],
+      target: () => (target.sprite.scene ? { x: target.sprite.x, y: target.sprite.y } : null),
+      onArrive: (impact) => {
+        landRanged(
+          scene,
+          combat,
+          target,
+          impact,
+          impact.stop === "fighter",
+          damage,
+          charge,
+          direction,
+          style.impact,
+          obstacles,
+          false,
+        );
+      },
+    });
+  }
+}
+
+function stepCombat(scene: Phaser.Scene, combat: Combat, deltaMs: number) {
+  if (combat.orbs.length === 0) return;
+  stepOrbs(scene, combat.orbs, deltaMs, blockRects(combat));
 }
 
 function tryAttack(
@@ -341,6 +508,7 @@ function tryAttack(
   kind: AttackKind,
   aim: Point,
   tuning: AttackTuning = PLAYER_TUNING,
+  charge: ChargeLevel = 0,
 ) {
   if (combat.over) return false;
   if (attacker.attacking || attacker.hurting || isDashing(attacker)) return false;
@@ -350,24 +518,41 @@ function tryAttack(
   if (!playAttack(attacker)) return false;
   if (kind === "melee") playArenaAudio(scene, "hit");
   attacker.readyAt[kind] = nextReadyAt(now, COOLDOWN_MS[kind] * tuning.cooldownScale);
-  const damage = Math.max(
-    1,
-    Math.round(attackPower(kind, attacker.attackDamage, target.maxHp) * tuning.damageScale),
+  const damage = chargedDamage(
+    Math.max(
+      1,
+      Math.round(attackPower(kind, attacker.fighter.attacks[kind].power, target.maxHp) * tuning.damageScale),
+    ),
+    charge,
   );
+  flashMarker(attacker.marker, "attack", ATTACK_FLASH_MS);
+  spawnRingWave(scene, attacker.marker, {
+    color: charge > 0 ? CHARGE_COLOR[charge] : attacker.marker.palette.attack,
+    count: charge + 1,
+    grow: 2.2 + charge * 0.6,
+    width: 2 + charge,
+  });
   if (kind === "melee") {
-    startMelee(scene, combat, attacker, target, aim, damage);
+    startMelee(scene, combat, attacker, target, aim, damage, charge);
     return true;
   }
   const muzzle = {
     x: attacker.sprite.x + aim.x * MUZZLE_FORWARD,
     y: attacker.sprite.y + aim.y * MUZZLE_DOWN,
   };
+  const obstacles = liveObstacles(combat);
+  if (attacker.fighter.ranged === "orb") {
+    fireOrbs(scene, combat, target, muzzle, aim, damage, charge, obstacles);
+    return true;
+  }
   castBeam(scene, combat.beams, {
     from: muzzle,
     rayFrom: muzzle,
     direction: aim,
-    style: FIRE_BEAM,
-    blocks: blockRects(combat),
+    style: charge === 2 ? FIRE_BEAM_CHARGED : FIRE_BEAM,
+    widthScale: BEAM_WIDTH[charge],
+    chargeMs: charge > 0 ? CHARGED_BEAM_MS : undefined,
+    blocks: obstacles.map(obstacleRect),
     target: { x: target.sprite.x, y: target.sprite.y },
     onArrive: (impact) => {
       const still =
@@ -376,14 +561,8 @@ function tryAttack(
           x: target.sprite.x,
           y: target.sprite.y,
         }).stop === "fighter";
-      const hit = still ? rollHit(damage) : null;
-      if (hit || impact.stop === "block") playArenaAudio(scene, "explosion");
-      if (hit) {
-        hurtFighter(scene, combat, target, hit, aim, IMPACT_COLOR.fire);
-      }
-      if (impact.stop !== "range") {
-        spawnCracks(scene, combat.cracks, impact.x, impact.y, hit?.damage ?? damage);
-      }
+      const color = charge === 2 ? FIRE_BEAM_CHARGED.impact : IMPACT_COLOR.fire;
+      landRanged(scene, combat, target, impact, still, damage, charge, aim, color, obstacles);
     },
   });
   return true;
@@ -396,6 +575,7 @@ function tryPlayerAttack(
   opponent: Player,
   worldX: number,
   worldY: number,
+  charge: ChargeLevel = 0,
 ) {
   return tryAttack(
     scene,
@@ -404,6 +584,8 @@ function tryPlayerAttack(
     opponent,
     combat.kind,
     aimVector(player, worldX, worldY),
+    PLAYER_TUNING,
+    charge,
   );
 }
 
@@ -422,7 +604,7 @@ function tryPlayerDash(
   player.dashReadyAt = nextReadyAt(now, DASH_COOLDOWN_MS);
   dashWithTrail(scene, combat.hitFx, player, heading, EVADE);
   playArenaAudio(scene, "dash");
-  syncDashHud(scene, combat, player);
+  spawnRingWave(scene, player.marker, { color: 0xffc861, count: 1, grow: 1.8 });
   return true;
 }
 
@@ -433,7 +615,8 @@ function cullProjectiles(
   worldHeight: number,
 ) {
   if (worldWidth <= 0 || worldHeight <= 0) return;
-  const blocks = blockRects(combat);
+  const obstacles = liveObstacles(combat);
+  const blocks = obstacles.map(obstacleRect);
   for (const child of combat.projectiles.getChildren()) {
     if (!(child instanceof Phaser.Physics.Arcade.Sprite) || !child.active) continue;
     const fromX = Number(child.getData("fromX"));
@@ -447,7 +630,7 @@ function cullProjectiles(
     child.setData("fromY", child.y);
     if (blocked) {
       child.setPosition(blocked.x, blocked.y);
-      stopProjectile(scene, combat, child);
+      stopProjectile(scene, combat, child, obstacles[blocked.index]);
       continue;
     }
     if (child.x < 0 || child.y < 0 || child.x > worldWidth || child.y > worldHeight) {
@@ -463,9 +646,10 @@ function destroyCombat(scene: Phaser.Scene, combat: Combat) {
   clearHitFx(scene, combat.hitFx);
   clearDamageNumbers(scene, combat.numbers);
   clearBeams(scene, combat.beams);
+  clearOrbs(scene, combat.orbs);
   combat.projectiles.destroy(true);
   combat.aim.destroy();
-  destroyAttackHud(combat.hud);
+  clearBanner(scene, combat.banner);
 }
 
 export {
@@ -476,8 +660,9 @@ export {
   destroyCombat,
   layoutCombat,
   setCombatKind,
+  showBanner,
+  stepCombat,
   syncCombatAim,
-  syncDashHud,
   tryAttack,
   tryPlayerAttack,
   tryPlayerDash,

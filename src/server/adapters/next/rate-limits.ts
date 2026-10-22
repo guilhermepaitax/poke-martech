@@ -3,6 +3,7 @@ const RATE_LIMITS = {
   tradeCreate: { name: "trade-create", windowSeconds: 60, max: 10 },
   tradeAction: { name: "trade-action", windowSeconds: 60, max: 30 },
   openPack: { name: "open-pack", windowSeconds: 60, max: 20 },
+  arenaMatch: { name: "arena-match", windowSeconds: 60, max: 20 },
   upload: { name: "upload", windowSeconds: 60, max: 30 },
 } as const;
 

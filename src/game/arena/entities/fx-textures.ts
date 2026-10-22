@@ -6,6 +6,7 @@ const FX_TEXTURES = {
   star: "fx-star",
   scorch: "fx-scorch",
   streak: "fx-streak",
+  pixel: "fx-pixel",
 } as const;
 
 const GLOW_SIZE = 64;
@@ -15,6 +16,7 @@ const STAR_POINTS = 8;
 const SCORCH_SIZE = 128;
 const STREAK_WIDTH = 28;
 const STREAK_HEIGHT = 4;
+const PIXEL_SIZE = 4;
 
 function bake(
   scene: Phaser.Scene,
@@ -84,6 +86,11 @@ function createFxTextures(scene: Phaser.Scene) {
     graphics.fillStyle(0xffffff, 1);
     graphics.fillTriangle(0, STREAK_HEIGHT / 2, STREAK_WIDTH, 0, STREAK_WIDTH, STREAK_HEIGHT);
   });
+  bake(scene, FX_TEXTURES.pixel, PIXEL_SIZE, PIXEL_SIZE, (graphics) => {
+    graphics.fillStyle(0xffffff, 1);
+    graphics.fillRect(0, 0, PIXEL_SIZE, PIXEL_SIZE);
+  });
+  scene.textures.get(FX_TEXTURES.pixel).setFilter(Phaser.Textures.FilterMode.NEAREST);
 }
 
 export { createFxTextures, FX_TEXTURES };

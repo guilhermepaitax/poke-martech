@@ -23,7 +23,7 @@ function updateCpu(
     busy,
     now: scene.time.now,
     readyAt: cpu.readyAt,
-    lineClear: firstBlockHit(self, enemy, blockRects(combat)) === null,
+    blockedAt: firstBlockHit(self, enemy, blockRects(combat))?.distance ?? null,
     fireRange: profile.fireRange,
   });
   if (!busy && cpu.hp > 0) {

@@ -10,6 +10,7 @@ export {
 } from "@/server/infrastructure/db/drizzle/schema/auth";
 export {
   appRateLimits,
+  arenaMatches,
   boosterCards,
   boosters,
   cardAttacks,

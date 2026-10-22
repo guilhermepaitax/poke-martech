@@ -19,7 +19,7 @@ function input(overrides: Partial<CpuInput> = {}): CpuInput {
     busy: false,
     now: 1000,
     readyAt: { melee: 0, fire: 0 },
-    lineClear: true,
+    blockedAt: null,
     fireRange: CPU_FIRE_RANGE,
     ...overrides,
   };
@@ -60,12 +60,36 @@ describe("decideCpu", () => {
     });
   });
 
-  it("com bloco no caminho persegue em vez de atirar", () => {
+  it("com bloco no caminho atira no bloco para abrir passagem", () => {
     const decision = decideCpu(
-      input({ target: { x: CPU_FIRE_RANGE - 10, y: 0 }, lineClear: false }),
+      input({ target: { x: CPU_FIRE_RANGE + 200, y: 0 }, blockedAt: CPU_FIRE_RANGE - 10 }),
     );
 
-    expect(decision).toEqual({ action: "chase", move: { x: 1, y: 0 } });
+    expect(decision).toEqual({ action: "attack", kind: "fire", aim: { x: 1, y: 0 } });
+  });
+
+  it("colada no bloco usa corpo a corpo para quebrá-lo", () => {
+    const decision = decideCpu(
+      input({ target: { x: CPU_FIRE_RANGE, y: 0 }, blockedAt: CPU_MELEE_RANGE - 20 }),
+    );
+
+    expect(decision).toEqual({ action: "attack", kind: "melee", aim: { x: 1, y: 0 } });
+  });
+
+  it("bloco fora do alcance e sem ataque pronto faz a CPU se aproximar", () => {
+    const far = decideCpu(
+      input({ target: { x: CPU_FIRE_RANGE + 400, y: 0 }, blockedAt: CPU_FIRE_RANGE + 100 }),
+    );
+    const cooling = decideCpu(
+      input({
+        target: { x: CPU_FIRE_RANGE + 200, y: 0 },
+        blockedAt: 40,
+        readyAt: { melee: 2000, fire: 2000 },
+      }),
+    );
+
+    expect(far).toEqual({ action: "chase", move: { x: 1, y: 0 } });
+    expect(cooling).toEqual({ action: "chase", move: { x: 1, y: 0 } });
   });
 
   it("colada e pronta usa corpo a corpo", () => {

@@ -33,6 +33,8 @@ type BeamCast = {
   blocks: Rect[];
   target: Point | null;
   onArrive: (impact: BeamEnd) => void;
+  widthScale?: number;
+  chargeMs?: number;
 };
 
 type BeamBody = {
@@ -41,6 +43,7 @@ type BeamBody = {
   uy: number;
   distance: number;
   width: number;
+  scale: number;
   phase: number;
 };
 
@@ -50,6 +53,14 @@ const FIRE_BEAM: BeamStyle = {
   mid: 0xffe08a,
   glow: 0xff7a18,
   impact: 0xff8a2a,
+};
+
+const FIRE_BEAM_CHARGED: BeamStyle = {
+  charge: 0xff4ad8,
+  core: 0xffffff,
+  mid: 0xffc0f0,
+  glow: 0xc45cff,
+  impact: 0xff6ae0,
 };
 
 const WATER_BEAM: BeamStyle = {
@@ -119,7 +130,7 @@ function fillRibbon(
     const along = t * body.distance;
     const wave = Math.sin(along * WAVE_FREQUENCY - body.phase);
     const drift = Math.sin(along * WAVE_FREQUENCY * 0.5 - body.phase * 0.7) * WAVE_DRIFT * t;
-    const half = halfWidth * body.width * taper(t) * (1 + wave * WAVE_SWELL);
+    const half = halfWidth * body.width * body.scale * taper(t) * (1 + wave * WAVE_SWELL);
     const cx = body.from.x + body.ux * along + px * drift;
     const cy = body.from.y + body.uy * along + py * drift;
     top.push(new Phaser.Math.Vector2(cx + px * half, cy + py * half));
@@ -140,7 +151,7 @@ function drawLaser(
   fillRibbon(graphics, body, MID_WIDTH, style.mid, 0.7);
   fillRibbon(graphics, body, CORE_WIDTH, style.core, 1);
   graphics.fillStyle(style.core, 0.9 * body.width);
-  graphics.fillCircle(body.from.x, body.from.y, 6 * body.width);
+  graphics.fillCircle(body.from.x, body.from.y, 6 * body.width * body.scale);
 }
 
 function addGlow(
@@ -161,9 +172,16 @@ function addGlow(
   return glow;
 }
 
-function chargeSparks(scene: Phaser.Scene, shot: BeamShot, from: Point, style: BeamStyle) {
-  for (let index = 0; index < CHARGE_SPARKS; index += 1) {
-    const angle = (Math.PI * 2 * index) / CHARGE_SPARKS + Math.random() * 0.6;
+function chargeSparks(
+  scene: Phaser.Scene,
+  shot: BeamShot,
+  from: Point,
+  style: BeamStyle,
+  durationMs: number,
+  count: number,
+) {
+  for (let index = 0; index < count; index += 1) {
+    const angle = (Math.PI * 2 * index) / count + Math.random() * 0.6;
     const reach = 34 + Math.random() * 16;
     const spark = scene.add
       .image(from.x + Math.cos(angle) * reach, from.y + Math.sin(angle) * reach, FX_TEXTURES.spark)
@@ -176,7 +194,7 @@ function chargeSparks(scene: Phaser.Scene, shot: BeamShot, from: Point, style: B
       x: from.x,
       y: from.y,
       scale: 0.3,
-      duration: CHARGE_MS,
+      duration: durationMs,
       ease: "Quad.easeIn",
       onComplete: () => {
         if (spark.scene) spark.destroy();
@@ -256,11 +274,12 @@ function releaseBeam(
 ) {
   shot.graphics.setAlpha(1);
   playArenaAudio(scene, "laser");
-  const body: BeamBody = { from: cast.from, ux, uy, distance: 0, width: 1, phase: 0 };
+  const scale = cast.widthScale ?? 1;
+  const body: BeamBody = { from: cast.from, ux, uy, distance: 0, width: 1, scale, phase: 0 };
   shot.motions.push(body);
-  const muzzle = addGlow(scene, shot, cast.from.x, cast.from.y, cast.style.glow, 34);
+  const muzzle = addGlow(scene, shot, cast.from.x, cast.from.y, cast.style.glow, 34 * scale);
   scene.tweens.add({ targets: muzzle, alpha: 0, scale: muzzle.scale * 1.6, duration: 160 });
-  const flare = addGlow(scene, shot, cast.from.x, cast.from.y, cast.style.mid, 26);
+  const flare = addGlow(scene, shot, cast.from.x, cast.from.y, cast.style.mid, 26 * scale);
   const line = new Phaser.Geom.Line(cast.from.x, cast.from.y, cast.from.x, cast.from.y);
   const emitter = beamEmbers(scene, shot, line, cast.style);
   const reach = (distance: number) => {
@@ -324,21 +343,30 @@ function castBeam(scene: Phaser.Scene, bucket: BeamShot[], cast: BeamCast) {
   const span = Math.hypot(dx, dy);
   const ux = span === 0 ? cast.direction.x : dx / span;
   const uy = span === 0 ? cast.direction.y : dy / span;
+  const chargeMs = cast.chargeMs ?? CHARGE_MS;
+  const widthScale = cast.widthScale ?? 1;
   const charge = { scale: 0.45 };
   shot.motions.push(charge);
   drawCharge(graphics, cast.from.x, cast.from.y, cast.style, charge.scale);
-  chargeSparks(scene, shot, cast.from, cast.style);
+  chargeSparks(
+    scene,
+    shot,
+    cast.from,
+    cast.style,
+    chargeMs,
+    Math.round(CHARGE_SPARKS * widthScale),
+  );
   const grow = scene.tweens.add({
     targets: charge,
     scale: 1,
-    duration: CHARGE_MS,
+    duration: chargeMs,
     onUpdate: () => {
       if (!graphics.scene) return;
       drawCharge(graphics, cast.from.x, cast.from.y, cast.style, charge.scale);
     },
   });
   shot.motions.push(grow);
-  shot.timer = scene.time.delayedCall(CHARGE_MS, () => {
+  shot.timer = scene.time.delayedCall(chargeMs, () => {
     shot.timer = null;
     if (!graphics.scene) return;
     scene.tweens.killTweensOf(charge);
@@ -359,5 +387,5 @@ function clearBeams(scene: Phaser.Scene, bucket: BeamShot[]) {
   bucket.length = 0;
 }
 
-export { castBeam, clearBeams, FIRE_BEAM, WATER_BEAM };
+export { castBeam, clearBeams, FIRE_BEAM, FIRE_BEAM_CHARGED, WATER_BEAM };
 export type { BeamShot, BeamStyle };

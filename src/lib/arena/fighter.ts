@@ -1,24 +1,64 @@
-import type { CardFace } from "@/types/catalog";
+import type { AttackKind } from "./combat";
+import type { Facing } from "./movement";
 
-type CardAttackSource = {
-  damage: number | null;
-  sortOrder: number;
+type FighterEnergy = "fire" | "grass";
+
+type RangedStyle = "beam" | "orb";
+
+type FighterAction = "idle" | "walk" | "attack" | "hurt";
+
+type FighterSheet = {
+  path: string;
+  frames: number;
+  rows: Record<Facing, number>;
 };
 
-type CardFighterSource = {
-  id: string;
+type FighterSprite = {
+  cellSize: number;
+  columns: number;
+  sheets: Record<FighterAction, FighterSheet>;
+};
+
+// Ajustes de jogo/render por personagem. Medidas da hitbox em px de uma
+// célula de `bodyReferenceCell`; escalam proporcionalmente ao `sprite.cellSize`.
+type FighterTuning = {
+  speed: number;
+  bodyReferenceCell: number;
+  bodyWidth: number;
+  bodyHeight: number;
+  bodyOffsetY: number;
+  // Distância do centro do sprite até os pés (âncora do marcador e efeitos).
+  feetOffsetY: number;
+  // Tint aplicado quando os dois lados usam o mesmo personagem.
+  mirrorTint: number;
+  depth: number;
+};
+
+type FighterBanner = {
+  path: string;
+  // Ponto do rosto na arte, em % da imagem. Centraliza o recorte do retrato.
+  focus: `${number}% ${number}%`;
+};
+
+type FighterAttack = {
   name: string;
-  hp: number;
-  imageUrl: string | null;
-  attacks: CardAttackSource[];
+  hudName: string;
+  description: string;
+  power: number;
 };
 
 type ArenaFighter = {
   id: string;
   name: string;
+  title: string;
+  description: string;
+  banner: FighterBanner;
+  energy: FighterEnergy;
+  ranged: RangedStyle;
   hp: number;
-  imageUrl: string | null;
-  attackDamage: number;
+  attacks: Record<AttackKind, FighterAttack>;
+  sprite: FighterSprite;
+  tuning: FighterTuning;
 };
 
 type ArenaMatchup = {
@@ -26,44 +66,38 @@ type ArenaMatchup = {
   opponent: ArenaFighter;
 };
 
-type ArenaRosterEntry = {
-  id: string;
-  fighter: ArenaFighter;
-  face: CardFace;
+const EIGHT_WAY_ROWS: Record<Facing, number> = {
+  south: 1,
+  "south-east": 2,
+  east: 3,
+  "north-east": 4,
+  north: 5,
+  "north-west": 6,
+  west: 7,
+  "south-west": 8,
 };
 
-type ArenaRoster = {
-  fighters: ArenaRosterEntry[];
-  playerId: string | null;
-  opponentId: string | null;
+const CARDINAL_ROWS: Record<Facing, number> = {
+  south: 1,
+  "south-east": 2,
+  east: 2,
+  "north-east": 2,
+  north: 3,
+  "north-west": 4,
+  west: 4,
+  "south-west": 4,
 };
 
-function cardImageUrl(imageUrl: string | null) {
-  if (!imageUrl) return null;
-  const trimmed = imageUrl.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
-function cardToFighter(card: CardFighterSource): ArenaFighter {
-  const attack = card.attacks
-    .slice()
-    .sort((left, right) => left.sortOrder - right.sortOrder)
-    .find((item) => typeof item.damage === "number");
-
-  return {
-    id: card.id,
-    name: card.name,
-    hp: Math.max(1, card.hp),
-    imageUrl: cardImageUrl(card.imageUrl),
-    attackDamage: attack?.damage ?? 0,
-  };
-}
-
-export { cardToFighter };
+export { CARDINAL_ROWS, EIGHT_WAY_ROWS };
 export type {
   ArenaFighter,
   ArenaMatchup,
-  ArenaRoster,
-  ArenaRosterEntry,
-  CardFighterSource,
+  FighterAction,
+  FighterAttack,
+  FighterBanner,
+  FighterEnergy,
+  FighterSheet,
+  FighterSprite,
+  FighterTuning,
+  RangedStyle,
 };

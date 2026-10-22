@@ -18,6 +18,8 @@ import {
   impactTier,
   MELEE_RANGE,
   meleeConnect,
+  ORB_SPREAD,
+  orbVolley,
   nextReadyAt,
   PROJECTILE_SPEED,
   resolveDamage,
@@ -176,6 +178,7 @@ describe("firstBlockHit", () => {
       x: 40,
       y: 0,
       distance: 40,
+      index: 0,
     });
   });
 
@@ -203,6 +206,7 @@ describe("beamImpact", () => {
     );
 
     expect(impact.stop).toBe("block");
+    expect(impact.block).toBe(0);
     expect(impact.distance).toBeCloseTo(110);
     expect(impact.x).toBeCloseTo(110);
     expect(impact.y).toBeCloseTo(0);
@@ -299,5 +303,26 @@ describe("impactTier", () => {
 
   it("crítico é sempre pesado", () => {
     expect(impactTier(2, true)).toBe("heavy");
+  });
+});
+
+describe("orbVolley", () => {
+  it("lança uma bola na mira nos níveis 0 e 1", () => {
+    expect(orbVolley({ x: 3, y: 0 }, 0)).toEqual([{ x: 1, y: 0 }]);
+    expect(orbVolley({ x: 0, y: -2 }, 1)).toEqual([{ x: 0, y: -1 }]);
+  });
+
+  it("lança três bolas no nível 2, centro e duas diagonais", () => {
+    const [center, left, right] = orbVolley({ x: 1, y: 0 }, 2);
+    expect(center).toEqual({ x: 1, y: 0 });
+    for (const shot of [left, right]) {
+      expect(Math.hypot(shot!.x, shot!.y)).toBeCloseTo(1);
+      expect(Math.abs(Math.atan2(shot!.y, shot!.x))).toBeCloseTo(ORB_SPREAD);
+    }
+    expect(Math.sign(left!.y)).toBe(-Math.sign(right!.y));
+  });
+
+  it("não lança sem mira", () => {
+    expect(orbVolley({ x: 0, y: 0 }, 2)).toEqual([]);
   });
 });

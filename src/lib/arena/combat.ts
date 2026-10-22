@@ -1,3 +1,5 @@
+import type { ChargeLevel } from "./charge";
+
 type AttackKind = "melee" | "fire";
 
 type AttackKey = "1" | "2";
@@ -35,6 +37,7 @@ type BlockHit = {
   x: number;
   y: number;
   distance: number;
+  index: number;
 };
 
 type BeamStop = "block" | "fighter" | "range";
@@ -44,9 +47,10 @@ type BeamEnd = {
   y: number;
   distance: number;
   stop: BeamStop;
+  block?: number;
 };
 
-type HitTag = "critical" | "super" | "resisted";
+type HitTag = "critical" | "charged" | "super" | "resisted";
 
 type ImpactTier = "light" | "medium" | "heavy";
 
@@ -62,6 +66,10 @@ const PROJECTILE_SPEED = 480;
 const AIM_LENGTH = 160;
 const BEAM_RANGE = 520;
 const BEAM_TARGET_RADIUS = 36;
+const ORB_SPEED = 820;
+const ORB_RANGE = 760;
+const ORB_RADIUS = 16;
+const ORB_SPREAD = Math.PI / 6;
 const CRACK_RADIUS_MIN = 36;
 const CRACK_RADIUS_MAX = 140;
 const CRACK_BRANCH_MIN = 5;
@@ -185,17 +193,18 @@ function firstBlockHit(from: Point, to: Point, blocks: Rect[]): BlockHit | null 
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   let best: BlockHit | null = null;
-  for (const block of blocks) {
+  blocks.forEach((block, index) => {
     const enter = segmentEntry(from, dx, dy, block);
-    if (enter === null) continue;
+    if (enter === null) return;
     const distance = enter * Math.hypot(dx, dy);
-    if (best && distance >= best.distance) continue;
+    if (best && distance >= best.distance) return;
     best = {
       x: from.x + dx * enter,
       y: from.y + dy * enter,
       distance,
+      index,
     };
-  }
+  });
   return best;
 }
 
@@ -235,7 +244,13 @@ function beamImpact(
   let best: BeamEnd = { x: to.x, y: to.y, distance: maxLength, stop: "range" };
   const block = firstBlockHit(from, to, blocks);
   if (block && block.distance < best.distance) {
-    best = { x: block.x, y: block.y, distance: block.distance, stop: "block" };
+    best = {
+      x: block.x,
+      y: block.y,
+      distance: block.distance,
+      stop: "block",
+      block: block.index,
+    };
   }
   if (!target || targetRadius < 0) return best;
   const enter = circleEntry(from, ux * maxLength, uy * maxLength, target, targetRadius);
@@ -248,6 +263,18 @@ function beamImpact(
     distance,
     stop: "fighter",
   };
+}
+
+function orbVolley(aim: Point, charge: ChargeLevel): Point[] {
+  const length = Math.hypot(aim.x, aim.y);
+  if (length === 0) return [];
+  const center = { x: aim.x / length, y: aim.y / length };
+  if (charge < 2) return [center];
+  const turn = (angle: number) => ({
+    x: center.x * Math.cos(angle) - center.y * Math.sin(angle),
+    y: center.x * Math.sin(angle) + center.y * Math.cos(angle),
+  });
+  return [center, turn(-ORB_SPREAD), turn(ORB_SPREAD)];
 }
 
 function crackSize(damage: number): CrackSize {
@@ -302,6 +329,11 @@ export {
   MELEE_RANGE,
   meleeConnect,
   nextReadyAt,
+  ORB_RADIUS,
+  ORB_RANGE,
+  ORB_SPEED,
+  ORB_SPREAD,
+  orbVolley,
   PROJECTILE_SPEED,
   resolveDamage,
   rollCritical,

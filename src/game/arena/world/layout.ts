@@ -1,5 +1,11 @@
 import { ARENA_FLOOR } from "@/game/arena/assets/catalog";
+import {
+  createObstacle,
+  placeObstacle,
+  type Obstacle,
+} from "@/game/arena/entities/obstacle";
 import { placePlayer, type Player } from "@/game/arena/entities/player";
+import { OBSTACLE_LAYOUT } from "@/lib/arena/obstacles";
 import { arenaWorldSize } from "@/lib/arena/world-size";
 import Phaser from "phaser";
 
@@ -10,15 +16,9 @@ const WALK_INSET = {
   left: 200,
 };
 
-const ARENA_BLOCKS = [
-  { x: 0.28, y: 0.34, width: 160, height: 36 },
-  { x: 0.68, y: 0.68, width: 48, height: 140 },
-] as const;
-
-
 type ArenaWorld = {
   background: Phaser.GameObjects.Image;
-  blocks: Phaser.GameObjects.Rectangle[];
+  obstacles: Obstacle[];
   sourceWidth: number;
   sourceHeight: number;
   width: number;
@@ -32,16 +32,14 @@ type FighterAnchors = {
   opponentY: number;
 };
 
-function createArenaWorld(scene: Phaser.Scene, blockColors: readonly number[]): ArenaWorld {
+function createArenaWorld(scene: Phaser.Scene): ArenaWorld {
   const background = scene.add.image(0, 0, ARENA_FLOOR.key);
-  const blocks = blockColors.map((color) => {
-    const block = scene.add.rectangle(0, 0, 1, 1, color);
-    scene.physics.add.existing(block, true);
-    return block;
-  });
+  const obstacles = OBSTACLE_LAYOUT.map((spec, index) =>
+    createObstacle(scene, spec, (index + 1) * 0x9e3779b1),
+  );
   return {
     background,
-    blocks,
+    obstacles,
     sourceWidth: background.width,
     sourceHeight: background.height,
     width: 0,
@@ -89,15 +87,8 @@ function layoutArena(
   world.width = size.width;
   world.height = size.height;
 
-  world.blocks.forEach((block, index) => {
-    const spec = ARENA_BLOCKS[index];
-    if (!spec) return;
-    block
-      .setPosition(size.width * spec.x, size.height * spec.y)
-      .setSize(spec.width, spec.height);
-    if (block.body instanceof Phaser.Physics.Arcade.StaticBody) {
-      block.body.updateFromGameObject();
-    }
+  world.obstacles.forEach((obstacle) => {
+    placeObstacle(scene, obstacle, size.width * obstacle.spec.x, size.height * obstacle.spec.y);
   });
 
   if (player) {

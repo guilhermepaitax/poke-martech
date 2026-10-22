@@ -1,4 +1,4 @@
-import { arenaFont } from "@/game/arena/entities/marker";
+import { pixelFont } from "@/game/arena/entities/marker";
 import type { HitTag } from "@/lib/arena/combat";
 import Phaser from "phaser";
 
@@ -9,17 +9,19 @@ const NUMBER_FADE_MS = 300;
 const NUMBER_DEPTH = 9;
 const NUMBER_JITTER_X = 10;
 const LABEL_GAP_Y = 20;
-const LABEL_LINE_Y = 16;
+const LABEL_LINE_Y = 14;
 const LABEL_DELAY_MS = 60;
 const LABEL_POP_MS = 120;
 
 const NUMBER_COLOR = "#ffffff";
 const CRIT_COLOR = "#ffd23a";
+const CHARGED_COLOR = "#f6a8ff";
 const LABEL_COLOR = "#ff9a3a";
 const OUTLINE_COLOR = "#1a120c";
 
 const TAG_TEXT: Record<HitTag, string> = {
   critical: "Critical!",
+  charged: "Carregado!",
   super: "Super effective!",
   resisted: "Resisted",
 };
@@ -50,24 +52,25 @@ function spawnDamageNumber(
   tags: HitTag[] = [],
 ) {
   const critical = tags.includes("critical");
+  const charged = tags.includes("charged");
+  const size = (critical ? 26 : 20) + (charged ? 6 : 0);
   const jitter = (Math.random() * 2 - 1) * NUMBER_JITTER_X;
   const container = scene.add.container(x + jitter, y).setDepth(NUMBER_DEPTH);
   const number = scene.add
     .text(0, 0, String(dealt), {
-      fontFamily: arenaFont(),
-      fontSize: critical ? "36px" : "28px",
-      fontStyle: "bold",
-      color: critical ? CRIT_COLOR : NUMBER_COLOR,
+      fontFamily: pixelFont(),
+      fontSize: `${size}px`,
+      color: critical ? CRIT_COLOR : charged ? CHARGED_COLOR : NUMBER_COLOR,
     })
     .setOrigin(0.5)
-    .setStroke(OUTLINE_COLOR, 5);
+    .setStroke(OUTLINE_COLOR, 6)
+    .setShadow(2, 3, OUTLINE_COLOR, 0, true, true);
   const labels = tags.map((tag, index) =>
     scene.add
-      .text(0, -LABEL_GAP_Y - index * LABEL_LINE_Y - (critical ? 4 : 0), TAG_TEXT[tag], {
-        fontFamily: arenaFont(),
-        fontSize: "14px",
-        fontStyle: "bold",
-        color: LABEL_COLOR,
+      .text(0, -LABEL_GAP_Y - index * LABEL_LINE_Y - (size - 20) / 2, TAG_TEXT[tag], {
+        fontFamily: pixelFont(),
+        fontSize: "10px",
+        color: tag === "charged" ? CHARGED_COLOR : LABEL_COLOR,
       })
       .setOrigin(0.5, 1)
       .setStroke(OUTLINE_COLOR, 4),

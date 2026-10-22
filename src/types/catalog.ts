@@ -128,6 +128,19 @@ type OpeningCard = CardFace & {
   cardId: string;
 };
 
+type ArenaMatchStart = {
+  matchId: string | null;
+  rewardedToday: number;
+  dailyLimit: number;
+};
+
+type ArenaWinReward = {
+  reward: number;
+  coins: number;
+  rewardedToday: number;
+  dailyLimit: number;
+};
+
 type PackOpening = {
   id: string;
   boosterName: string;
@@ -272,6 +285,8 @@ type CardGenerationDetail = CardGenerationSummary & {
 };
 
 export type {
+  ArenaMatchStart,
+  ArenaWinReward,
   CardGenerationDetail,
   CardGenerationInput,
   CardGenerationItemView,

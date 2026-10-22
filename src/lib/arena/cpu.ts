@@ -48,7 +48,7 @@ type CpuInput = {
   busy: boolean;
   now: number;
   readyAt: Record<AttackKind, number>;
-  lineClear: boolean;
+  blockedAt: number | null;
   fireRange: number;
 };
 
@@ -72,10 +72,19 @@ function decideCpu(input: CpuInput): CpuDecision {
   ) {
     return { action: "attack", kind: "melee", aim };
   }
+  const wall = input.blockedAt !== null && input.blockedAt < distance ? input.blockedAt : null;
+  if (aimed && wall !== null) {
+    if (wall <= CPU_MELEE_RANGE && canAttack(input.now, input.readyAt.melee)) {
+      return { action: "attack", kind: "melee", aim };
+    }
+    if (wall <= input.fireRange && canAttack(input.now, input.readyAt.fire)) {
+      return { action: "attack", kind: "fire", aim };
+    }
+  }
   if (
     aimed &&
     distance <= input.fireRange &&
-    input.lineClear &&
+    wall === null &&
     canAttack(input.now, input.readyAt.fire)
   ) {
     return { action: "attack", kind: "fire", aim };

@@ -14,7 +14,7 @@ Cada etapa abaixo deve poder ser jogada e verificada antes da seguinte. Não ava
 - [x] Etapa 4 — Combate básico
 - [x] Etapa 5 — CPU
 - [x] Etapa 6 — Vitória, derrota e reinício
-- [ ] Etapa 7 — HUD e encaixe visual
+- [x] Etapa 7 — HUD e encaixe visual
 - [ ] Etapa 8 — Polimento e validação final
 
 ## Contexto do app
@@ -28,8 +28,7 @@ Cada etapa abaixo deve poder ser jogada e verificada antes da seguinte. Não ava
 
 ## Decisões já fechadas
 
-- Lutadores do MVP serão duas cartas publicadas fixas, via adaptador. Sem picker e sem API nova de catálogo.
-- Carta sem imagem usa um fallback geométrico e não quebra a cena.
+- Lutadores são fixos em código, um arquivo por lutador em `src/lib/arena/fighters/` (nome, título, descrição, tipo, HP, ataques e folhas de sprite). Não vêm mais das cartas cadastradas. Ver "Roster fixo".
 - A partida não é persistida. Sem tabela nova e sem recompensa.
 - O canvas ocupa a tela abaixo do header e nunca passa da largura da janela. Não há scroll horizontal.
 - O fundo é `public/arena/arena-floor.jpg`. A proporção da arte é mantida. O mundo é maior que a câmera nos dois eixos (`arenaWorldSize`, overflow 1.5), centralizado. O que fica fora da tela será revelado quando a câmera seguir o personagem.
@@ -168,14 +167,48 @@ Aceite: a segunda luta começa com HP cheio e sem projéteis da anterior.
 
 Objetivo: a luta fica legível dentro do shell.
 
-- [ ] HP, nomes e imagem dos dois lutadores
-- [ ] Cooldown do ataque
-- [ ] Loading e erro de boot
-- [ ] Nova batalha e voltar à Pokédex
-- [ ] O HUD só reflete o snapshot emitido pela cena, não a posição por frame
-- [ ] Cores pelos tokens do app, no desktop e na nav mobile
+- [x] HP, nomes e imagem dos dois lutadores (`src/components/arena/arena-hud.tsx`)
+- [x] Cooldown do ataque (barra de slots em React, `src/components/arena/arena-attack-bar.tsx`)
+- [x] Loading e erro de boot, com "Tentar de novo"
+- [x] Nova batalha e voltar à Pokédex no overlay
+- [x] O HUD só reflete o snapshot emitido pela cena, não a posição por frame (`arena:snapshot`, `arenaControls.onSnapshot`)
+- [x] Cores pelos tokens do app, no desktop e na nav mobile
 
 Aceite: o HUD bate com o HP real e a navegação antiga continua igual.
+
+### Ajustes junto da etapa 7
+
+- [x] Barra de ataques em React no rodapé: slots escuros inclinados sobre faixa diagonal, ícones Lucide (`HandFist`, `Flame`/`Sun` pela energia, `ChevronsRight`), nome do ataque e tecla. Slot ativo claro e levantado. Em cooldown o slot fica opaco e cinza, uma sombra desce com linha brilhante e pisca ao ficar pronto. A cena emite `arena:hud` só nas transições (troca, ataque, dash, carga) e o CSS anima o resto. Esc pausa as animações
+- [x] HUD do topo com placa chanfrada, retrato em moldura inclinada na cor da energia, barra de vida grossa em gradiente com dano atrasado, HP em número e medidor de carga do jogador em dois segmentos com selo "CHARGE!" no máximo
+- [x] Fontes: menus em Sora. `Press Start 2P` (`--font-pixel`) só nos números de dano. `Rubik` 900 itálico (`--font-title`, classe `font-arena-title`) nos títulos, nomes do HUD e banners. O jogo espera `document.fonts.load` das duas antes de subir
+- [x] Carregando, Vitória, Derrota, Pausado e erro usam `ArenaTitleCard`: fita branca inclinada, estrela, raios girando e confete
+- [x] Anel sob o lutador animado: pulso, traços girando, cor por estado (parado, ataque, dano, carga 1, carga 2, derrotado). Ondas saem ao atacar, dashar e levar dano
+- [x] Ataque carregado, só do jogador: segurar o clique 1s dá nível 1 (dano ×1.5), 2s dá nível 2 (×2.2). Soltar antes de 1s é ataque normal. Regras em `src/lib/arena/charge.ts`. Durante a carga o lutador anda a 55%, o anel gira e puxa faíscas, e o bloco do ataque mostra a barra de carga e "CARREGADO"/"MÁX!". Dash, dano, pausa e fim da luta cancelam a carga
+- [x] Soco carregado: investida maior, arco mais grosso, alcance maior e onda de choque. Fogo carregado: feixe mais largo, nível 2 em magenta. Nível 2 treme a câmera
+- [x] Banners grandes no canvas no mesmo estilo: fita branca inclinada com sombra colorida, estrela, raios, confete e glow (filtro do WebGL) na palavra de destaque. CRITICAL!, CARREGADO!, MÁXIMO!, SUPER GOLPE!, K.O.!. O overlay de fim espera 1.1s para o K.O. aparecer
+
+## Roster fixo
+
+Substitui a etapa 3 (cartas como lutadores). `ListArenaRoster`, `GetArenaFighters`, `cardToFighter` e o picker de cartas com busca e paginação foram removidos.
+
+- [x] `ArenaFighter` em `src/lib/arena/fighter.ts`: `id`, `name`, `title`, `description`, `energy` (`fire` | `grass`), `hp`, `attacks` (`melee` e `fire`, cada um com `name`, `hudName`, `description`, `power`) e `sprite` (`cellSize`, `columns`, folhas `idle`/`walk`/`attack`/`hurt` com `frames` e linha por direção)
+- [x] Antoniomander (fogo, HP 70, Cabeçada / Lança-chamas). Células de 128px. Ataque e dano só têm 4 direções (`CARDINAL_ROWS`)
+- [x] Calvossauro (planta, HP 80, Cabeçada / Bola de energia). Em vez do feixe lança bolas de energia verdes que viajam e conferem a posição do alvo a cada quadro (dá para esquivar). Carga 1: bola maior. Carga 2: três bolas, uma na mira e duas a ±30°. Células de 256px, 8 direções em todas as folhas. A folha de walk exportada repete a linha `west`, então sudoeste usa a linha 9
+- [x] `power` substitui o dano da carta em `attackPower`. O nome curto (`hudName`) aparece nos blocos de ataque
+- [x] A cena só carrega as folhas dos dois lutadores do matchup. Chaves de textura e animação levam o id do lutador. O corpo físico escala pelo tamanho da célula
+- [x] O mesmo lutador pode ficar dos dois lados. No espelho o oponente ganha um tint azulado, mantido depois do flash de dano
+- [x] Tela de escolha: painel do lutador do lado ativo com idle sul animado (sprite CSS, `fighter-sprite.tsx`), textura e gradiente do tipo, HP, ataques com poder e recarga. Slots Você / Oponente e grade de lutadores marcam P1 e CPU
+- [x] Novo lutador: criar `src/lib/arena/fighters/<id>.ts`, pôr as folhas em `public/arena/characters/<id>/` e registrar em `ARENA_FIGHTERS`. Tipo novo pede entrada em `fighter-appearance.ts`
+
+## Moedas por vitória
+
+- [x] Vitória paga 5 moedas no normal e 10 no difícil. Só as 4 primeiras vitórias do dia pagam (dia em `America/Sao_Paulo`). Regras em `src/lib/arena/rewards.ts`
+- [x] A luta continua no cliente. Ao iniciar (boot, reinício, nova batalha) o cliente chama `POST /api/arena/matches` com a dificuldade e recebe um `matchId`. Na vitória chama `POST /api/arena/matches/:id/win`, na derrota `POST /api/arena/matches/:id/defeat`
+- [x] Com as 4 vitórias premiadas do dia já usadas, o início não grava partida e devolve `matchId: null`. A luta roda normal e a vitória mostra o aviso de limite
+- [x] Derrota fecha a partida com `finished_at`, `outcome = 'defeat'` e `reward = 0`
+- [x] Tabela `arena_matches` (`difficulty`, `started_at`, `finished_at`, `outcome` `victory`/`defeat`, `reward`). Partida sem `finished_at` foi abandonada (reinício ou saída no meio). O claim roda numa transação: trava a partida e a carteira, recusa partida de outro usuário, já finalizada ou com menos de 15s, conta as vitórias premiadas do dia, credita a carteira e grava `coin_ledger` com `reason = 'arena_win'`
+- [x] O overlay de vitória mostra "+N moedas · X/4", o aviso de limite ou a falha. O saldo do header atualiza invalidando `profileKeys.me()`
+- [ ] Limite conhecido: o servidor confia que o cliente venceu. O teto diário limita o abuso a 40 moedas por dia
 
 ## Etapa 8 — Polimento e validação final
 
@@ -184,7 +217,7 @@ Objetivo: fechar o MVP.
 - [ ] Corrigir o que os testes manuais acharem
 - [ ] Conferir o destroy ao sair da rota
 - [ ] Rodar `pnpm lint`, `pnpm test` e `pnpm build`
-- [ ] Anotar os limites: sem sprite de caminhada, sem PvP, dois cards fixos, batalha só em memória
+- [ ] Anotar os limites: sem PvP, roster fixo em código, batalha só em memória
 
 Aceite: uma luta inteira inicia, termina e reinicia. Pokédex, loja e admin continuam abrindo.
 
@@ -198,4 +231,4 @@ Aceite: uma luta inteira inicia, termina e reinicia. Pokédex, loja e admin cont
 
 ## Próximo passo
 
-A etapa 7. HUD legível dentro do shell.
+A etapa 8. Polimento e validação final.

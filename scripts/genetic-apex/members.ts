@@ -17,7 +17,7 @@ const MEMBERS: Member[] = [
     spices: ["Calvo", "Careca", "Brue", "Brincadeira", "Tooltip"],
     flavors: [
       "A careca reflete o monitor e o code review perde o foco.",
-      "Raspa a cabeça e o build, milagrosamente, passa.",
+      "Pode dar um git pullllll.",
       "Sem um fio de cabelo, sobra espaço para mais um import.",
       "O brilho da careca já derrubou duas dailies.",
       "O problema dele são as brrincadeiras",
@@ -34,12 +34,11 @@ const MEMBERS: Member[] = [
     spices: ["Jiraya", "Agente", "Rafa"],
     flavors: [
       "Virado em um Jiraiya",
-      "Cabelo branco, pose de sapo e um pergaminho no lugar do README.",
-      "Sempre anda com um agente de segurança acompanhando",
-      "Treina no telhado e commita quando o sol apaga.",
+      "Tá bom, não tá?",
+      "Mestre do xadrez",
+      "Expecialista em criar agentes de IA",
     ],
-    visual:
-      "Cabelo branco de eremita, marcas vermelhas no rosto e um jeito de sapo ninja.",
+    visual: "Cabelo loiro, magro e sem barba.",
   },
   {
     id: "gabi",
@@ -49,8 +48,9 @@ const MEMBERS: Member[] = [
     spices: ["Cabelo", "Anti Careca", "Peladofobia"],
     flavors: [
       "Se aparece uma careca, bufa antes mesmo do oi.",
-      "O cabelo volumoso é escudo e argumento.",
+      "Sofre de peladofobia",
       "Recusa pair programming com quem reflete a luz.",
+      "Vou virar uma backender",
     ],
     visual:
       "Cabelo enorme e cheio, expressão de quem não tolera careca por perto.",
@@ -63,12 +63,11 @@ const MEMBERS: Member[] = [
     spices: ["Submundo", "Paitax", "Papai"],
     flavors: [
       "Opa, bom dia! Pessoal",
-      "Tá bom, não tá?",
+      "Pai dos impostos",
       "Dizem que vivia no submundo, mas não se tem provas",
-      "Volta do submundo com um bug novo e zero explicação.",
+      "Papaitax é o pai de todos.",
     ],
-    visual:
-      "Capuz, sombras e um ar de quem frequenta o submundo depois do expediente.",
+    visual: "Cabelo preto, barba preta e olhos verdes.",
   },
   {
     id: "joao",
@@ -80,10 +79,10 @@ const MEMBERS: Member[] = [
       "No submundo, não pode ver uma franja",
       "Prioridade número um: a franja. O deploy que espere.",
       "Coleciona franjudas do mesmo jeito que fecha ticket.",
-      "De dia dev, de noite caminhoneiro",
+      "Gosta muito de alta performance",
+      "O mais mentiroso de todos",
     ],
-    visual:
-      "Franja marcada cobrindo a testa, clima de submundo e um sorriso de quem gosta de franjudas.",
+    visual: "Cabelo castanho encaracolado e olhos castanhos.",
   },
   {
     id: "doug",
@@ -167,12 +166,13 @@ const MEMBERS: Member[] = [
     name: "Gerhard",
     trait: "DevOps",
     stamps: ["Gerhard", "Ger"],
-    spices: ["Deploy", "Argentino", "Branch", "Moto"],
+    spices: ["Deploy", "Argentino", "Gaúcho", "Moto"],
     flavors: [
       "Se passou na máquina dele, já era deploy.",
-      "O changelog que se vire depois do push.",
-      "Sobe sexta à noite e chama isso de estabilidade.",
-      "Pipeline verde é opinião. Produção é fato.",
+      "Argentino/Gaúcho do time",
+      "Workaholic, não para de trabalhar",
+      "Gosta de trabalhar de madrugada, resolver os problemas dos devs",
+      "Viciado em motos e churrasco",
     ],
     visual:
       "Headset, terminal aberto e a calma de quem sobe deploy no fim da sexta.",
@@ -184,10 +184,9 @@ const MEMBERS: Member[] = [
     stamps: ["Ally", "Allyshow"],
     spices: ["Teste", "Check", "Tricas"],
     flavors: [
-      "Checklist na mão e bug na mira.",
-      "Nenhuma história passa sem critério de aceite.",
-      "Encontra a falha que o resto jurou que não existia.",
-      "Aprova só quando o cenário chato também passa.",
+      "Substituto do Wilson nos deploys (faz o deploy mais rápido).",
+      "Grandde frequentador de academia.",
+      "Grande torcedor do são paulo.",
     ],
     visual:
       "Prancheta de QA, olhar atento, caçando a falha que o resto deixou passar.",
