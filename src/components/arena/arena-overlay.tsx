@@ -1,7 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import type { ArenaMatchup } from "@/lib/arena/fighter";
+import { Play, RotateCcw, Swords } from "lucide-react";
 
+import { ArenaActionButton } from "./arena-action-button";
 import { ArenaRewardPanel } from "./arena-reward-panel";
 import { ArenaTitleCard, type ArenaTitleTone } from "./arena-title-card";
 import type { ArenaPhase, ArenaReward } from "./use-arena-game";
@@ -17,16 +19,14 @@ const TITLES: Record<
 
 function ArenaOverlay({
   phase,
-  playerName,
-  opponentName,
+  matchup,
   reward,
   onResume,
   onRestart,
   onExit,
 }: {
   phase: ArenaPhase;
-  playerName: string;
-  opponentName: string;
+  matchup: ArenaMatchup;
   reward: ArenaReward | null;
   onResume: () => void;
   onRestart: () => void;
@@ -35,9 +35,8 @@ function ArenaOverlay({
   if (phase === "playing") return null;
   const paused = phase === "paused";
   const copy = TITLES[phase];
-  const kicker = paused
-    ? "Esc continua a partida"
-    : `${phase === "victory" ? playerName : opponentName} venceu`;
+  const featured = phase === "defeat" ? matchup.opponent : matchup.player;
+  const kicker = paused ? "Esc continua a partida" : `${featured.name} venceu`;
 
   return (
     <div
@@ -53,26 +52,31 @@ function ArenaOverlay({
         accent={copy.accent}
         kicker={kicker}
         tone={copy.tone}
+        fighter={featured}
       >
-        {!paused && reward ? (
-          <ArenaRewardPanel reward={reward} className="mb-3" />
-        ) : null}
-        <div className="glass bg-white/90! flex flex-col gap-2 rounded-3xl p-4">
+        <div className="arena-title-panel flex flex-col gap-3 p-4">
+          {!paused && reward ? <ArenaRewardPanel reward={reward} /> : null}
           {paused ? (
-            <Button autoFocus onClick={onResume}>
+            <ArenaActionButton autoFocus onClick={onResume}>
+              <Play aria-hidden className="size-5" fill="currentColor" />
               Continuar
-            </Button>
+            </ArenaActionButton>
           ) : null}
-          <Button
+          <ArenaActionButton
             autoFocus={!paused}
-            variant={paused ? "secondary" : "default"}
+            variant={paused ? "secondary" : "primary"}
             onClick={onRestart}
           >
+            {paused ? (
+              <RotateCcw aria-hidden className="size-4" />
+            ) : (
+              <Swords aria-hidden className="size-5" />
+            )}
             {paused ? "Reiniciar" : "Nova batalha"}
-          </Button>
-          <Button variant="outline" onClick={onExit}>
+          </ArenaActionButton>
+          <ArenaActionButton variant="secondary" onClick={onExit}>
             Trocar lutadores
-          </Button>
+          </ArenaActionButton>
         </div>
       </ArenaTitleCard>
     </div>

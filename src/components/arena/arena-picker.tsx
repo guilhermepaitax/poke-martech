@@ -3,9 +3,10 @@
 import type { ArenaDifficulty } from "@/lib/arena/cpu";
 import type { ArenaFighter } from "@/lib/arena/fighter";
 import type { ArenaSide } from "@/lib/arena/selection";
-import { Swords } from "lucide-react";
+import { GraduationCap, Swords } from "lucide-react";
 import type { CSSProperties } from "react";
 
+import { ArenaActionButton } from "./arena-action-button";
 import { ArenaDifficultyPicker } from "./arena-difficulty";
 import { ArenaPanelSection } from "./arena-panel-section";
 import { fighterAppearance } from "./fighter-appearance";
@@ -27,6 +28,7 @@ function ArenaPicker({
   onChoose,
   onActivate,
   onFight,
+  onTutorial,
   canFight,
   difficulty,
   onDifficulty,
@@ -39,6 +41,7 @@ function ArenaPicker({
   onChoose: (id: string) => void;
   onActivate: (side: ArenaSide) => void;
   onFight: () => void;
+  onTutorial: () => void;
   canFight: boolean;
   difficulty: ArenaDifficulty;
   onDifficulty: (value: ArenaDifficulty) => void;
@@ -53,7 +56,7 @@ function ArenaPicker({
     <div
       data-slot="arena-picker"
       style={style}
-      className="arena-picker relative isolate overflow-hidden rounded-[28px] lg:grid lg:min-h-[40rem] lg:grid-cols-[minmax(0,1fr)_26rem]"
+      className="arena-picker relative isolate overflow-hidden rounded-[28px] lg:grid lg:min-h-[40rem] lg:grid-cols-[minmax(0,1fr)_30rem]"
     >
       <FighterBanner
         fighters={fighters}
@@ -125,6 +128,10 @@ function ArenaPicker({
               Lutar
             </button>
           </div>
+          <ArenaActionButton variant="secondary" onClick={onTutorial} disabled={!canFight}>
+            <GraduationCap aria-hidden className="size-4" />
+            Tutorial
+          </ArenaActionButton>
         </div>
       </aside>
     </div>

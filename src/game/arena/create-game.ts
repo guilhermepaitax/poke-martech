@@ -7,6 +7,7 @@ import type { ArenaDifficulty } from "@/lib/arena/cpu";
 import type { ArenaMatchup } from "@/lib/arena/fighter";
 import type { ArenaOutcome } from "@/lib/arena/outcome";
 import type { ArenaHudState, ArenaSnapshot } from "@/lib/arena/snapshot";
+import type { ArenaMode, TutorialAction } from "@/lib/arena/tutorial";
 import Phaser from "phaser";
 
 const FONT_TIMEOUT_MS = 1500;
@@ -34,6 +35,7 @@ function createArenaGame(
   parent: HTMLElement,
   matchup: ArenaMatchup,
   difficulty: ArenaDifficulty,
+  mode: ArenaMode = "match",
 ): Phaser.Game {
   const width = Math.max(parent.clientWidth, 1);
   const height = Math.max(parent.clientHeight, 1);
@@ -68,6 +70,7 @@ function createArenaGame(
       preBoot: (game) => {
         game.registry.set("matchup", matchup);
         game.registry.set("difficulty", difficulty);
+        game.registry.set("mode", mode);
       },
     },
     scene: ArenaScene,
@@ -83,6 +86,8 @@ type ArenaControls = {
   ) => () => void;
   onSnapshot: (listener: (snapshot: ArenaSnapshot) => void) => () => void;
   onHud: (listener: (hud: ArenaHudState) => void) => () => void;
+  onTutorial: (listener: (action: TutorialAction) => void) => () => void;
+  spawnTutorialPickup: () => void;
 };
 
 function arenaScene(game: Phaser.Game) {
@@ -117,6 +122,13 @@ function arenaControls(game: Phaser.Game): ArenaControls {
         game.events.off(ARENA_EVENTS.hud, listener);
       };
     },
+    onTutorial: (listener) => {
+      game.events.on(ARENA_EVENTS.tutorial, listener);
+      return () => {
+        game.events.off(ARENA_EVENTS.tutorial, listener);
+      };
+    },
+    spawnTutorialPickup: () => arenaScene(game)?.spawnTutorialPickup(),
   };
 }
 

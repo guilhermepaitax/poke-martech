@@ -116,6 +116,12 @@ function setup() {
 }
 
 describe("ClaimArenaWin", () => {
+  it("pays 2 coins on easy", async () => {
+    const { win } = setup();
+    const easy = await win("easy");
+    expect(easy.ok && easy.value).toMatchObject({ reward: 2, coins: 2, rewardedToday: 1 });
+  });
+
   it("pays 5 coins on normal and 10 on hard", async () => {
     const { win } = setup();
     const normal = await win("normal");

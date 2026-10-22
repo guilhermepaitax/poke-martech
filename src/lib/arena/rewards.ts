@@ -1,6 +1,7 @@
 import type { ArenaDifficulty } from "@/lib/arena/cpu";
 
 const ARENA_WIN_REWARD: Record<ArenaDifficulty, number> = {
+  easy: 2,
   normal: 5,
   hard: 10,
 };

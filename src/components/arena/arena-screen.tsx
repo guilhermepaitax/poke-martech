@@ -2,6 +2,7 @@
 
 import { ARENA_FIGHTERS } from "@/lib/arena/fighters";
 import type { ArenaSelection } from "@/lib/arena/selection";
+import type { ArenaMode } from "@/lib/arena/tutorial";
 import dynamic from "next/dynamic";
 
 import { unlockArenaAudio } from "@/game/arena/unlock-audio";
@@ -10,6 +11,7 @@ import { useArenaCanvasLayout } from "./arena-canvas-layout";
 import { ArenaPicker } from "./arena-picker";
 import { ArenaTitleCard } from "./arena-title-card";
 import { useArenaPicker } from "./use-arena-picker";
+import { useArenaTutorial } from "./use-arena-tutorial";
 
 const ArenaGame = dynamic(
   () => import("./arena-game").then((mod) => mod.ArenaGame),
@@ -40,11 +42,18 @@ const DEFAULT_SELECTION: ArenaSelection = {
 function ArenaScreen() {
   const canvas = useArenaCanvasLayout();
   const picker = useArenaPicker(DEFAULT_SELECTION);
+  const tutorial = useArenaTutorial();
 
-  function start() {
-    if (!picker.fight()) return;
+  // Primeira luta passa pelo treino antes.
+  function start(mode: ArenaMode = tutorial.done ? "match" : "tutorial") {
+    if (!picker.fight(mode)) return;
     unlockArenaAudio();
     canvas.setActive(true);
+  }
+
+  function endTutorial() {
+    tutorial.markDone();
+    picker.setMode("match");
   }
 
   function exit() {
@@ -59,9 +68,12 @@ function ArenaScreen() {
         className="box-border h-full w-full overflow-hidden border-4 border-[#e17100]"
       >
         <ArenaGame
+          key={picker.mode}
           matchup={picker.matchup}
           difficulty={picker.difficulty}
+          mode={picker.mode}
           onExit={exit}
+          onTutorialEnd={endTutorial}
         />
       </section>
     );
@@ -77,7 +89,8 @@ function ArenaScreen() {
         active={picker.active}
         onChoose={picker.choose}
         onActivate={picker.activate}
-        onFight={start}
+        onFight={() => start()}
+        onTutorial={() => start("tutorial")}
         canFight={picker.canFight}
         difficulty={picker.difficulty}
         onDifficulty={picker.setDifficulty}

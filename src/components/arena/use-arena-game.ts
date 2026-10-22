@@ -6,6 +6,7 @@ import type { ArenaDifficulty } from "@/lib/arena/cpu";
 import type { ArenaMatchup } from "@/lib/arena/fighter";
 import { ARENA_WIN_REWARD } from "@/lib/arena/rewards";
 import type { ArenaHudState, ArenaSnapshot } from "@/lib/arena/snapshot";
+import { advanceTutorial, type ArenaMode, type TutorialStep } from "@/lib/arena/tutorial";
 import type { ArenaMatchStart } from "@/types/catalog";
 import { claimArenaWin, recordArenaDefeat, startArenaMatch } from "@/services/arena";
 import { useQueryClient } from "@tanstack/react-query";
@@ -38,7 +39,7 @@ function fitArena(game: ArenaGameInstance, parent: HTMLElement) {
   game.scale.resize(width, height);
 }
 
-function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty) {
+function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty, mode: ArenaMode) {
   const parentRef = useRef<HTMLDivElement>(null);
   const matchupRef = useRef(matchup);
   const controlsRef = useRef<ArenaControls | null>(null);
@@ -51,6 +52,7 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty) {
   const [hud, setHud] = useState<ArenaHudState | null>(null);
   const [reward, setReward] = useState<ArenaReward | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [tutorialStep, setTutorialStep] = useState<TutorialStep>("move");
   const playerId = matchup.player.id;
   const opponentId = matchup.opponent.id;
 
@@ -73,6 +75,7 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty) {
     let releaseOutcome: (() => void) | null = null;
     let releaseSnapshot: (() => void) | null = null;
     let releaseHud: (() => void) | null = null;
+    let releaseTutorial: (() => void) | null = null;
     const observer = new ResizeObserver(() => {
       if (game) fitArena(game, parent);
     });
@@ -133,7 +136,7 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty) {
         );
         await loadArenaFonts(parent);
         if (cancelled || parentRef.current !== parent) return;
-        const instance = createArenaGame(parent, matchupRef.current, difficulty);
+        const instance = createArenaGame(parent, matchupRef.current, difficulty, mode);
         if (cancelled) {
           instance.destroy(true, false);
           return;
@@ -147,7 +150,13 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty) {
         });
         releaseSnapshot = controls.onSnapshot(setSnapshot);
         releaseHud = controls.onHud(setHud);
-        beginMatch(difficulty);
+        if (mode === "tutorial") {
+          releaseTutorial = controls.onTutorial((action) => {
+            setTutorialStep((step) => advanceTutorial(step, action));
+          });
+        } else {
+          beginMatch(difficulty);
+        }
         fitArena(instance, parent);
         parent.dataset.arenaStatus = "ready";
         setStatus("ready");
@@ -163,6 +172,7 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty) {
       releaseOutcome?.();
       releaseSnapshot?.();
       releaseHud?.();
+      releaseTutorial?.();
       controlsRef.current = null;
       matchRef.current = null;
       matchTokenRef.current += 1;
@@ -173,11 +183,21 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty) {
       setSnapshot(null);
       setHud(null);
       setReward(null);
+      setTutorialStep("move");
     };
-  }, [playerId, opponentId, difficulty, attempt, queryClient]);
+  }, [playerId, opponentId, difficulty, mode, attempt, queryClient]);
+
+  useEffect(() => {
+    if (mode !== "tutorial" || status !== "ready") return;
+    const controls = controlsRef.current;
+    if (tutorialStep === "pickup") controls?.spawnTutorialPickup();
+    // Fim do treino: congela a cena atrás da tela de conclusão.
+    if (tutorialStep === "done") controls?.pause();
+  }, [mode, status, tutorialStep]);
 
   useEffect(() => {
     if (phase !== "playing" && phase !== "paused") return;
+    if (tutorialStep === "done") return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.repeat) return;
       const controls = controlsRef.current;
@@ -193,7 +213,7 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty) {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [phase]);
+  }, [phase, tutorialStep]);
 
   function resume() {
     controlsRef.current?.resume();
@@ -204,7 +224,8 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty) {
     const controls = controlsRef.current;
     if (!controls) return;
     controls.restart();
-    beginMatch(difficulty);
+    if (mode === "tutorial") setTutorialStep("move");
+    else beginMatch(difficulty);
     setPhase("playing");
   }
 
@@ -212,7 +233,18 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty) {
     setAttempt((value) => value + 1);
   }
 
-  return { parentRef, phase, status, snapshot, hud, reward, resume, restart, retry };
+  return {
+    parentRef,
+    phase,
+    status,
+    snapshot,
+    hud,
+    reward,
+    tutorialStep,
+    resume,
+    restart,
+    retry,
+  };
 }
 
 export { useArenaGame };

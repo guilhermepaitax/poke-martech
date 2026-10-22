@@ -1,4 +1,4 @@
-import { pixelFont } from "@/game/arena/entities/marker";
+import { pixelFont, titleFont } from "@/game/arena/entities/marker";
 import type { HitTag } from "@/lib/arena/combat";
 import Phaser from "phaser";
 
@@ -9,15 +9,22 @@ const NUMBER_FADE_MS = 300;
 const NUMBER_DEPTH = 9;
 const NUMBER_JITTER_X = 10;
 const LABEL_GAP_Y = 20;
-const LABEL_LINE_Y = 14;
+const LABEL_LINE_Y = 17;
 const LABEL_DELAY_MS = 60;
 const LABEL_POP_MS = 120;
 
 const NUMBER_COLOR = "#ffffff";
 const CRIT_COLOR = "#ffd23a";
 const CHARGED_COLOR = "#f6a8ff";
-const LABEL_COLOR = "#ff9a3a";
 const OUTLINE_COLOR = "#1a120c";
+const LABEL_PANEL = "rgba(21, 14, 39, 0.9)";
+
+const TAG_COLOR: Record<HitTag, string> = {
+  critical: CRIT_COLOR,
+  charged: CHARGED_COLOR,
+  super: "#c6f135",
+  resisted: "#bdb2da",
+};
 
 const TAG_TEXT: Record<HitTag, string> = {
   critical: "Critical!",
@@ -67,13 +74,15 @@ function spawnDamageNumber(
     .setShadow(2, 3, OUTLINE_COLOR, 0, true, true);
   const labels = tags.map((tag, index) =>
     scene.add
-      .text(0, -LABEL_GAP_Y - index * LABEL_LINE_Y - (size - 20) / 2, TAG_TEXT[tag], {
-        fontFamily: pixelFont(),
-        fontSize: "10px",
-        color: tag === "charged" ? CHARGED_COLOR : LABEL_COLOR,
+      .text(0, -LABEL_GAP_Y - index * LABEL_LINE_Y - (size - 20) / 2, TAG_TEXT[tag].toUpperCase(), {
+        fontFamily: titleFont(),
+        fontStyle: "italic 900",
+        fontSize: "11px",
+        color: TAG_COLOR[tag],
+        backgroundColor: LABEL_PANEL,
+        padding: { left: 5, right: 5, top: 1, bottom: 1 },
       })
-      .setOrigin(0.5, 1)
-      .setStroke(OUTLINE_COLOR, 4),
+      .setOrigin(0.5, 1),
   );
   container.add([...labels, number]);
   popIn(scene, number, NUMBER_POP_MS);

@@ -1083,7 +1083,8 @@ body {
 }
 
 .arena-picker,
-.arena-hud-frame {
+.arena-hud-frame,
+.arena-title {
   --arena-bg: #150e27;
   --arena-ink: #f7f3ff;
   --arena-ink-subtle: #bdb2da;
@@ -1247,6 +1248,10 @@ body {
     color 160ms ease-out;
 }
 
+.arena-choice[data-level="easy"] {
+  --choice-tone: #7ee08a;
+}
+
 .arena-choice[data-level="hard"] {
   --choice-tone: #ff6b5a;
 }
@@ -1335,6 +1340,14 @@ body {
 .arena-hud-frame[data-paused] *::before,
 .arena-hud-frame[data-paused] *::after {
   animation-play-state: paused !important;
+}
+
+/* O overlay de pausa anima a própria entrada; não pode herdar o congelamento. */
+.arena-hud-frame[data-paused] [data-slot="arena-overlay"],
+.arena-hud-frame[data-paused] [data-slot="arena-overlay"] *,
+.arena-hud-frame[data-paused] [data-slot="arena-overlay"] *::before,
+.arena-hud-frame[data-paused] [data-slot="arena-overlay"] *::after {
+  animation-play-state: running !important;
 }
 
 .arena-bar-strip {
@@ -1537,75 +1550,146 @@ body {
 }
 
 .arena-stamp {
-  color: var(--accent);
-  -webkit-text-stroke: 2px color-mix(in srgb, var(--foreground) 80%, black);
-  paint-order: stroke fill;
-  text-shadow:
-    0 0 12px var(--energy-psychic),
-    3px 3px 0 color-mix(in srgb, var(--foreground) 80%, black);
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  border-bottom: 2px solid #c45cff;
+  background: var(--arena-bg);
+  color: #d68bff;
+  text-shadow: 0 0 10px #c45cff;
   animation:
     arena-stamp 240ms cubic-bezier(0.2, 1.6, 0.4, 1) both,
     arena-stamp-pulse 420ms ease-in-out 240ms infinite alternate;
 }
 
 .arena-title {
-  --title-tone: var(--energy-water);
-  --title-deep: color-mix(in srgb, var(--energy-water) 55%, #1a2a6a);
+  --title-tone: var(--arena-ink-subtle);
+  color: var(--arena-ink);
+  background: var(--arena-bg);
 }
 
 .arena-title[data-tone="victory"] {
-  --title-tone: var(--accent);
-  --title-deep: color-mix(in srgb, var(--energy-water) 55%, #1a2a6a);
+  --title-tone: var(--arena-cta);
 }
 
 .arena-title[data-tone="defeat"] {
-  --title-tone: var(--destructive);
-  --title-deep: color-mix(in srgb, var(--destructive) 50%, #2a0f12);
+  --title-tone: #ff5a4e;
 }
 
-.arena-title[data-tone="neutral"] {
-  --title-tone: var(--energy-metal);
-  --title-deep: color-mix(in srgb, var(--energy-metal) 45%, #121a24);
+.arena-title-art {
+  object-position: 30% center;
+  animation: arena-title-art 900ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+.arena-title[data-tone="defeat"] .arena-title-art {
+  filter: grayscale(0.7) brightness(0.8);
 }
 
 .arena-title-backdrop {
   background:
-    radial-gradient(circle at 50% 50%, transparent 20%, rgb(0 0 0 / 0.55) 75%),
-    var(--title-deep);
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 36px
+      36px,
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 /
+      36px 36px,
+    radial-gradient(
+      ellipse at 50% 45%,
+      color-mix(in srgb, var(--title-tone) 22%, transparent),
+      transparent 60%
+    ),
+    linear-gradient(
+      90deg,
+      rgb(21 14 39 / 0.35) 0%,
+      rgb(21 14 39 / 0.8) 45%,
+      rgb(21 14 39 / 0.92) 100%
+    );
 }
 
-.arena-title-rays {
-  background: repeating-conic-gradient(
-    from 0deg,
-    rgb(255 255 255 / 0.1) 0deg 7deg,
-    transparent 7deg 18deg
+.arena-title-stripes {
+  transform: skewX(-18deg);
+  background: linear-gradient(
+    90deg,
+    transparent 58%,
+    color-mix(in srgb, var(--title-tone) 14%, transparent) 58% 63%,
+    transparent 63% 66%,
+    color-mix(in srgb, var(--title-tone) 8%, transparent) 66% 68%,
+    transparent 68%
   );
-  animation: arena-rays 24s linear infinite;
+  animation: arena-title-stripes 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
 }
 
-.arena-title-star {
-  color: var(--title-tone);
-  filter: drop-shadow(0 6px 0 color-mix(in srgb, var(--title-deep) 70%, black));
-  animation: arena-title-star 900ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+.arena-title-head {
+  animation: arena-title-in 460ms cubic-bezier(0.2, 1.3, 0.4, 1) both;
 }
 
-.arena-title-ribbon {
-  transform: rotate(-4deg) skewX(-14deg);
-  background: white;
-  box-shadow:
-    10px 10px 0 var(--title-tone),
-    0 18px 40px rgb(0 0 0 / 0.35);
-  animation: arena-title-in 520ms cubic-bezier(0.2, 1.5, 0.4, 1) both;
-}
-
-.arena-title-ribbon > * {
-  transform: skewX(14deg);
+.arena-title-text {
+  text-shadow:
+    0 5px 0 rgb(0 0 0 / 0.6),
+    0 0 32px rgb(0 0 0 / 0.5);
 }
 
 .arena-title-accent {
   color: var(--title-tone);
-  -webkit-text-stroke: 2px var(--title-deep);
-  paint-order: stroke fill;
+}
+
+.arena-title-rule {
+  transform: skewX(-18deg);
+  background: linear-gradient(90deg, var(--title-tone), transparent);
+}
+
+.arena-title-panel {
+  border-top: 2px solid var(--title-tone);
+  background: var(--arena-panel);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.4);
+  animation: arena-reward-in 420ms cubic-bezier(0.2, 1.4, 0.4, 1) 200ms both;
+}
+
+.arena-tutorial-card {
+  border-top: 2px solid var(--arena-cta);
+  background: var(--arena-panel);
+  color: var(--arena-ink);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.4);
+  animation: arena-reward-in 420ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.arena-tutorial-key {
+  border: 1px solid var(--arena-line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: rgb(255 255 255 / 0.08);
+  color: var(--arena-ink);
+}
+
+.arena-tutorial-dot {
+  background: var(--arena-line);
+  transition: background-color 200ms ease-out;
+}
+
+.arena-tutorial-dot[data-state="done"] {
+  background: var(--arena-ink-subtle);
+}
+
+.arena-tutorial-dot[data-state="current"] {
+  background: var(--arena-cta);
+}
+
+.arena-ghost {
+  transform: skewX(-8deg);
+  border: 2px solid var(--arena-line);
+  background: rgb(255 255 255 / 0.04);
+  color: var(--arena-ink);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease-out,
+    background-color 160ms ease-out;
+}
+
+.arena-ghost > * {
+  transform: skewX(8deg);
+}
+
+.arena-ghost:hover {
+  border-color: var(--arena-ink-subtle);
+  background: rgb(255 255 255 / 0.1);
 }
 
 .arena-title-confetti {
@@ -1618,23 +1702,21 @@ body {
 
 .arena-reward {
   --reward-tone: var(--accent);
-  clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
-  border-radius: 6px 0 0 6px;
+  border: 1px solid var(--arena-line);
+  border-left: 4px solid var(--reward-tone);
   background:
     radial-gradient(
       circle at 0% 0%,
-      color-mix(in srgb, var(--reward-tone) 35%, transparent),
-      transparent 60%
+      color-mix(in srgb, var(--reward-tone) 30%, transparent),
+      transparent 65%
     ),
-    linear-gradient(180deg, rgb(255 255 255 / 0.08), transparent 40%),
-    color-mix(in srgb, var(--foreground) 85%, black);
-  box-shadow: inset 4px 0 0 var(--reward-tone);
+    rgb(0 0 0 / 0.3);
   animation: arena-reward-in 420ms cubic-bezier(0.2, 1.4, 0.4, 1) 400ms both;
 }
 
 .arena-reward[data-tone="muted"],
 .arena-reward[data-tone="pending"] {
-  --reward-tone: var(--energy-metal);
+  --reward-tone: var(--arena-ink-subtle);
 }
 
 .arena-reward[data-tone="error"] {
@@ -1801,31 +1883,28 @@ body {
   }
 }
 
-@keyframes arena-rays {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @keyframes arena-title-in {
   from {
     opacity: 0;
-    transform: rotate(-4deg) skewX(-14deg) scale(1.7);
+    transform: translateX(-48px) skewX(-10deg);
   }
   to {
     opacity: 1;
-    transform: rotate(-4deg) skewX(-14deg) scale(1);
+    transform: none;
   }
 }
 
-@keyframes arena-title-star {
+@keyframes arena-title-art {
   from {
     opacity: 0;
-    transform: rotate(-60deg) scale(0.2);
+    transform: scale(1.06) translateX(-3%);
   }
-  to {
-    opacity: 1;
-    transform: rotate(-14deg) scale(1);
+}
+
+@keyframes arena-title-stripes {
+  from {
+    opacity: 0;
+    translate: 30% 0;
   }
 }
 
@@ -1844,7 +1923,11 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .arena-title-rays,
+  .arena-title-art,
+  .arena-title-stripes,
+  .arena-title-head,
+  .arena-title-panel,
+  .arena-tutorial-card,
   .arena-title-confetti,
   .arena-stamp,
   .arena-slot[data-charge="2"],

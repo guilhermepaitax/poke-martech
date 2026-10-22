@@ -19,7 +19,7 @@ describe("arenaDayStart", () => {
 });
 
 describe("ARENA_WIN_REWARD", () => {
-  it("pays more on hard", () => {
-    expect(ARENA_WIN_REWARD).toEqual({ normal: 5, hard: 10 });
+  it("pays more on harder levels", () => {
+    expect(ARENA_WIN_REWARD).toEqual({ easy: 2, normal: 5, hard: 10 });
   });
 });

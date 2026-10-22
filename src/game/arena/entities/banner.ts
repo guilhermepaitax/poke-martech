@@ -1,98 +1,106 @@
-import { FX_TEXTURES } from "@/game/arena/entities/fx-textures";
 import { titleFont } from "@/game/arena/entities/marker";
 import Phaser from "phaser";
 
 const BANNER_DEPTH = 30;
 const BANNER_Y = 0.3;
-const ENTER_MS = 280;
-const HOLD_MS = 620;
-const EXIT_MS = 260;
-const RAYS = 12;
-const RAY_LENGTH = 240;
-const RIBBON_PAD_X = 34;
-const RIBBON_PAD_Y = 12;
-const RIBBON_SLANT = 0.26;
-const RIBBON_TILT = -0.07;
-const SHADOW_OFFSET = 8;
-const CONFETTI = 14;
-const CONFETTI_MS = 700;
-const INK = "#173028";
-const OUTLINE_COLOR = "#0c1a2e";
+const ENTER_MS = 240;
+const HOLD_MS = 640;
+const EXIT_MS = 220;
+const SLIDE_X = 90;
+const PANEL_PAD_X = 28;
+const PANEL_PAD_Y = 10;
+const PANEL_SLANT = 0.32;
+const PANEL_FILL = 0x150e27;
+const PANEL_ALPHA = 0.92;
+const SHADOW_ALPHA = 0.55;
+const SHADOW_OFFSET = 6;
+const STRIPE_HEIGHT = 5;
+const TAB_PAD_X = 10;
+const TAB_SLANT = 8;
+const INK = "#f7f3ff";
+const INK_COLOR = 0xf7f3ff;
+const TAB_INK = "#150e27";
+const SHADOW_INK = "#000000";
 
 type BannerTone = "critical" | "charge" | "max" | "super" | "ko";
 
 type BannerStyle = {
   tone: number;
   accent: string;
-  glow: number;
+  // Rótulo da aba branca, no mesmo formato das seções da tela de escolha.
+  tab: string;
   size: number;
 };
 
 const BANNER_STYLE: Record<BannerTone, BannerStyle> = {
-  critical: { tone: 0xffc21a, accent: "#ffc21a", glow: 0xff9a1a, size: 40 },
-  charge: { tone: 0xff7a2a, accent: "#ff7a2a", glow: 0xff6a1a, size: 32 },
-  max: { tone: 0xc45cff, accent: "#c45cff", glow: 0xc45cff, size: 36 },
-  super: { tone: 0xff4ad8, accent: "#ff4ad8", glow: 0xff4ad8, size: 40 },
-  ko: { tone: 0x3a8cff, accent: "#3a8cff", glow: 0xff3a2a, size: 60 },
+  critical: { tone: 0xffd23a, accent: "#ffd23a", tab: "Golpe", size: 40 },
+  charge: { tone: 0xff7a2a, accent: "#ff7a2a", tab: "Carga", size: 32 },
+  max: { tone: 0xc45cff, accent: "#c45cff", tab: "Carga", size: 36 },
+  super: { tone: 0xff4ad8, accent: "#ff4ad8", tab: "Especial", size: 40 },
+  ko: { tone: 0xc6f135, accent: "#c6f135", tab: "Fim de luta", size: 60 },
 };
-
-const CONFETTI_COLORS = [0xffffff, 0xffc21a, 0x6cc0ff, 0xff4ad8];
 
 type Banner = {
   root: Phaser.GameObjects.Container;
-  motions: object[];
 };
 
 type BannerBucket = {
   current: Banner | null;
 };
 
-function addTextGlow(scene: Phaser.Scene, text: Phaser.GameObjects.Text, color: number) {
-  if (scene.renderer.type !== Phaser.WEBGL) return null;
-  text.enableFilters();
-  return text.filters?.external.addGlow(color, 4, 0, 1, false, 10, 10) ?? null;
-}
-
-function paintRays(graphics: Phaser.GameObjects.Graphics, color: number) {
-  graphics.clear();
-  for (let index = 0; index < RAYS; index += 1) {
-    const angle = (Math.PI * 2 * index) / RAYS;
-    const spread = 0.08;
-    graphics.fillStyle(index % 2 === 0 ? 0xffffff : color, index % 2 === 0 ? 0.18 : 0.22);
-    graphics.fillTriangle(
-      0,
-      0,
-      Math.cos(angle - spread) * RAY_LENGTH,
-      Math.sin(angle - spread) * RAY_LENGTH * 0.6,
-      Math.cos(angle + spread) * RAY_LENGTH,
-      Math.sin(angle + spread) * RAY_LENGTH * 0.6,
-    );
-  }
-}
-
-function ribbonPoints(width: number, height: number, offset = 0) {
+// Paralelogramo inclinado para a direita; `fromY`/`toY` recortam uma faixa horizontal dele.
+function slantedBand(width: number, height: number, slant: number, fromY: number, toY: number) {
   const halfW = width / 2;
   const halfH = height / 2;
-  const slant = height * RIBBON_SLANT * 2;
+  const leftAt = (y: number) => -halfW + (slant * (halfH - y)) / height;
+  const rightAt = (y: number) => halfW - (slant * (y + halfH)) / height;
   return [
-    new Phaser.Math.Vector2(-halfW + slant + offset, -halfH + offset),
-    new Phaser.Math.Vector2(halfW + offset, -halfH + offset),
-    new Phaser.Math.Vector2(halfW - slant + offset, halfH + offset),
-    new Phaser.Math.Vector2(-halfW + offset, halfH + offset),
+    new Phaser.Math.Vector2(leftAt(fromY), fromY),
+    new Phaser.Math.Vector2(rightAt(fromY), fromY),
+    new Phaser.Math.Vector2(rightAt(toY), toY),
+    new Phaser.Math.Vector2(leftAt(toY), toY),
   ];
 }
 
-function paintRibbon(
+function paintPanel(
   graphics: Phaser.GameObjects.Graphics,
   width: number,
   height: number,
   tone: number,
 ) {
+  const slant = height * PANEL_SLANT;
+  const halfH = height / 2;
   graphics.clear();
+  graphics.fillStyle(0x000000, SHADOW_ALPHA);
+  graphics.fillPoints(
+    slantedBand(width, height, slant, -halfH, halfH).map((point) =>
+      point.add({ x: 0, y: SHADOW_OFFSET }),
+    ),
+    true,
+  );
+  graphics.fillStyle(PANEL_FILL, PANEL_ALPHA);
+  graphics.fillPoints(slantedBand(width, height, slant, -halfH, halfH), true);
+  graphics.fillStyle(INK_COLOR, 1);
+  graphics.fillPoints(slantedBand(width, height, slant, -halfH, -halfH + 2), true);
   graphics.fillStyle(tone, 1);
-  graphics.fillPoints(ribbonPoints(width, height, SHADOW_OFFSET), true);
-  graphics.fillStyle(0xffffff, 1);
-  graphics.fillPoints(ribbonPoints(width, height), true);
+  graphics.fillPoints(
+    slantedBand(width, height, slant, halfH - STRIPE_HEIGHT, halfH),
+    true,
+  );
+}
+
+function paintTab(graphics: Phaser.GameObjects.Graphics, width: number, height: number) {
+  graphics.clear();
+  graphics.fillStyle(INK_COLOR, 1);
+  graphics.fillPoints(
+    [
+      new Phaser.Math.Vector2(0, 0),
+      new Phaser.Math.Vector2(width, 0),
+      new Phaser.Math.Vector2(width - TAB_SLANT, height),
+      new Phaser.Math.Vector2(0, height),
+    ],
+    true,
+  );
 }
 
 function splitLabel(label: string) {
@@ -102,31 +110,12 @@ function splitLabel(label: string) {
 }
 
 function destroyBanner(scene: Phaser.Scene, banner: Banner) {
-  for (const motion of banner.motions) scene.tweens.killTweensOf(motion);
   scene.tweens.killTweensOf(banner.root);
-  for (const child of banner.root.list) scene.tweens.killTweensOf(child);
-  if (banner.root.scene) banner.root.destroy();
-}
-
-function burstConfetti(scene: Phaser.Scene, root: Phaser.GameObjects.Container, spread: number) {
-  for (let index = 0; index < CONFETTI; index += 1) {
-    const angle = (Math.PI * 2 * index) / CONFETTI + Math.random() * 0.4;
-    const color = CONFETTI_COLORS[index % CONFETTI_COLORS.length] ?? 0xffffff;
-    const piece = scene.add
-      .rectangle(0, 0, 10, 4, color, 1)
-      .setRotation(Math.random() * Math.PI);
-    root.add(piece);
-    const reach = spread * (0.6 + Math.random() * 0.5);
-    scene.tweens.add({
-      targets: piece,
-      x: Math.cos(angle) * reach,
-      y: Math.sin(angle) * reach * 0.6,
-      rotation: piece.rotation + Math.PI * 3,
-      alpha: 0,
-      duration: CONFETTI_MS + Math.random() * 200,
-      ease: "Cubic.easeOut",
-    });
+  for (const child of banner.root.list) {
+    scene.tweens.killTweensOf(child);
+    if (child instanceof Phaser.GameObjects.Container) scene.tweens.killTweensOf(child.list);
   }
+  if (banner.root.scene) banner.root.destroy();
 }
 
 function spawnBanner(
@@ -143,17 +132,8 @@ function spawnBanner(
     .container(width / 2, scene.scale.height * BANNER_Y)
     .setScrollFactor(0)
     .setDepth(BANNER_DEPTH);
-  const banner: Banner = { root, motions: [] };
+  const banner: Banner = { root };
   bucket.current = banner;
-
-  const halo = scene.add
-    .image(0, 0, FX_TEXTURES.glow)
-    .setTint(style.glow)
-    .setBlendMode(Phaser.BlendModes.ADD)
-    .setScale((size * 9) / 64, (size * 3.4) / 64)
-    .setAlpha(0.8);
-  const rays = scene.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
-  paintRays(rays, style.tone);
 
   const { head, tail } = splitLabel(label);
   const textStyle = {
@@ -161,86 +141,69 @@ function spawnBanner(
     fontStyle: "italic 900",
     fontSize: `${size}px`,
   };
+  const shadow = { offsetX: 0, offsetY: Math.max(2, Math.round(size / 12)), color: SHADOW_INK, fill: true };
   const headText = scene.add
-    .text(0, 0, head.toUpperCase(), { ...textStyle, color: INK })
+    .text(0, 0, head.toUpperCase(), { ...textStyle, color: INK, shadow })
     .setOrigin(0, 0.5);
   const tailText = scene.add
-    .text(0, 0, tail.toUpperCase(), { ...textStyle, color: style.accent })
-    .setOrigin(0, 0.5)
-    .setStroke(OUTLINE_COLOR, Math.max(3, Math.round(size / 10)));
+    .text(0, 0, tail.toUpperCase(), { ...textStyle, color: style.accent, shadow })
+    .setOrigin(0, 0.5);
   const gap = head ? size * 0.3 : 0;
   const lineWidth = headText.width + gap + tailText.width;
   headText.setX(-lineWidth / 2);
   tailText.setX(-lineWidth / 2 + headText.width + gap);
-  const words = scene.add.container(0, 0, [headText, tailText]).setRotation(RIBBON_TILT);
 
-  const ribbon = scene.add.graphics().setRotation(RIBBON_TILT);
-  paintRibbon(
-    ribbon,
-    lineWidth + RIBBON_PAD_X * 2 + size * 0.6,
-    size + RIBBON_PAD_Y * 2,
-    style.tone,
-  );
-  const star = scene.add
-    .image(-lineWidth / 2 - size * 0.4, -size * 0.55, FX_TEXTURES.star)
-    .setTint(style.tone)
-    .setScale((size * 2) / 64)
-    .setRotation(-0.3);
+  const panelHeight = size + PANEL_PAD_Y * 2;
+  const panelWidth = lineWidth + PANEL_PAD_X * 2 + panelHeight * PANEL_SLANT;
+  const panel = scene.add.graphics();
+  paintPanel(panel, panelWidth, panelHeight, style.tone);
 
-  root.add([halo, rays, star, ribbon, words]);
-  burstConfetti(scene, root, lineWidth * 0.9 + size * 2);
+  const tabSize = Math.max(10, Math.round(size * 0.3));
+  const tabText = scene.add
+    .text(0, 0, `${style.tab.toUpperCase()}_`, {
+      fontFamily: titleFont(),
+      fontStyle: "italic 900",
+      fontSize: `${tabSize}px`,
+      color: TAB_INK,
+    })
+    .setOrigin(0, 0.5);
+  const tabHeight = tabSize + 6;
+  const tabWidth = tabText.width + TAB_PAD_X * 2 + TAB_SLANT;
+  const tabX = -panelWidth / 2 + panelHeight * PANEL_SLANT;
+  const tabY = -panelHeight / 2 - tabHeight;
+  const tab = scene.add.graphics().setPosition(tabX, tabY);
+  paintTab(tab, tabWidth, tabHeight);
+  tabText.setPosition(tabX + TAB_PAD_X, tabY + tabHeight / 2);
 
-  const glow = addTextGlow(scene, tailText, style.glow);
-  if (glow) {
-    banner.motions.push(glow);
-    scene.tweens.add({
-      targets: glow,
-      outerStrength: 10,
-      duration: 200,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
-    });
-  }
+  const body = scene.add.container(0, 0, [panel, tab, tabText, headText, tailText]);
+  root.add(body);
 
-  root.setScale(1.8).setAlpha(0);
+  body.setX(-SLIDE_X).setAlpha(0);
   scene.tweens.add({
-    targets: root,
-    scale: 1,
+    targets: body,
+    x: 0,
     alpha: 1,
     duration: ENTER_MS,
     ease: "Back.easeOut",
-    easeParams: [2.2],
+    easeParams: [1.6],
   });
-  star.setScale(0.1);
+  tab.setScale(0, 1);
   scene.tweens.add({
-    targets: star,
-    scale: (size * 2) / 64,
-    rotation: -0.25,
-    duration: ENTER_MS + 120,
-    ease: "Back.easeOut",
+    targets: tab,
+    scaleX: 1,
+    delay: ENTER_MS * 0.5,
+    duration: 180,
+    ease: "Cubic.easeOut",
   });
-  rays.setScale(0.4);
-  scene.tweens.add({ targets: rays, scale: 1, duration: ENTER_MS, ease: "Quad.easeOut" });
+  tabText.setAlpha(0);
+  scene.tweens.add({ targets: tabText, alpha: 1, delay: ENTER_MS * 0.5 + 120, duration: 120 });
   scene.tweens.add({
-    targets: rays,
-    rotation: Math.PI / 4,
-    duration: ENTER_MS + HOLD_MS + EXIT_MS,
-  });
-  scene.tweens.add({
-    targets: halo,
-    alpha: 0.45,
-    duration: 160,
-    yoyo: true,
-    repeat: -1,
-  });
-  scene.tweens.add({
-    targets: root,
-    scale: 1.2,
+    targets: body,
+    x: SLIDE_X,
     alpha: 0,
     delay: ENTER_MS + HOLD_MS,
     duration: EXIT_MS,
-    ease: "Quad.easeIn",
+    ease: "Cubic.easeIn",
     onComplete: () => {
       if (bucket.current === banner) bucket.current = null;
       destroyBanner(scene, banner);

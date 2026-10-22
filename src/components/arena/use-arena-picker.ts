@@ -8,11 +8,13 @@ import {
   type ArenaSelection,
   type ArenaSide,
 } from "@/lib/arena/selection";
+import type { ArenaMode } from "@/lib/arena/tutorial";
 import { useState } from "react";
 
 function useArenaPicker(selection: ArenaSelection) {
   const [current, setCurrent] = useState(selection);
   const [started, setStarted] = useState(false);
+  const [mode, setMode] = useState<ArenaMode>("match");
   const [difficulty, setDifficulty] = useState<ArenaDifficulty>(DEFAULT_DIFFICULTY);
 
   const player = findFighter(current.playerId);
@@ -30,8 +32,9 @@ function useArenaPicker(selection: ArenaSelection) {
     setStarted(false);
   }
 
-  function fight() {
+  function fight(next: ArenaMode = "match") {
     if (!canStartArena(current) || !player || !opponent) return false;
+    setMode(next);
     setStarted(true);
     return true;
   }
@@ -45,6 +48,8 @@ function useArenaPicker(selection: ArenaSelection) {
     activate,
     fight,
     reset,
+    mode,
+    setMode,
     difficulty,
     setDifficulty,
     canFight: canStartArena(current),

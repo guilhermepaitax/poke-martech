@@ -151,7 +151,7 @@ const tradesQuerySchema = pageQuerySchema.extend({
 });
 
 const arenaMatchSchema = z.object({
-  difficulty: z.enum(["normal", "hard"]),
+  difficulty: z.enum(["easy", "normal", "hard"]),
 });
 
 export {

@@ -76,6 +76,7 @@ import {
 } from "@/lib/arena/pickups";
 import type { ArenaHudState, ArenaSnapshot, HudSlot } from "@/lib/arena/snapshot";
 import { spawnPoints } from "@/lib/arena/spawn";
+import { isArenaMode, type ArenaMode, type TutorialAction } from "@/lib/arena/tutorial";
 import Phaser from "phaser";
 
 const DEFEATED_ALPHA = 0.45;
@@ -83,6 +84,12 @@ const CHARGE_MOVE_SCALE = 0.55;
 const OUTCOME_DELAY_MS = 1100;
 const PICKUP_LABEL_OFFSET_Y = 84;
 const PICKUP_RETRY_MS = 1000;
+// Treino: tempo andando que conta como "moveu", intervalo entre avisos de mira,
+// HP do boneco que dispara a recarga e raio da caixa em volta do jogador.
+const TUTORIAL_MOVE_MS = 700;
+const TUTORIAL_AIM_MS = 500;
+const TUTORIAL_REFILL_RATIO = 0.3;
+const TUTORIAL_PICKUP_REACH = 320;
 const CHARGE_BANNER: Record<Exclude<ChargeLevel, 0>, [string, "charge" | "max"]> = {
   1: ["CARREGADO!", "charge"],
   2: ["MÁXIMO!", "max"],
@@ -98,6 +105,11 @@ function readMatchup(registry: Phaser.Data.DataManager): ArenaMatchup | null {
 function readCpuProfile(registry: Phaser.Data.DataManager): CpuProfile {
   const value: unknown = registry.get("difficulty");
   return CPU_PROFILES[isArenaDifficulty(value) ? value : DEFAULT_DIFFICULTY];
+}
+
+function readMode(registry: Phaser.Data.DataManager): ArenaMode {
+  const value: unknown = registry.get("mode");
+  return isArenaMode(value) ? value : "match";
 }
 
 function freshCycles(): Record<HudSlot, { readyAt: number; cycle: number }> {
@@ -130,6 +142,12 @@ class ArenaScene extends Phaser.Scene {
   private elapsedMs = 0;
   private pickups: Pickup[] = [];
   private nextPickupAt = 0;
+  private mode: ArenaMode = "match";
+  private movedMs = 0;
+  private aimReportedAt = -Infinity;
+  private lastFiredKind: AttackKind = "melee";
+  private opponentHp = 0;
+  private tutorialPickup = false;
 
   constructor() {
     super("arena");
@@ -152,6 +170,12 @@ class ArenaScene extends Phaser.Scene {
     this.elapsedMs = 0;
     this.pickups = [];
     this.nextPickupAt = 0;
+    this.mode = "match";
+    this.movedMs = 0;
+    this.aimReportedAt = -Infinity;
+    this.lastFiredKind = "melee";
+    this.opponentHp = 0;
+    this.tutorialPickup = false;
   }
 
   preload() {
@@ -168,6 +192,7 @@ class ArenaScene extends Phaser.Scene {
       onPrimaryUp: (worldX, worldY) => this.releaseCharge(worldX, worldY),
       onPointerActivity: () => {
         this.pointerSeen = true;
+        this.reportAim();
       },
       onWheel: (deltaY) => this.chooseAttackByWheel(deltaY),
     });
@@ -176,6 +201,7 @@ class ArenaScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdownArena, this);
     this.layout();
     this.cpuProfile = readCpuProfile(this.game.registry);
+    this.mode = readMode(this.game.registry);
     const matchup = readMatchup(this.game.registry);
     if (matchup) this.spawnFighters(matchup);
   }
@@ -188,10 +214,12 @@ class ArenaScene extends Phaser.Scene {
     this.applyAttackKeys();
     this.followPointer();
     const move = readMoveAxes(this.keys);
+    this.trackMove(move, delta);
     if (this.combat && Phaser.Input.Keyboard.JustDown(this.keys.space)) {
       if (tryPlayerDash(this, this.combat, this.player, move)) {
         this.cancelCharge(true);
         this.emitHud();
+        this.emitTutorial({ type: "dash" });
       }
     }
     const charge = this.syncCharge();
@@ -202,7 +230,10 @@ class ArenaScene extends Phaser.Scene {
       move.y,
       charge ? speed * CHARGE_MOVE_SCALE : speed,
     );
-    if (this.combat && this.opponent) {
+    if (this.mode === "tutorial") {
+      // Boneco de treino: fica parado e não revida.
+      if (this.opponent) updatePlayer(this.opponent, 0, 0);
+    } else if (this.combat && this.opponent) {
       updateCpu(
         this,
         this.combat,
@@ -241,8 +272,11 @@ class ArenaScene extends Phaser.Scene {
     const level = chargeLevel(this.time.now - this.chargeStartedAt);
     this.cancelCharge(false);
     if (!this.player || !this.opponent || !this.combat) return;
+    const kind = this.combat.kind;
     if (tryPlayerAttack(this, this.combat, this.player, this.opponent, worldX, worldY, level)) {
+      this.lastFiredKind = kind;
       this.emitHud();
+      this.emitTutorial({ type: "attack", kind, level });
     }
   }
 
@@ -332,6 +366,44 @@ class ArenaScene extends Phaser.Scene {
     if (!this.combat || this.combat.kind === kind) return;
     setCombatKind(this.combat, kind);
     this.emitHud();
+    this.emitTutorial({ type: "select", kind });
+  }
+
+  spawnTutorialPickup() {
+    if (this.mode !== "tutorial") return;
+    this.tutorialPickup = true;
+    this.nextPickupAt = 0;
+  }
+
+  private emitTutorial(action: TutorialAction) {
+    if (this.mode !== "tutorial") return;
+    this.game.events.emit(ARENA_EVENTS.tutorial, action);
+  }
+
+  private trackMove(move: { x: number; y: number }, delta: number) {
+    if (this.mode !== "tutorial" || (move.x === 0 && move.y === 0)) return;
+    this.movedMs += delta;
+    if (this.movedMs < TUTORIAL_MOVE_MS) return;
+    this.movedMs = 0;
+    this.emitTutorial({ type: "move" });
+  }
+
+  private reportAim() {
+    if (this.mode !== "tutorial") return;
+    const now = this.time.now;
+    if (now - this.aimReportedAt < TUTORIAL_AIM_MS) return;
+    this.aimReportedAt = now;
+    this.emitTutorial({ type: "aim" });
+  }
+
+  private onHpChange() {
+    const opponent = this.opponent;
+    if (this.mode === "tutorial" && opponent) {
+      if (opponent.hp < this.opponentHp) this.emitTutorial({ type: "hit", kind: this.lastFiredKind });
+      if (opponent.hp < opponent.maxHp * TUTORIAL_REFILL_RATIO) setPlayerHp(opponent, opponent.maxHp);
+      this.opponentHp = opponent.hp;
+    }
+    this.emitSnapshot();
   }
 
   private tickClock(delta: number) {
@@ -363,7 +435,13 @@ class ArenaScene extends Phaser.Scene {
     const { player, opponent, combat } = this;
     if (!player || !opponent || !combat || combat.over) return;
     const now = this.time.now;
-    if (now >= this.nextPickupAt) this.dropPickup();
+    if (this.mode === "tutorial") {
+      if (this.tutorialPickup && this.pickups.length === 0 && now >= this.nextPickupAt) {
+        this.dropTutorialPickup();
+      }
+    } else if (now >= this.nextPickupAt) {
+      this.dropPickup();
+    }
     stepPickups(this, this.pickups, [player, opponent], (fighter, look) =>
       this.consumePickup(fighter, look),
     );
@@ -388,6 +466,29 @@ class ArenaScene extends Phaser.Scene {
     }
     spawnPickup(this, this.pickups, spot, rollPickup(Math.random));
     this.nextPickupAt = now + pickupDelay(Math.random);
+  }
+
+  // Caixa do treino cai perto do jogador; some no resize e volta a cair.
+  private dropTutorialPickup() {
+    const { player, opponent, combat } = this;
+    if (!player || !opponent || !combat) return;
+    const world = this.physics.world.bounds;
+    const origin = playerAnchor(player);
+    const near = {
+      left: Math.max(world.left, origin.x - TUTORIAL_PICKUP_REACH),
+      top: Math.max(world.top, origin.y - TUTORIAL_PICKUP_REACH),
+      right: Math.min(world.right, origin.x + TUTORIAL_PICKUP_REACH),
+      bottom: Math.min(world.bottom, origin.y + TUTORIAL_PICKUP_REACH),
+    };
+    const avoid = [origin, playerAnchor(opponent)];
+    const spot =
+      pickupSpot(Math.random, near, blockRects(combat), avoid) ??
+      pickupSpot(Math.random, world, blockRects(combat), avoid);
+    if (!spot) {
+      this.nextPickupAt = this.time.now + PICKUP_RETRY_MS;
+      return;
+    }
+    spawnPickup(this, this.pickups, spot, "haste");
   }
 
   private consumePickup(fighter: Player, look: PickupLook) {
@@ -421,10 +522,14 @@ class ArenaScene extends Phaser.Scene {
     );
     spawnRingWave(this, fighter.marker, { color: lookColor(effect), count: 2, grow: 2.6, width: 3 });
     playArenaAudio(this, "appear");
+    if (fighter === this.player && this.tutorialPickup) {
+      this.tutorialPickup = false;
+      this.emitTutorial({ type: "pickup" });
+    }
   }
 
   private checkOutcome() {
-    if (!this.player || !this.opponent) return;
+    if (this.mode === "tutorial" || !this.player || !this.opponent) return;
     const outcome = resolveOutcome(this.player.hp, this.opponent.hp);
     if (outcome === "ongoing") return;
     this.finishMatch(outcome);
@@ -531,7 +636,8 @@ class ArenaScene extends Phaser.Scene {
     this.physics.add.collider(this.player.sprite, solids);
     this.physics.add.collider(this.opponent.sprite, solids);
     this.physics.add.collider(this.player.sprite, this.opponent.sprite);
-    this.combat = createCombat(this, this.player, this.opponent, world.obstacles, () => this.emitSnapshot());
+    this.combat = createCombat(this, this.player, this.opponent, world.obstacles, () => this.onHpChange());
+    this.opponentHp = this.opponent.hp;
     this.nextPickupAt = this.time.now + pickupDelay(Math.random);
     this.emitSnapshot();
     this.emitHud();

@@ -52,7 +52,7 @@ function ArenaChargeMeter({ charge }: { charge: HudCharge | null }) {
       {charge?.level === 2 ? (
         <span
           key={`stamp-${charge.cycle}`}
-          className="arena-stamp absolute -top-4 right-1 font-arena-title text-lg leading-none sm:-top-5 sm:text-2xl"
+          className="arena-stamp absolute -top-4 right-1 px-2 py-0.5 font-arena-title text-sm leading-none sm:-top-5 sm:text-base"
         >
           CHARGE!
         </span>

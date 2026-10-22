@@ -215,7 +215,10 @@ function AppShellFrame({ role, username, children }: AppShellProps) {
         className={cn(
           arenaLayout
             ? "fixed inset-x-0 bottom-0 overflow-hidden"
-            : "mx-auto w-full max-w-6xl px-4 pb-12 pt-36 md:pt-24",
+            : cn(
+                "mx-auto w-full max-w-6xl px-4 pb-12 pt-36 md:pt-24",
+                arenaScreen && "max-w-7xl",
+              ),
         )}
         style={arenaLayout ? { top: headerHeight } : undefined}
       >

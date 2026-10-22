@@ -11,7 +11,7 @@ import type { PickupLook } from "@/lib/arena/pickups";
 const CPU_MELEE_RANGE = MELEE_RANGE;
 const CPU_HOLD_DISTANCE = Math.round(MELEE_RANGE * 0.7);
 
-type ArenaDifficulty = "normal" | "hard";
+type ArenaDifficulty = "easy" | "normal" | "hard";
 
 type CpuProfile = {
   speed: number;
@@ -23,6 +23,13 @@ type CpuProfile = {
 };
 
 const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
+  easy: {
+    speed: 210,
+    cooldownScale: 2.5,
+    damageScale: 0.55,
+    fireRange: Math.round(BEAM_RANGE * 0.4),
+    pickupReach: 200,
+  },
   normal: {
     speed: 260,
     cooldownScale: 1.8,
@@ -42,7 +49,7 @@ const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
 const DEFAULT_DIFFICULTY: ArenaDifficulty = "normal";
 
 function isArenaDifficulty(value: unknown): value is ArenaDifficulty {
-  return value === "normal" || value === "hard";
+  return value === "easy" || value === "normal" || value === "hard";
 }
 
 // Posição já no referencial do sprite; bloqueada = obstáculo no caminho.

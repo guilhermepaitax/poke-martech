@@ -220,7 +220,8 @@ describe("CPU_PROFILES", () => {
   it("reconhece só as dificuldades conhecidas", () => {
     expect(isArenaDifficulty("normal")).toBe(true);
     expect(isArenaDifficulty("hard")).toBe(true);
-    expect(isArenaDifficulty("easy")).toBe(false);
+    expect(isArenaDifficulty("easy")).toBe(true);
+    expect(isArenaDifficulty("insane")).toBe(false);
     expect(isArenaDifficulty(undefined)).toBe(false);
   });
 });
