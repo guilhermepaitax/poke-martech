@@ -6,6 +6,7 @@ import {
   type Point,
 } from "@/lib/arena/combat";
 import { normalizeMove, type MoveVector } from "@/lib/arena/movement";
+import type { PickupLook } from "@/lib/arena/pickups";
 
 const CPU_MELEE_RANGE = MELEE_RANGE;
 const CPU_HOLD_DISTANCE = Math.round(MELEE_RANGE * 0.7);
@@ -17,20 +18,24 @@ type CpuProfile = {
   cooldownScale: number;
   damageScale: number;
   fireRange: number;
+  // Até onde a CPU desvia do alvo para buscar um consumível.
+  pickupReach: number;
 };
 
 const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
   normal: {
-    speed: 200,
-    cooldownScale: 2.6,
-    damageScale: 0.6,
-    fireRange: Math.round(BEAM_RANGE * 0.45),
+    speed: 260,
+    cooldownScale: 1.8,
+    damageScale: 0.8,
+    fireRange: Math.round(BEAM_RANGE * 0.55),
+    pickupReach: 450,
   },
   hard: {
-    speed: 255,
-    cooldownScale: 1.6,
-    damageScale: 1,
-    fireRange: Math.round(BEAM_RANGE * 0.65),
+    speed: 320,
+    cooldownScale: 1.15,
+    damageScale: 1.15,
+    fireRange: Math.round(BEAM_RANGE * 0.8),
+    pickupReach: 900,
   },
 };
 
@@ -40,22 +45,52 @@ function isArenaDifficulty(value: unknown): value is ArenaDifficulty {
   return value === "normal" || value === "hard";
 }
 
+// Posição já no referencial do sprite; bloqueada = obstáculo no caminho.
+type CpuPickup = {
+  at: Point;
+  look: PickupLook;
+  blocked: boolean;
+};
+
 type CpuInput = {
   self: Point;
   target: Point;
   selfHp: number;
+  selfMaxHp?: number;
   targetHp: number;
   busy: boolean;
   now: number;
   readyAt: Record<AttackKind, number>;
   blockedAt: number | null;
   fireRange: number;
+  pickups?: readonly CpuPickup[];
+  pickupReach?: number;
 };
 
 type CpuDecision =
   | { action: "idle" }
   | { action: "chase"; move: MoveVector }
   | { action: "attack"; kind: AttackKind; aim: MoveVector };
+
+function wantsPickup(look: PickupLook, input: CpuInput) {
+  if (look === "vulnerable") return false;
+  if (look === "heal") return input.selfHp < (input.selfMaxHp ?? Infinity);
+  return true;
+}
+
+function nearestPickup(input: CpuInput): Point | null {
+  const reach = input.pickupReach ?? 0;
+  let best: Point | null = null;
+  let bestDistance = reach;
+  for (const pickup of input.pickups ?? []) {
+    if (pickup.blocked || !wantsPickup(pickup.look, input)) continue;
+    const distance = Math.hypot(pickup.at.x - input.self.x, pickup.at.y - input.self.y);
+    if (distance > bestDistance) continue;
+    best = pickup.at;
+    bestDistance = distance;
+  }
+  return best;
+}
 
 function decideCpu(input: CpuInput): CpuDecision {
   if (input.selfHp <= 0 || input.targetHp <= 0) return { action: "idle" };
@@ -71,6 +106,11 @@ function decideCpu(input: CpuInput): CpuDecision {
     canAttack(input.now, input.readyAt.melee)
   ) {
     return { action: "attack", kind: "melee", aim };
+  }
+  const pickup = nearestPickup(input);
+  if (pickup) {
+    const move = normalizeMove(pickup.x - input.self.x, pickup.y - input.self.y);
+    if (move.x !== 0 || move.y !== 0) return { action: "chase", move };
   }
   const wall = input.blockedAt !== null && input.blockedAt < distance ? input.blockedAt : null;
   if (aimed && wall !== null) {
@@ -101,4 +141,4 @@ export {
   DEFAULT_DIFFICULTY,
   isArenaDifficulty,
 };
-export type { ArenaDifficulty, CpuDecision, CpuInput, CpuProfile };
+export type { ArenaDifficulty, CpuDecision, CpuInput, CpuPickup, CpuProfile };

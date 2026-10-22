@@ -6,6 +6,10 @@ import {
   applyHit,
   BEAM_RANGE,
   beamImpact,
+  BONE_RANGE,
+  BONE_SPREAD,
+  boneStep,
+  boneVolley,
   canAttack,
   COOLDOWN_MS,
   CRIT_CHANCE,
@@ -15,6 +19,7 @@ import {
   DAMAGE_SCALE,
   FALLBACK_ATTACK_DAMAGE,
   firstBlockHit,
+  guardHit,
   impactTier,
   MELEE_RANGE,
   meleeConnect,
@@ -25,6 +30,8 @@ import {
   resolveDamage,
   rollCritical,
   selectAttack,
+  throwBone,
+  type Rect,
 } from "./combat";
 
 describe("selectAttack", () => {
@@ -48,13 +55,13 @@ describe("cooldown", () => {
   it("libera o ataque quando o relógio alcança a marca", () => {
     expect(canAttack(99, 100)).toBe(false);
     expect(canAttack(100, 100)).toBe(true);
-    expect(nextReadyAt(1000, COOLDOWN_MS.melee)).toBe(1560);
+    expect(nextReadyAt(1000, COOLDOWN_MS.melee)).toBe(1460);
     expect(nextReadyAt(1000, COOLDOWN_MS.fire)).toBe(1720);
   });
 
   it("usa cooldowns, alcance e velocidade combinados", () => {
-    expect(COOLDOWN_MS).toEqual({ melee: 560, fire: 720 });
-    expect(MELEE_RANGE).toBe(88);
+    expect(COOLDOWN_MS).toEqual({ melee: 460, fire: 720 });
+    expect(MELEE_RANGE).toBe(124);
     expect(PROJECTILE_SPEED).toBe(480);
   });
 });
@@ -107,7 +114,7 @@ describe("meleeConnect", () => {
     expect(meleeConnect(attacker, { x: -40, y: 0 }, aim, MELEE_RANGE)).toBe(
       false,
     );
-    expect(meleeConnect(attacker, { x: 100, y: 0 }, aim, MELEE_RANGE)).toBe(
+    expect(meleeConnect(attacker, { x: 140, y: 0 }, aim, MELEE_RANGE)).toBe(
       false,
     );
     expect(meleeConnect(attacker, attacker, aim, MELEE_RANGE)).toBe(false);
@@ -119,22 +126,22 @@ describe("meleeConnect", () => {
 
 describe("attackPower", () => {
   it("escala o dano da carta por tipo de ataque", () => {
-    expect(DAMAGE_SCALE).toEqual({ melee: 0.3, fire: 0.18 });
-    expect(attackPower("melee", 40, 200)).toBe(12);
+    expect(DAMAGE_SCALE).toEqual({ melee: 0.4, fire: 0.18 });
+    expect(attackPower("melee", 40, 200)).toBe(16);
     expect(attackPower("fire", 40, 200)).toBe(7);
   });
 
   it("limita o golpe a uma fração do HP máximo do alvo", () => {
-    expect(DAMAGE_CAP).toEqual({ melee: 0.12, fire: 0.08 });
-    expect(attackPower("melee", 120, 100)).toBe(12);
+    expect(DAMAGE_CAP).toEqual({ melee: 0.16, fire: 0.08 });
+    expect(attackPower("melee", 120, 100)).toBe(16);
     expect(attackPower("fire", 120, 100)).toBe(8);
   });
 
-  it("derruba em cerca de oito golpes corpo a corpo", () => {
+  it("derruba em cerca de sete golpes corpo a corpo", () => {
     const hp = 100;
     const hits = Math.ceil(hp / attackPower("melee", 60, hp));
-    expect(hits).toBeGreaterThanOrEqual(8);
-    expect(hits).toBeLessThanOrEqual(10);
+    expect(hits).toBeGreaterThanOrEqual(6);
+    expect(hits).toBeLessThanOrEqual(8);
   });
 
   it("acerto válido causa pelo menos 1", () => {
@@ -147,6 +154,21 @@ describe("attackPower", () => {
     expect(attackPower("melee", 0, 100)).toBe(attackPower("melee", 30, 100));
     expect(attackPower("fire", 0, 100)).toBe(attackPower("fire", 30, 100));
     expect(attackPower("melee", 0, 100)).toBeGreaterThan(0);
+  });
+});
+
+describe("guardHit", () => {
+  it("corta o dano à distância pela metade durante o golpe", () => {
+    expect(guardHit({ damage: 10, tags: ["critical"] }, true)).toEqual({
+      damage: 5,
+      tags: ["critical", "resisted"],
+    });
+    expect(guardHit({ damage: 1, tags: [] }, true).damage).toBe(1);
+  });
+
+  it("sem guarda mantém o golpe", () => {
+    const hit = { damage: 10, tags: [] };
+    expect(guardHit(hit, false)).toBe(hit);
   });
 });
 
@@ -324,5 +346,76 @@ describe("orbVolley", () => {
 
   it("não lança sem mira", () => {
     expect(orbVolley({ x: 0, y: 0 }, 2)).toEqual([]);
+  });
+});
+
+describe("boneVolley", () => {
+  it("lança um osso na mira nos níveis 0 e 1", () => {
+    expect(boneVolley({ x: 4, y: 0 }, 0)).toEqual([{ x: 1, y: 0 }]);
+    expect(boneVolley({ x: 0, y: 2 }, 1)).toEqual([{ x: 0, y: 1 }]);
+  });
+
+  it("lança dois ossos em leque no nível 2", () => {
+    const [left, right] = boneVolley({ x: 1, y: 0 }, 2);
+    expect(left?.x).toBeCloseTo(Math.cos(BONE_SPREAD));
+    expect(left?.y).toBeCloseTo(-Math.sin(BONE_SPREAD));
+    expect(right?.y).toBeCloseTo(Math.sin(BONE_SPREAD));
+  });
+
+  it("não lança sem direção", () => {
+    expect(boneVolley({ x: 0, y: 0 }, 2)).toEqual([]);
+  });
+});
+
+describe("boneStep", () => {
+  const owner = { x: 0, y: 0 };
+
+  function fly(target: { x: number; y: number } | null, blocks: Rect[] = [], steps = 200) {
+    let flight = throwBone(owner, { x: 1, y: 0 });
+    const hits: string[] = [];
+    let done = false;
+    for (let index = 0; index < steps && flight && !done; index += 1) {
+      const result = boneStep(flight, 20, owner, target, blocks);
+      if (result.hit) hits.push(`${result.hit.stop}:${flight.phase}`);
+      flight = result.flight;
+      done = result.done;
+    }
+    return { flight, hits, done };
+  }
+
+  it("vai até o alcance, volta e é pego pelo dono", () => {
+    let flight = throwBone(owner, { x: 1, y: 0 });
+    if (!flight) throw new Error("sem osso");
+    flight = boneStep(flight, BONE_RANGE + 50, owner, null, []).flight;
+    expect(flight.phase).toBe("back");
+    expect(flight.x).toBeCloseTo(BONE_RANGE);
+    const result = fly(null);
+    expect(result.done).toBe(true);
+    expect(result.hits).toEqual([]);
+  });
+
+  it("acerta o alvo uma vez na ida e uma vez na volta", () => {
+    const result = fly({ x: 200, y: 0 });
+    expect(result.hits).toEqual(["fighter:out", "fighter:back"]);
+    expect(result.done).toBe(true);
+  });
+
+  it("para ao bater em obstáculo", () => {
+    const result = fly({ x: 300, y: 0 }, [{ x: 150, y: 0, width: 40, height: 40 }]);
+    expect(result.hits).toEqual(["block:out"]);
+    expect(result.done).toBe(true);
+    expect(result.flight?.x).toBeCloseTo(130);
+  });
+
+  it("devolve o impacto no obstáculo", () => {
+    const flight = throwBone(owner, { x: 1, y: 0 });
+    if (!flight) throw new Error("sem osso");
+    const result = boneStep(flight, 200, owner, null, [{ x: 150, y: 0, width: 40, height: 40 }]);
+    expect(result.hit?.stop).toBe("block");
+    expect(result.hit?.block).toBe(0);
+  });
+
+  it("não lança sem direção", () => {
+    expect(throwBone(owner, { x: 0, y: 0 })).toBeNull();
   });
 });

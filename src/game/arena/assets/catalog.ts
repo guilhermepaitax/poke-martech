@@ -1,7 +1,7 @@
-import type { ArenaFighter, FighterAction } from "@/lib/arena/fighter";
+import type { ArenaFighter, FighterAction, FighterSheet } from "@/lib/arena/fighter";
 import Phaser from "phaser";
 
-const FIGHTER_ACTIONS: readonly FighterAction[] = ["idle", "walk", "attack", "hurt"];
+const FIGHTER_ACTIONS: readonly FighterAction[] = ["idle", "walk", "attack", "shoot", "hurt"];
 
 const ARENA_FLOOR = {
   key: "arena-floor",
@@ -18,17 +18,27 @@ const ARENA_AUDIO = {
 
 type ArenaCue = keyof typeof ARENA_AUDIO;
 
+// Ação sem folha própria (só `shoot` pode faltar) cai na folha `attack`.
+function fighterSheetAction(fighter: ArenaFighter, action: FighterAction): FighterAction {
+  return fighter.sprite.sheets[action] ? action : "attack";
+}
+
+function fighterSheet(fighter: ArenaFighter, action: FighterAction): FighterSheet {
+  return fighter.sprite.sheets[action] ?? fighter.sprite.sheets.attack;
+}
+
 function fighterSheetKey(fighter: ArenaFighter, action: FighterAction) {
-  return `${fighter.id}-${action}`;
+  return `${fighter.id}-${fighterSheetAction(fighter, action)}`;
 }
 
 function preloadArenaAssets(scene: Phaser.Scene, fighters: readonly ArenaFighter[]) {
   scene.load.image(ARENA_FLOOR.key, ARENA_FLOOR.path);
   fighters.forEach((fighter) => {
     FIGHTER_ACTIONS.forEach((action) => {
+      if (fighterSheetAction(fighter, action) !== action) return;
       const key = fighterSheetKey(fighter, action);
       if (scene.textures.exists(key)) return;
-      scene.load.spritesheet(key, fighter.sprite.sheets[action].path, {
+      scene.load.spritesheet(key, fighterSheet(fighter, action).path, {
         frameWidth: fighter.sprite.cellSize,
         frameHeight: fighter.sprite.cellSize,
       });
@@ -52,6 +62,7 @@ export {
   ARENA_AUDIO,
   ARENA_FLOOR,
   applyNearestCharacterFilter,
+  fighterSheet,
   fighterSheetKey,
   preloadArenaAssets,
 };

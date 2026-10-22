@@ -7,6 +7,7 @@ const FX_TEXTURES = {
   scorch: "fx-scorch",
   streak: "fx-streak",
   pixel: "fx-pixel",
+  bone: "fx-bone",
 } as const;
 
 const GLOW_SIZE = 64;
@@ -17,6 +18,8 @@ const SCORCH_SIZE = 128;
 const STREAK_WIDTH = 28;
 const STREAK_HEIGHT = 4;
 const PIXEL_SIZE = 4;
+const BONE_WIDTH = 36;
+const BONE_HEIGHT = 14;
 
 function bake(
   scene: Phaser.Scene,
@@ -65,6 +68,19 @@ function starPoints(size: number, points: number) {
   return vertices;
 }
 
+function paintBone(graphics: Phaser.GameObjects.Graphics, color: number, grow: number) {
+  const knob = BONE_HEIGHT / 4 + grow;
+  const shaft = BONE_HEIGHT / 5 + grow;
+  const middle = BONE_HEIGHT / 2;
+  const ends = [BONE_HEIGHT / 4 + 1, BONE_WIDTH - BONE_HEIGHT / 4 - 1];
+  graphics.fillStyle(color, 1);
+  graphics.fillRect(ends[0] ?? 0, middle - shaft, (ends[1] ?? 0) - (ends[0] ?? 0), shaft * 2);
+  ends.forEach((x) => {
+    graphics.fillCircle(x, middle - knob, knob);
+    graphics.fillCircle(x, middle + knob, knob);
+  });
+}
+
 function createFxTextures(scene: Phaser.Scene) {
   bake(scene, FX_TEXTURES.glow, GLOW_SIZE, GLOW_SIZE, (graphics) => {
     paintRadial(graphics, GLOW_SIZE, 0xffffff, 16, 0.22);
@@ -89,6 +105,10 @@ function createFxTextures(scene: Phaser.Scene) {
   bake(scene, FX_TEXTURES.pixel, PIXEL_SIZE, PIXEL_SIZE, (graphics) => {
     graphics.fillStyle(0xffffff, 1);
     graphics.fillRect(0, 0, PIXEL_SIZE, PIXEL_SIZE);
+  });
+  bake(scene, FX_TEXTURES.bone, BONE_WIDTH, BONE_HEIGHT, (graphics) => {
+    paintBone(graphics, 0x3a2a1c, 0);
+    paintBone(graphics, 0xf4ecd8, -1.4);
   });
   scene.textures.get(FX_TEXTURES.pixel).setFilter(Phaser.Textures.FilterMode.NEAREST);
 }

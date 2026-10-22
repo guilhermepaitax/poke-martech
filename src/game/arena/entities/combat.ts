@@ -13,6 +13,14 @@ import {
   FIRE_BEAM_CHARGED,
   type BeamShot,
 } from "@/game/arena/entities/beam";
+import {
+  clearBones,
+  GROUND_BONE,
+  GROUND_BONE_CHARGED,
+  launchBone,
+  stepBones,
+  type BoneShot,
+} from "@/game/arena/entities/bone";
 import { clearCracks, spawnCracks } from "@/game/arena/entities/cracks";
 import {
   clearDamageNumbers,
@@ -57,10 +65,13 @@ import {
   attackPower,
   BEAM_RANGE,
   beamImpact,
+  boneVolley,
   canAttack,
   COOLDOWN_MS,
   firstBlockHit,
+  guardHit,
   impactTier,
+  MELEE_GUARD_MS,
   MELEE_RANGE,
   meleeConnect,
   nextReadyAt,
@@ -79,6 +90,7 @@ import {
   facingVector,
   type MoveVector,
 } from "@/lib/arena/movement";
+import { buffScale } from "@/lib/arena/pickups";
 import Phaser from "phaser";
 
 const MUZZLE_FORWARD = 36;
@@ -102,6 +114,8 @@ const CHARGE_COLOR: Record<ChargeLevel, number> = {
 const MELEE_REACH: Record<ChargeLevel, number> = { 0: 1, 1: 1.12, 2: 1.28 };
 const BEAM_WIDTH: Record<ChargeLevel, number> = { 0: 1, 1: 1.5, 2: 2.1 };
 const ORB_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.8, 2: 1.2 };
+const BONE_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.5, 2: 1.15 };
+const BONE_SPEED_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.15, 2: 1.1 };
 const SLASH_LOOK: Record<ChargeLevel, SlashLook> = {
   0: { color: 0xffffff, thickness: 1 },
   1: { color: 0xffd0a0, thickness: 1.5 },
@@ -109,8 +123,8 @@ const SLASH_LOOK: Record<ChargeLevel, SlashLook> = {
 };
 const LUNGE_BY_CHARGE: Record<ChargeLevel, DashStyle> = {
   0: LUNGE,
-  1: { ...LUNGE, speed: 600, durationMs: 110, ghostTint: 0xffb066 },
-  2: { ...LUNGE, speed: 680, durationMs: 130, ghostTint: 0xd86bff, ghostAlpha: 0.6 },
+  1: { ...LUNGE, speed: 700, durationMs: 120, ghostTint: 0xffb066 },
+  2: { ...LUNGE, speed: 780, durationMs: 140, ghostTint: 0xd86bff, ghostAlpha: 0.6 },
 };
 
 type AttackTuning = {
@@ -131,6 +145,7 @@ type Combat = {
   numbers: Phaser.GameObjects.Container[];
   beams: BeamShot[];
   orbs: OrbShot[];
+  bones: BoneShot[];
   overlap: Phaser.Physics.Arcade.Collider;
   blockOverlap: Phaser.Physics.Arcade.Collider;
   obstacles: Obstacle[];
@@ -156,6 +171,7 @@ function createCombat(
     numbers: [],
     beams: [],
     orbs: [],
+    bones: [],
     obstacles,
     overlap: scene.physics.add.overlap(
       projectiles,
@@ -231,7 +247,9 @@ function hurtFighter(
   color: number,
   stars = true,
 ) {
-  const result = applyHit(target.hp, hit.damage, combat.over || isEvading(target));
+  const exposed = buffScale(target.buffs, "vulnerable", scene.time.now);
+  const damage = exposed === 1 ? hit.damage : Math.round(hit.damage * exposed);
+  const result = applyHit(target.hp, damage, combat.over || isEvading(target));
   if (!result.applied) return result;
   setPlayerHp(target, result.hp);
   playHurt(target);
@@ -261,6 +279,10 @@ function hurtFighter(
     hit.tags,
   );
   return result;
+}
+
+function isGuarding(scene: Phaser.Scene, target: Player) {
+  return scene.time.now < target.guardUntil;
 }
 
 function rollHit(base: number, charge: ChargeLevel = 0): ResolvedHit {
@@ -325,7 +347,8 @@ function strikeProjectile(
   const direction = { x: velocity.x / speed, y: velocity.y / speed };
   projectile.setData("hit", true);
   projectile.setVelocity(0, 0);
-  hurtFighter(scene, combat, opponent, rollHit(damage), direction, IMPACT_COLOR.fire);
+  const hit = guardHit(rollHit(damage), isGuarding(scene, opponent));
+  hurtFighter(scene, combat, opponent, hit, direction, IMPACT_COLOR.fire);
   spawnCracks(scene, combat.cracks, projectile.x, projectile.y, damage);
   projectile.destroy();
 }
@@ -401,6 +424,7 @@ function startMelee(
   charge: ChargeLevel,
 ) {
   const lunge = LUNGE_BY_CHARGE[charge];
+  player.guardUntil = scene.time.now + lunge.durationMs + MELEE_GUARD_MS;
   const distance = (lunge.speed * lunge.durationMs) / 1000;
   const reach = Math.min(
     distance,
@@ -441,7 +465,7 @@ function landRanged(
   obstacles: Obstacle[],
   stars = true,
 ) {
-  const hit = connects ? rollHit(damage, charge) : null;
+  const hit = connects ? guardHit(rollHit(damage, charge), isGuarding(scene, target)) : null;
   if (hit || impact.stop === "block") playArenaAudio(scene, "explosion");
   if (charge > 0 && impact.stop !== "range") {
     spawnShockwave(scene, combat.hitFx, impact, CHARGE_COLOR[charge], 60 + charge * 30);
@@ -495,9 +519,51 @@ function fireOrbs(
   }
 }
 
+function throwBones(
+  scene: Phaser.Scene,
+  combat: Combat,
+  attacker: Player,
+  target: Player,
+  muzzle: Point,
+  aim: Point,
+  damage: number,
+  charge: ChargeLevel,
+) {
+  const style = charge === 2 ? GROUND_BONE_CHARGED : GROUND_BONE;
+  playArenaAudio(scene, "dash");
+  for (const direction of boneVolley(aim, charge)) {
+    launchBone(scene, combat.bones, {
+      from: muzzle,
+      direction,
+      style,
+      scale: BONE_SCALE[charge],
+      speedScale: BONE_SPEED_SCALE[charge],
+      owner: () => (attacker.sprite.scene ? { x: attacker.sprite.x, y: attacker.sprite.y } : null),
+      target: () => (target.sprite.scene ? { x: target.sprite.x, y: target.sprite.y } : null),
+      onHit: (impact) => {
+        landRanged(
+          scene,
+          combat,
+          target,
+          impact,
+          impact.stop === "fighter",
+          damage,
+          charge,
+          direction,
+          style.impact,
+          liveObstacles(combat),
+          false,
+        );
+      },
+    });
+  }
+}
+
 function stepCombat(scene: Phaser.Scene, combat: Combat, deltaMs: number) {
-  if (combat.orbs.length === 0) return;
-  stepOrbs(scene, combat.orbs, deltaMs, blockRects(combat));
+  if (combat.orbs.length === 0 && combat.bones.length === 0) return;
+  const blocks = blockRects(combat);
+  if (combat.orbs.length > 0) stepOrbs(scene, combat.orbs, deltaMs, blocks);
+  if (combat.bones.length > 0) stepBones(scene, combat.bones, deltaMs, blocks);
 }
 
 function tryAttack(
@@ -515,13 +581,20 @@ function tryAttack(
   const now = scene.time.now;
   if (!canAttack(now, attacker.readyAt[kind])) return false;
   attacker.facing = facingFromAim(aim.x, aim.y, attacker.facing);
-  if (!playAttack(attacker)) return false;
+  if (!playAttack(attacker, kind)) return false;
   if (kind === "melee") playArenaAudio(scene, "hit");
-  attacker.readyAt[kind] = nextReadyAt(now, COOLDOWN_MS[kind] * tuning.cooldownScale);
+  attacker.readyAt[kind] = nextReadyAt(
+    now,
+    COOLDOWN_MS[kind] * tuning.cooldownScale * buffScale(attacker.buffs, "rapid", now),
+  );
   const damage = chargedDamage(
     Math.max(
       1,
-      Math.round(attackPower(kind, attacker.fighter.attacks[kind].power, target.maxHp) * tuning.damageScale),
+      Math.round(
+        attackPower(kind, attacker.fighter.attacks[kind].power, target.maxHp) *
+          tuning.damageScale *
+          buffScale(attacker.buffs, "fury", now),
+      ),
     ),
     charge,
   );
@@ -541,6 +614,10 @@ function tryAttack(
     y: attacker.sprite.y + aim.y * MUZZLE_DOWN,
   };
   const obstacles = liveObstacles(combat);
+  if (attacker.fighter.ranged === "bone") {
+    throwBones(scene, combat, attacker, target, muzzle, aim, damage, charge);
+    return true;
+  }
   if (attacker.fighter.ranged === "orb") {
     fireOrbs(scene, combat, target, muzzle, aim, damage, charge, obstacles);
     return true;
@@ -601,7 +678,7 @@ function tryPlayerDash(
   if (!canAttack(now, player.dashReadyAt)) return false;
   const heading = dashHeading(move, player.facing);
   player.facing = facingFromAim(heading.x, heading.y, player.facing);
-  player.dashReadyAt = nextReadyAt(now, DASH_COOLDOWN_MS);
+  player.dashReadyAt = nextReadyAt(now, DASH_COOLDOWN_MS * buffScale(player.buffs, "rapid", now));
   dashWithTrail(scene, combat.hitFx, player, heading, EVADE);
   playArenaAudio(scene, "dash");
   spawnRingWave(scene, player.marker, { color: 0xffc861, count: 1, grow: 1.8 });
@@ -647,6 +724,7 @@ function destroyCombat(scene: Phaser.Scene, combat: Combat) {
   clearDamageNumbers(scene, combat.numbers);
   clearBeams(scene, combat.beams);
   clearOrbs(scene, combat.orbs);
+  clearBones(combat.bones);
   combat.projectiles.destroy(true);
   combat.aim.destroy();
   clearBanner(scene, combat.banner);

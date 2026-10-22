@@ -54,14 +54,37 @@ type HitTag = "critical" | "charged" | "super" | "resisted";
 
 type ImpactTier = "light" | "medium" | "heavy";
 
+type BonePhase = "out" | "back";
+
+// Osso do Ossomerang: vai em linha reta até `BONE_RANGE` e volta perseguindo
+// quem lançou. Acerta o alvo no máximo uma vez em cada sentido.
+type BoneFlight = {
+  x: number;
+  y: number;
+  ux: number;
+  uy: number;
+  travelled: number;
+  phase: BonePhase;
+  struck: Record<BonePhase, boolean>;
+};
+
+type BoneStep = {
+  flight: BoneFlight;
+  hit: BeamEnd | null;
+  done: boolean;
+};
+
 type ResolvedHit = {
   damage: number;
   tags: HitTag[];
 };
 
-const MELEE_COOLDOWN_MS = 560;
+const MELEE_COOLDOWN_MS = 460;
 const FIRE_COOLDOWN_MS = 720;
-const MELEE_RANGE = 88;
+const MELEE_RANGE = 124;
+// Quem avança para o corpo a corpo leva menos dano à distância durante o golpe.
+const MELEE_GUARD_MS = 260;
+const MELEE_GUARD_RATIO = 0.5;
 const PROJECTILE_SPEED = 480;
 const AIM_LENGTH = 160;
 const BEAM_RANGE = 520;
@@ -70,6 +93,11 @@ const ORB_SPEED = 820;
 const ORB_RANGE = 760;
 const ORB_RADIUS = 16;
 const ORB_SPREAD = Math.PI / 6;
+const BONE_SPEED = 640;
+const BONE_RANGE = 420;
+const BONE_RADIUS = 14;
+const BONE_SPREAD = Math.PI / 10;
+const BONE_CATCH_RADIUS = 28;
 const CRACK_RADIUS_MIN = 36;
 const CRACK_RADIUS_MAX = 140;
 const CRACK_BRANCH_MIN = 5;
@@ -81,12 +109,12 @@ const HEAVY_IMPACT = 14;
 const FALLBACK_ATTACK_DAMAGE = 30;
 
 const DAMAGE_SCALE: Record<AttackKind, number> = {
-  melee: 0.3,
+  melee: 0.4,
   fire: 0.18,
 };
 
 const DAMAGE_CAP: Record<AttackKind, number> = {
-  melee: 0.12,
+  melee: 0.16,
   fire: 0.08,
 };
 
@@ -265,16 +293,91 @@ function beamImpact(
   };
 }
 
+function rotate(vector: Point, angle: number): Point {
+  return {
+    x: vector.x * Math.cos(angle) - vector.y * Math.sin(angle),
+    y: vector.x * Math.sin(angle) + vector.y * Math.cos(angle),
+  };
+}
+
 function orbVolley(aim: Point, charge: ChargeLevel): Point[] {
   const length = Math.hypot(aim.x, aim.y);
   if (length === 0) return [];
   const center = { x: aim.x / length, y: aim.y / length };
   if (charge < 2) return [center];
-  const turn = (angle: number) => ({
-    x: center.x * Math.cos(angle) - center.y * Math.sin(angle),
-    y: center.x * Math.sin(angle) + center.y * Math.cos(angle),
-  });
-  return [center, turn(-ORB_SPREAD), turn(ORB_SPREAD)];
+  return [center, rotate(center, -ORB_SPREAD), rotate(center, ORB_SPREAD)];
+}
+
+function boneVolley(aim: Point, charge: ChargeLevel): Point[] {
+  const length = Math.hypot(aim.x, aim.y);
+  if (length === 0) return [];
+  const center = { x: aim.x / length, y: aim.y / length };
+  if (charge < 2) return [center];
+  return [rotate(center, -BONE_SPREAD), rotate(center, BONE_SPREAD)];
+}
+
+function throwBone(from: Point, direction: Point): BoneFlight | null {
+  const length = Math.hypot(direction.x, direction.y);
+  if (length === 0) return null;
+  return {
+    x: from.x,
+    y: from.y,
+    ux: direction.x / length,
+    uy: direction.y / length,
+    travelled: 0,
+    phase: "out",
+    struck: { out: false, back: false },
+  };
+}
+
+function boneStep(
+  flight: BoneFlight,
+  distance: number,
+  owner: Point,
+  target: Point | null,
+  blocks: Rect[],
+  radius = BONE_RADIUS,
+): BoneStep {
+  if (distance <= 0) return { flight, hit: null, done: false };
+  let { ux, uy } = flight;
+  let step = distance;
+  if (flight.phase === "out") {
+    step = Math.min(distance, BONE_RANGE - flight.travelled);
+  } else {
+    const dx = owner.x - flight.x;
+    const dy = owner.y - flight.y;
+    const gap = Math.hypot(dx, dy);
+    if (gap <= BONE_CATCH_RADIUS + distance) {
+      return { flight: { ...flight, x: owner.x, y: owner.y }, hit: null, done: true };
+    }
+    ux = dx / gap;
+    uy = dy / gap;
+  }
+  const reach = BEAM_TARGET_RADIUS + radius;
+  // Só conta a entrada no alvo: se já está dentro (passou por ele), ignora.
+  const inside =
+    target !== null && Math.hypot(target.x - flight.x, target.y - flight.y) <= reach;
+  const aimed = flight.struck[flight.phase] || inside ? null : target;
+  const impact = beamImpact(flight, { x: ux, y: uy }, step, blocks, aimed, reach);
+  const travelled = flight.travelled + impact.distance;
+  if (impact.stop === "block") {
+    return { flight: { ...flight, x: impact.x, y: impact.y, ux, uy, travelled }, hit: impact, done: true };
+  }
+  const struck =
+    impact.stop === "fighter" ? { ...flight.struck, [flight.phase]: true } : flight.struck;
+  const turning = flight.phase === "out" && impact.stop === "range" && travelled >= BONE_RANGE;
+  const next: BoneFlight = {
+    x: impact.x,
+    y: impact.y,
+    ux,
+    uy,
+    travelled,
+    phase: turning ? "back" : flight.phase,
+    struck,
+  };
+  // Teto de segurança: dono fugindo para sempre não deixa o osso vivo.
+  const done = next.phase === "back" && travelled > BONE_RANGE * 3;
+  return { flight: next, hit: impact.stop === "fighter" ? impact : null, done };
 }
 
 function crackSize(damage: number): CrackSize {
@@ -302,6 +405,14 @@ function resolveDamage(base: number, options: { critical: boolean }): ResolvedHi
   return { damage: Math.round(base * CRIT_MULTIPLIER), tags: ["critical"] };
 }
 
+function guardHit(hit: ResolvedHit, guarded: boolean): ResolvedHit {
+  if (!guarded || hit.damage <= 0) return hit;
+  return {
+    damage: Math.max(1, Math.round(hit.damage * MELEE_GUARD_RATIO)),
+    tags: [...hit.tags, "resisted"],
+  };
+}
+
 function impactTier(damage: number, critical = false): ImpactTier {
   if (critical || damage >= HEAVY_IMPACT) return "heavy";
   if (damage >= MEDIUM_IMPACT) return "medium";
@@ -316,6 +427,13 @@ export {
   BEAM_RANGE,
   BEAM_TARGET_RADIUS,
   beamImpact,
+  BONE_CATCH_RADIUS,
+  BONE_RADIUS,
+  BONE_RANGE,
+  BONE_SPEED,
+  BONE_SPREAD,
+  boneStep,
+  boneVolley,
   canAttack,
   COOLDOWN_MS,
   CRIT_CHANCE,
@@ -325,7 +443,10 @@ export {
   DAMAGE_SCALE,
   FALLBACK_ATTACK_DAMAGE,
   firstBlockHit,
+  guardHit,
   impactTier,
+  MELEE_GUARD_MS,
+  MELEE_GUARD_RATIO,
   MELEE_RANGE,
   meleeConnect,
   nextReadyAt,
@@ -338,6 +459,7 @@ export {
   resolveDamage,
   rollCritical,
   selectAttack,
+  throwBone,
 };
 export type {
   AimTip,
@@ -346,6 +468,9 @@ export type {
   BeamEnd,
   BeamStop,
   BlockHit,
+  BoneFlight,
+  BonePhase,
+  BoneStep,
   CrackSize,
   HitResult,
   HitTag,

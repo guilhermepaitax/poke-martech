@@ -1,6 +1,6 @@
 import {
-  CHARACTER_DISPLAY_SIZE,
   characterAnimationKey,
+  characterDisplaySize,
   characterFrameStart,
   playClip,
   type CharacterClip,
@@ -16,6 +16,7 @@ import {
 import type { AttackKind } from "@/lib/arena/combat";
 import type { ArenaFighter } from "@/lib/arena/fighter";
 import { normalizeMove, type Facing } from "@/lib/arena/movement";
+import { buffScale, type Buff } from "@/lib/arena/pickups";
 import Phaser from "phaser";
 
 type DashKind = "lunge" | "evade";
@@ -39,6 +40,10 @@ type Player = {
   dash: Dash | null;
   readyAt: Record<AttackKind, number>;
   dashReadyAt: number;
+  // Até quando o golpe corpo a corpo reduz o dano à distância recebido.
+  guardUntil: number;
+  // Efeitos temporários dos consumíveis (velocidade, dano, vulnerabilidade).
+  buffs: Buff[];
   animToken: number;
 };
 
@@ -68,7 +73,8 @@ function createPlayer(
     fighterSheetKey(fighter, "idle"),
     characterFrameStart(fighter, "idle", facing),
   );
-  sprite.setDisplaySize(CHARACTER_DISPLAY_SIZE, CHARACTER_DISPLAY_SIZE);
+  const size = characterDisplaySize(fighter);
+  sprite.setDisplaySize(size, size);
   if (mirrored) {
     sprite.setTint(tuning.mirrorTint).setData("baseTint", tuning.mirrorTint);
   }
@@ -82,7 +88,7 @@ function createPlayer(
     body.setSize(width, tuning.bodyHeight * unit, false);
     body.setOffset((cell - width) / 2, tuning.bodyOffsetY * unit);
   }
-  playClip(sprite, characterAnimationKey(fighter, "idle", facing));
+  playClip(sprite, characterAnimationKey(fighter, "idle", facing), size);
 
   return {
     fighter,
@@ -96,6 +102,8 @@ function createPlayer(
     dash: null,
     readyAt: { melee: 0, fire: 0 },
     dashReadyAt: 0,
+    guardUntil: 0,
+    buffs: [],
     animToken: 0,
   };
 }
@@ -104,6 +112,7 @@ function playPlayerClip(player: Player, action: CharacterClip) {
   playClip(
     player.sprite,
     characterAnimationKey(player.fighter, action, player.facing),
+    characterDisplaySize(player.fighter),
   );
 }
 
@@ -111,22 +120,22 @@ function playIdle(player: Player) {
   playPlayerClip(player, "idle");
 }
 
-function playLockedClip(player: Player, action: "attack" | "hurt") {
+function playLockedClip(player: Player, action: "attack" | "shoot" | "hurt") {
   const token = ++player.animToken;
   player.sprite.setVelocity(0, 0);
   playPlayerClip(player, action);
   player.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
     if (player.animToken !== token) return;
-    if (action === "attack") player.attacking = false;
-    else player.hurting = false;
+    if (action === "hurt") player.hurting = false;
+    else player.attacking = false;
     if (!player.attacking && !player.hurting) playIdle(player);
   });
 }
 
-function playAttack(player: Player) {
+function playAttack(player: Player, kind: AttackKind) {
   if (player.attacking || player.hurting) return false;
   player.attacking = true;
-  playLockedClip(player, "attack");
+  playLockedClip(player, kind === "fire" ? "shoot" : "attack");
   return true;
 }
 
@@ -204,7 +213,8 @@ function updatePlayer(
   }
   const move = normalizeMove(x, y);
   const moving = move.x !== 0 || move.y !== 0;
-  player.sprite.setVelocity(move.x * speed, move.y * speed);
+  const pace = speed * buffScale(player.buffs, "haste", player.sprite.scene.time.now);
+  player.sprite.setVelocity(move.x * pace, move.y * pace);
   playPlayerClip(player, moving ? "walk" : "idle");
 }
 

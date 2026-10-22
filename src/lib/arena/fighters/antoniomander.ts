@@ -1,4 +1,8 @@
-import { CARDINAL_ROWS, EIGHT_WAY_ROWS, type ArenaFighter } from "@/lib/arena/fighter";
+import {
+  CARDINAL_ROWS,
+  EIGHT_WAY_ROWS,
+  type ArenaFighter,
+} from "@/lib/arena/fighter";
 
 const SHEETS = "/arena/characters/antoniomander";
 
@@ -8,7 +12,7 @@ const antoniomander: ArenaFighter = {
   title: "O incendiário do deploy",
   description:
     "Pequeno, teimoso e sempre com a cauda acesa. Avança de cabeça e responde à distância com uma rajada de fogo.",
-  banner: { path: "/arena/banners/antoniomander.webp", focus: "51% 45%" },
+  banner: { path: "/arena/banners/antoniomander.webp", focus: "51% 40%" },
   energy: "fire",
   ranged: "beam",
   hp: 70,

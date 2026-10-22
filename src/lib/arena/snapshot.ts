@@ -9,6 +9,8 @@ type FighterSnapshot = {
 type ArenaSnapshot = {
   player: FighterSnapshot;
   opponent: FighterSnapshot;
+  // Tempo de luta, em segundos inteiros. Não conta pausa nem o pós-luta.
+  elapsedSeconds: number;
 };
 
 type HudSlot = AttackKind | "dash";

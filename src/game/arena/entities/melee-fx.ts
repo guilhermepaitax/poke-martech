@@ -53,8 +53,8 @@ type DashStyle = {
 
 const LUNGE: DashStyle = {
   kind: "lunge",
-  speed: 520,
-  durationMs: 90,
+  speed: 620,
+  durationMs: 100,
   ghostTint: 0xffffff,
   ghostAlpha: 0.45,
 };

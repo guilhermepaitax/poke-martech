@@ -135,6 +135,7 @@ Aceite: dá para vencer e perder. A CPU não lê input de outro jogador.
 ### Ajustes junto da etapa 5
 
 - [x] Rebalanceamento: `attackPower(kind, dano, hpMaxDoAlvo)` escala o dano da carta (melee ×0.3, fogo ×0.18) e limita cada golpe a uma fração do HP do alvo (12% / 8%), mínimo 1. Cerca de 8 golpes corpo a corpo derrubam. Tiers de impacto e rachaduras recalibrados
+- [x] Rebalanceamento do corpo a corpo: alcance 88 → 124, investida mais longa (620 px/s por 100 ms), cooldown 560 → 460 ms, dano ×0.4 com teto de 16% do HP (cerca de 7 golpes). Durante o golpe (investida + 260 ms) o atacante leva metade do dano à distância, com a tag `resisted`
 - [x] Dash no Espaço: direção do WASD/setas, ou do mouse sem input. Cooldown de 650 ms, sem invulnerabilidade. Clip de caminhada a 24 fps, fantasmas âmbar, rastro e poeira. Label "Espaço Dash" no HUD acende quando pronto
 
 ## Etapa 6 — Vitória, derrota e reinício
@@ -158,8 +159,9 @@ Aceite: a segunda luta começa com HP cheio e sem projéteis da anterior.
 - [x] A cena avisa o React pelo evento `arena:outcome` em `game.events`. O React comanda por `arenaControls` em `create-game.ts`
 - [x] Lutadores nascem um de cada lado da arena (`spawnPoints` em `src/lib/arena/spawn.ts`, 120px da borda do bound), jogador virado para leste e CPU para oeste
 - [x] Seletor de dificuldade no picker, padrão Normal. Perfis em `CPU_PROFILES` (`src/lib/arena/cpu.ts`):
-  - Difícil é a CPU da etapa 5: velocidade 255, cooldown 1.6×, dano 1×, feixe até 65% do alcance
-  - Normal: velocidade 200, cooldown 2.6×, dano 0.6×, feixe até 45% do alcance
+  - Difícil: velocidade 320, cooldown 1.15×, dano 1.15×, feixe até 80% do alcance, busca consumíveis até 900px
+  - Normal: velocidade 260, cooldown 1.8×, dano 0.8×, feixe até 55% do alcance, busca consumíveis até 450px
+  - CPU desvia para o consumível livre mais próximo dentro do alcance (ignora Vulnerável visível, caixa atrás de bloco e Cura com HP cheio). Corpo a corpo colado no alvo tem prioridade
 - [x] Dash esquiva: durante o dash de Espaço (160 ms) o lutador não leva dano. O feixe confere a posição do alvo na chegada, então sair da linha durante a carga também esquiva. Isso substitui o "sem invulnerabilidade" da etapa 5
 - [x] Som `public/arena/audio/dash.wav` no dash
 
@@ -191,9 +193,11 @@ Aceite: o HUD bate com o HP real e a navegação antiga continua igual.
 
 Substitui a etapa 3 (cartas como lutadores). `ListArenaRoster`, `GetArenaFighters`, `cardToFighter` e o picker de cartas com busca e paginação foram removidos.
 
-- [x] `ArenaFighter` em `src/lib/arena/fighter.ts`: `id`, `name`, `title`, `description`, `energy` (`fire` | `grass`), `hp`, `attacks` (`melee` e `fire`, cada um com `name`, `hudName`, `description`, `power`) e `sprite` (`cellSize`, `columns`, folhas `idle`/`walk`/`attack`/`hurt` com `frames` e linha por direção)
+- [x] `ArenaFighter` em `src/lib/arena/fighter.ts`: `id`, `name`, `title`, `description`, `energy` (`fire` | `grass` | `ground`), `ranged` (`beam` | `orb` | `bone`), `hp`, `attacks` (`melee` e `fire`, cada um com `name`, `hudName`, `description`, `power`) e `sprite` (`cellSize`, `columns`, folhas `idle`/`walk`/`attack`/`hurt` com `frames` e linha por direção, `shoot` opcional para o ataque à distância e `frameRate` opcional por folha). `tuning.displaySize` opcional muda o tamanho exibido (padrão 96)
 - [x] Antoniomander (fogo, HP 70, Cabeçada / Lança-chamas). Células de 128px. Ataque e dano só têm 4 direções (`CARDINAL_ROWS`)
 - [x] Calvossauro (planta, HP 80, Cabeçada / Bola de energia). Em vez do feixe lança bolas de energia verdes que viajam e conferem a posição do alvo a cada quadro (dá para esquivar). Carga 1: bola maior. Carga 2: três bolas, uma na mira e duas a ±30°. Células de 256px, 8 direções em todas as folhas. A folha de walk exportada repete a linha `west`, então sudoeste usa a linha 9
+- [x] Papaitaxone (terra, HP 75, Clava de Osso / Ossomerang). Baseado no Cubone, sprites do PMD Sprite Collab. O osso vai em linha reta até 420px e volta perseguindo o dono; acerta no máximo uma vez na ida e uma na volta e para em obstáculo. Carga 1: osso maior e mais rápido. Carga 2: dois ossos a ±18°. Clava usa a folha `attack` (Strike) e o osso a folha `shoot` (Attack). Células de 40px, exibido em 112px
+- [x] Sprites no formato PMD (`AnimData.xml` + `*-Anim.png` + `*-Shadow.png`) viram folhas da arena com `pnpm tsx scripts/arena/pack-pmd-sprites.ts <origem> <destino> idle=Idle walk=Walk attack=Strike shoot=Attack hurt=Hurt`. O pixel branco da sombra é a âncora dos pés; o script imprime `cellSize` e `columns`
 - [x] `power` substitui o dano da carta em `attackPower`. O nome curto (`hudName`) aparece nos blocos de ataque
 - [x] A cena só carrega as folhas dos dois lutadores do matchup. Chaves de textura e animação levam o id do lutador. O corpo físico escala pelo tamanho da célula
 - [x] O mesmo lutador pode ficar dos dois lados. No espelho o oponente ganha um tint azulado, mantido depois do flash de dano
@@ -209,6 +213,16 @@ Substitui a etapa 3 (cartas como lutadores). `ListArenaRoster`, `GetArenaFighter
 - [x] Tabela `arena_matches` (`difficulty`, `started_at`, `finished_at`, `outcome` `victory`/`defeat`, `reward`). Partida sem `finished_at` foi abandonada (reinício ou saída no meio). O claim roda numa transação: trava a partida e a carteira, recusa partida de outro usuário, já finalizada ou com menos de 15s, conta as vitórias premiadas do dia, credita a carteira e grava `coin_ledger` com `reason = 'arena_win'`
 - [x] O overlay de vitória mostra "+N moedas · X/4", o aviso de limite ou a falha. O saldo do header atualiza invalidando `profileKeys.me()`
 - [ ] Limite conhecido: o servidor confia que o cliente venceu. O teto diário limita o abuso a 40 moedas por dia
+
+## Consumíveis
+
+- [x] Caixas caem a cada 6–10s em ponto aleatório dentro da área andável, fora dos obstáculos e a 160px+ dos lutadores. No máximo 3 no mapa; cada uma some em 15s (pisca nos últimos 3s). Regras em `src/lib/arena/pickups.ts`
+- [x] Player e CPU coletam ao encostar (a CPU não persegue caixas). A caixa some com um estouro de partículas e o efeito aparece como texto flutuante acima do lutador, no estilo dos números de dano
+- [x] Efeitos: Velocidade+ (×1.4 por 6s), Dano+ (×1.35 dano causado por 6s), Cura (+20% do HP máximo, instantânea), Sem recarga (zera a recarga de ataques e dash por 5s; a recarga em andamento acaba na hora) e Vulnerável (×1.4 dano recebido por 5s). Mesmo efeito renova a duração em vez de empilhar
+- [x] Caixas e sombra em pixel art 16x16 (blocos de 3px, filtro nearest), assadas por tipo em `pickup.ts`. Balançam em degraus de pixel e soltam brilhos quadrados
+- [x] Caixa tipada tem cor e ícone do efeito. Caixa misteriosa (roxa, "?", 30% das quedas) sorteia qualquer efeito na coleta, inclusive Vulnerável
+- [x] Efeito temporário desenha um anel girando nos pés com faíscas subindo, na cor do efeito (`buff-aura.ts`). Pisca no último segundo e some ao expirar
+- [x] K.O. e redimensionamento da tela limpam as caixas; K.O. limpa os efeitos
 
 ## Etapa 8 — Polimento e validação final
 

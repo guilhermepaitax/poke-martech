@@ -3,7 +3,7 @@ import type { FighterAction } from "@/lib/arena/fighter";
 
 import { ARENA_FIGHTERS, findFighter } from "./index";
 
-const ACTIONS: FighterAction[] = ["idle", "walk", "attack", "hurt"];
+const ACTIONS: FighterAction[] = ["idle", "walk", "attack", "shoot", "hurt"];
 
 describe("ARENA_FIGHTERS", () => {
   it("tem ids únicos", () => {
@@ -19,6 +19,10 @@ describe("ARENA_FIGHTERS", () => {
       expect(fighter.attacks.fire.power).toBeGreaterThan(0);
       ACTIONS.forEach((action) => {
         const sheet = fighter.sprite.sheets[action];
+        if (!sheet) {
+          expect(action).toBe("shoot");
+          return;
+        }
         expect(sheet.frames).toBeGreaterThan(0);
         expect(sheet.frames).toBeLessThanOrEqual(fighter.sprite.columns);
         Object.values(sheet.rows).forEach((row) => expect(row).toBeGreaterThan(0));

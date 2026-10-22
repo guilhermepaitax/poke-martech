@@ -42,15 +42,15 @@ function ArenaSideSlot({
       onClick={onActivate}
       style={energyStyle(fighter)}
       className={cn(
-        "arena-side-slot flex min-w-0 flex-1 items-center gap-2.5 p-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--picker-cta)",
+        "arena-side-slot flex min-w-0 flex-1 items-center gap-2.5 p-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--arena-cta)",
         side === "opponent" && "flex-row-reverse text-right",
       )}
     >
-      <span className="size-9 shrink-0 bg-(--picker-line) max-[420px]:hidden">
+      <span className="size-9 shrink-0 bg-(--arena-line) max-[420px]:hidden">
         {fighter ? <FighterPortrait fighter={fighter} className="block size-full" /> : null}
       </span>
       <span className="flex min-w-0 flex-col">
-        <span className="text-[10px] font-semibold tracking-widest text-(--picker-ink-subtle) uppercase">
+        <span className="text-[10px] font-semibold tracking-widest text-(--arena-ink-subtle) uppercase">
           {label}
         </span>
         <span className="truncate font-arena-title text-[11px] leading-tight uppercase">
@@ -80,7 +80,7 @@ function ArenaMatchupSlots({
         active={active === "player"}
         onActivate={() => onActivate("player")}
       />
-      <span aria-hidden className="font-arena-title text-lg text-(--picker-cta)">
+      <span aria-hidden className="font-arena-title text-lg text-(--arena-cta)">
         VS
       </span>
       <ArenaSideSlot
@@ -125,7 +125,7 @@ function FighterRoster({
               aria-label={`${fighter.name}, ${appearance.label}`}
               onClick={() => onChoose(fighter.id)}
               style={energyStyle(fighter)}
-              className="arena-roster-tile group relative block aspect-square w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--picker-cta)"
+              className="arena-roster-tile group relative block aspect-square w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--arena-cta)"
             >
               <FighterPortrait
                 fighter={fighter}

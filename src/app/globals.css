@@ -28,6 +28,7 @@
   --energy-metal: #7e95a8;
   --energy-dragon: #c9a227;
   --energy-colorless: #8b949e;
+  --energy-ground: #c9a25a;
   --card-frame-matte: linear-gradient(
     160deg,
     #c3c6c9 0%,
@@ -202,6 +203,7 @@
   --color-energy-metal: var(--energy-metal);
   --color-energy-dragon: var(--energy-dragon);
   --color-energy-colorless: var(--energy-colorless);
+  --color-energy-ground: var(--energy-ground);
   --font-sans: var(--font-sora);
   --font-display: var(--font-bricolage, var(--font-sora)), sans-serif;
   --font-arena-title: var(--font-title), var(--font-sora), sans-serif;
@@ -1076,30 +1078,25 @@ body {
   animation: landing-deal 900ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
 }
 
-.fighter-sprite {
-  width: var(--sprite-size);
-  height: var(--sprite-size);
-  background-repeat: no-repeat;
-  background-size: calc(var(--sprite-columns) * var(--sprite-size)) auto;
-  background-position: 0 calc(var(--sprite-row) * var(--sprite-size) * -1);
-  image-rendering: pixelated;
+.arena-picker,
+.arena-hud-frame {
+  --arena-bg: #150e27;
+  --arena-ink: #f7f3ff;
+  --arena-ink-subtle: #bdb2da;
+  --arena-line: rgb(255 255 255 / 0.14);
+  --arena-panel: rgb(20 12 38 / 0.82);
+  --arena-cta: #c6f135;
+  --arena-cta-ink: #1c2905;
 }
 
 .arena-picker {
-  --picker-bg: #150e27;
-  --picker-ink: #f7f3ff;
-  --picker-ink-subtle: #bdb2da;
-  --picker-line: rgb(255 255 255 / 0.14);
-  --picker-panel: rgb(20 12 38 / 0.82);
-  --picker-cta: #c6f135;
-  --picker-cta-ink: #1c2905;
   background:
     linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 36px
       36px,
     linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 /
       36px 36px,
-    var(--picker-bg);
-  color: var(--picker-ink);
+    var(--arena-bg);
+  color: var(--arena-ink);
 }
 
 .arena-banner {
@@ -1119,12 +1116,12 @@ body {
     rgb(21 14 39 / 0.35) 0%,
     transparent 30%,
     transparent 60%,
-    var(--picker-bg) 100%
+    var(--arena-bg) 100%
   );
 }
 
 .arena-name {
-  color: var(--picker-ink);
+  color: var(--arena-ink);
   text-shadow:
     0 3px 0 rgb(0 0 0 / 0.6),
     0 0 28px rgb(0 0 0 / 0.55);
@@ -1132,14 +1129,14 @@ body {
 
 .arena-tab {
   clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
-  background: var(--picker-ink);
-  color: var(--picker-bg);
+  background: var(--arena-ink);
+  color: var(--arena-bg);
 }
 
 .arena-picker-panel {
-  background: var(--picker-panel);
+  background: var(--arena-panel);
   backdrop-filter: blur(10px);
-  border-top: 1px solid var(--picker-line);
+  border-top: 1px solid var(--arena-line);
 }
 
 @media (min-width: 64rem) {
@@ -1156,13 +1153,13 @@ body {
 
   .arena-picker-panel {
     border-top: none;
-    border-left: 1px solid var(--picker-line);
+    border-left: 1px solid var(--arena-line);
   }
 }
 
 .arena-picker-meter {
   transform: skewX(-12deg);
-  background: var(--picker-line);
+  background: var(--arena-line);
 }
 
 .arena-picker-meter-fill {
@@ -1180,7 +1177,7 @@ body {
 }
 
 .arena-side-slot {
-  border: 2px solid var(--picker-line);
+  border: 2px solid var(--arena-line);
   background: rgb(255 255 255 / 0.04);
   transform: skewX(-8deg);
   transition:
@@ -1197,15 +1194,15 @@ body {
 }
 
 .arena-side-slot[data-active] {
-  border-color: var(--energy, var(--picker-ink));
+  border-color: var(--energy, var(--arena-ink));
   background: color-mix(in srgb, var(--energy, white) 22%, transparent);
   box-shadow: 0 0 18px color-mix(in srgb, var(--energy, white) 45%, transparent);
 }
 
 .arena-roster-tile {
   overflow: hidden;
-  border: 2px solid var(--picker-line);
-  background: color-mix(in srgb, var(--energy) 35%, var(--picker-bg));
+  border: 2px solid var(--arena-line);
+  background: color-mix(in srgb, var(--energy) 35%, var(--arena-bg));
   transition:
     border-color 160ms ease-out,
     box-shadow 160ms ease-out,
@@ -1218,28 +1215,28 @@ body {
 }
 
 .arena-roster-tile[data-current] {
-  border-color: var(--picker-ink);
+  border-color: var(--arena-ink);
   box-shadow:
     0 0 0 2px var(--energy),
     0 0 22px color-mix(in srgb, var(--energy) 60%, transparent);
 }
 
 .arena-roster-badge {
-  background: var(--picker-ink);
-  color: var(--picker-bg);
+  background: var(--arena-ink);
+  color: var(--arena-bg);
 }
 
 .arena-roster-badge[data-side="opponent"] {
-  background: var(--picker-bg);
-  color: var(--picker-ink);
+  background: var(--arena-bg);
+  color: var(--arena-ink);
 }
 
 .arena-choice {
   --choice-tone: #7fd3ff;
   transform: skewX(-8deg);
-  border: 2px solid var(--picker-line);
+  border: 2px solid var(--arena-line);
   background: rgb(255 255 255 / 0.04);
-  color: var(--picker-ink-subtle);
+  color: var(--arena-ink-subtle);
   transition:
     border-color 160ms ease-out,
     background-color 160ms ease-out,
@@ -1255,14 +1252,14 @@ body {
 }
 
 .arena-choice:hover {
-  color: var(--picker-ink);
+  color: var(--arena-ink);
   border-color: color-mix(in srgb, var(--choice-tone) 50%, transparent);
 }
 
 .arena-choice[data-selected] {
   border-color: var(--choice-tone);
   background: color-mix(in srgb, var(--choice-tone) 20%, transparent);
-  color: var(--picker-ink);
+  color: var(--arena-ink);
 }
 
 .arena-choice-icon {
@@ -1271,13 +1268,13 @@ body {
 
 .arena-cta-shadow {
   filter: drop-shadow(0 6px 0 rgb(0 0 0 / 0.55))
-    drop-shadow(0 0 18px color-mix(in srgb, var(--picker-cta) 35%, transparent));
+    drop-shadow(0 0 18px color-mix(in srgb, var(--arena-cta) 35%, transparent));
 }
 
 .arena-cta {
   clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%);
-  background: linear-gradient(180deg, #e2ff7a 0%, var(--picker-cta) 50%, #96cc12 100%);
-  color: var(--picker-cta-ink);
+  background: linear-gradient(180deg, #e2ff7a 0%, var(--arena-cta) 50%, #96cc12 100%);
+  color: var(--arena-cta-ink);
   cursor: pointer;
   transition:
     filter 160ms ease-out,
@@ -1333,35 +1330,24 @@ body {
 
 .arena-bar-strip {
   clip-path: polygon(3% 0, 100% 0, 97% 100%, 0 100%);
+  border-top: 2px solid var(--arena-line);
   background:
-    radial-gradient(
-        color-mix(in srgb, var(--background) 16%, transparent) 1px,
-        transparent 1.6px
-      )
-      0 0 / 6px 6px,
-    linear-gradient(
-      100deg,
-      color-mix(in srgb, var(--foreground) 70%, black),
-      color-mix(in srgb, var(--foreground) 92%, black)
-    );
+    linear-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px) 0 0 / 12px
+      12px,
+    var(--arena-panel);
+  backdrop-filter: blur(8px);
 }
 
 .arena-slot {
-  --slot-ink: var(--background);
+  --slot-ink: var(--arena-ink);
   --slot-glow: transparent;
   transform: skewX(-12deg);
-  border: 3px solid color-mix(in srgb, var(--foreground) 40%, black);
-  border-radius: 6px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--foreground) 55%, #3a3a3a) 0%,
-    color-mix(in srgb, var(--foreground) 80%, black) 55%,
-    black 100%
-  );
+  border: 2px solid var(--arena-line);
+  background: var(--arena-panel);
+  backdrop-filter: blur(8px);
   box-shadow:
-    0 6px 0 black,
-    0 0 18px var(--slot-glow),
-    inset 0 1px 0 rgb(255 255 255 / 0.18);
+    0 5px 0 rgb(0 0 0 / 0.6),
+    0 0 18px var(--slot-glow);
   color: var(--slot-ink);
   transition:
     transform 160ms ease-out,
@@ -1375,15 +1361,10 @@ body {
 }
 
 .arena-slot[data-selected] {
-  --slot-ink: var(--foreground);
-  transform: skewX(-12deg) translateY(-6px);
-  border-color: var(--accent);
-  background: linear-gradient(
-    180deg,
-    white 0%,
-    color-mix(in srgb, var(--background) 80%, #bdbdbd) 60%,
-    #9a9a9a 100%
-  );
+  --slot-ink: var(--arena-cta-ink);
+  --slot-glow: color-mix(in srgb, var(--arena-cta) 45%, transparent);
+  border-color: var(--arena-ink);
+  background: linear-gradient(180deg, #e2ff7a 0%, var(--arena-cta) 50%, #96cc12 100%);
 }
 
 .arena-slot[data-charge="1"] {
@@ -1403,12 +1384,19 @@ body {
 }
 
 .arena-slot-key {
-  background: color-mix(in srgb, black 55%, transparent);
+  background: rgb(0 0 0 / 0.45);
+  color: var(--arena-ink-subtle);
 }
 
+.arena-slot-keycap {
+  background: var(--arena-line);
+  color: var(--arena-ink);
+}
+
+.arena-slot[data-selected] .arena-slot-keycap,
 .arena-slot[data-selected] .arena-slot-key {
-  background: color-mix(in srgb, var(--foreground) 85%, black);
-  color: var(--background);
+  background: var(--arena-bg);
+  color: var(--arena-ink);
 }
 
 .arena-slot-shade {
@@ -1420,8 +1408,8 @@ body {
 .arena-slot-scan {
   top: 0;
   height: 2px;
-  background: var(--accent);
-  box-shadow: 0 0 10px 2px var(--accent);
+  background: var(--arena-cta);
+  box-shadow: 0 0 10px 2px var(--arena-cta);
   animation: arena-cooldown-scan var(--cooldown) linear forwards;
   animation-delay: var(--cooldown-delay);
 }
@@ -1433,54 +1421,67 @@ body {
 
 .arena-charge-fill {
   transform-origin: left;
-  animation: arena-charge-fill 2000ms linear forwards;
+  animation: arena-charge-fill var(--charge-duration, 2000ms) linear forwards;
   animation-delay: var(--charge-delay);
 }
 
-[data-charge="1"] .arena-charge-fill,
-[data-level="1"] .arena-charge-fill {
+[data-charge="1"] .arena-charge-fill {
   background: linear-gradient(90deg, var(--accent), var(--energy-fire));
 }
 
-[data-charge="2"] .arena-charge-fill,
-[data-level="2"] .arena-charge-fill {
+[data-charge="2"] .arena-charge-fill {
   background: linear-gradient(90deg, var(--energy-fire), var(--energy-psychic));
 }
 
 .arena-plate {
-  clip-path: polygon(0 0, 100% 0, calc(100% - 22px) 100%, 0 100%);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
+  border-top: 2px solid var(--energy);
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.08), transparent 40%),
-    color-mix(in srgb, var(--foreground) 82%, black);
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--energy) 32%, transparent),
+      transparent 55%
+    ),
+    var(--arena-panel);
+  backdrop-filter: blur(8px);
 }
 
 .arena-plate[data-side="opponent"] {
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 22px 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 18px 100%);
+  background:
+    linear-gradient(
+      260deg,
+      color-mix(in srgb, var(--energy) 32%, transparent),
+      transparent 55%
+    ),
+    var(--arena-panel);
 }
 
 .arena-portrait {
-  clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
-  background:
-    radial-gradient(circle at 50% 70%, rgb(255 255 255 / 0.55), transparent 65%),
-    linear-gradient(160deg, var(--portrait), color-mix(in srgb, var(--portrait) 45%, black));
+  border: 2px solid var(--arena-ink);
+  background: color-mix(in srgb, var(--energy) 40%, var(--arena-bg));
+  box-shadow:
+    0 0 0 2px var(--energy),
+    0 0 16px color-mix(in srgb, var(--energy) 55%, transparent);
+}
+
+.arena-side-tag {
+  background: var(--arena-ink);
+  color: var(--arena-bg);
 }
 
 .arena-hp-track {
-  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
-  background: color-mix(in srgb, black 70%, var(--foreground));
+  transform: skewX(-14deg);
+  border: 1px solid var(--arena-line);
+  background: rgb(0 0 0 / 0.55);
 }
 
-.arena-plate[data-side="opponent"] .arena-hp-track,
-.arena-plate[data-side="opponent"] .arena-meter {
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%);
+.arena-hp-lag {
+  background: rgb(255 255 255 / 0.7);
 }
 
 .arena-hp-fill[data-tone="high"] {
-  background: linear-gradient(
-    90deg,
-    var(--primary),
-    color-mix(in srgb, var(--primary) 40%, #d8ff3a)
-  );
+  background: linear-gradient(90deg, #8fd61a, var(--arena-cta));
 }
 
 .arena-hp-fill[data-tone="mid"] {
@@ -1495,12 +1496,30 @@ body {
   content: "";
   position: absolute;
   inset: 0 0 55% 0;
-  background: rgb(255 255 255 / 0.32);
+  background: rgb(255 255 255 / 0.3);
 }
 
 .arena-meter {
-  clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
-  background: color-mix(in srgb, black 75%, var(--foreground));
+  transform: skewX(-14deg);
+  background: rgb(0 0 0 / 0.55);
+  border: 1px solid var(--arena-line);
+}
+
+.arena-meter[data-segment="1"] .arena-meter-fill {
+  background: linear-gradient(90deg, var(--accent), var(--energy-fire));
+}
+
+.arena-meter[data-segment="2"] .arena-meter-fill {
+  background: linear-gradient(90deg, var(--energy-fire), var(--energy-psychic));
+}
+
+.arena-clock {
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 100%, 0 100%);
+  border-bottom: 2px solid var(--arena-cta);
+  background: var(--arena-panel);
+  backdrop-filter: blur(8px);
+  color: var(--arena-ink);
+  text-shadow: 0 2px 0 rgb(0 0 0 / 0.6);
 }
 
 .arena-stamp {

@@ -1,7 +1,6 @@
 "use client";
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 import { ArenaRewardPanel } from "./arena-reward-panel";
 import { ArenaTitleCard, type ArenaTitleTone } from "./arena-title-card";
@@ -49,8 +48,15 @@ function ArenaOverlay({
       aria-labelledby="arena-overlay-title"
       className="absolute inset-0 z-10"
     >
-      <ArenaTitleCard title={copy.title} accent={copy.accent} kicker={kicker} tone={copy.tone}>
-        {!paused && reward ? <ArenaRewardPanel reward={reward} className="mb-3" /> : null}
+      <ArenaTitleCard
+        title={copy.title}
+        accent={copy.accent}
+        kicker={kicker}
+        tone={copy.tone}
+      >
+        {!paused && reward ? (
+          <ArenaRewardPanel reward={reward} className="mb-3" />
+        ) : null}
         <div className="glass bg-white/90! flex flex-col gap-2 rounded-3xl p-4">
           {paused ? (
             <Button autoFocus onClick={onResume}>
@@ -67,9 +73,6 @@ function ArenaOverlay({
           <Button variant="outline" onClick={onExit}>
             Trocar lutadores
           </Button>
-          <Link href="/pokedex" className={buttonVariants({ variant: "outline" })}>
-            Voltar à Pokédex
-          </Link>
         </div>
       </ArenaTitleCard>
     </div>

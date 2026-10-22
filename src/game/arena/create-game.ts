@@ -47,7 +47,8 @@ function createArenaGame(
     backgroundColor: cssColor("--background", "#f3f7f4"),
     banner: false,
     autoFocus: false,
-    audio: audioContext ? { context: audioContext } : undefined,
+    // Phaser lê `config.audio.noAudio` sem checar; `undefined` derruba o boot.
+    audio: audioContext ? { context: audioContext } : {},
     physics: {
       default: "arcade",
       arcade: {

@@ -143,6 +143,60 @@ describe("decideCpu", () => {
   });
 });
 
+describe("decideCpu com consumíveis", () => {
+  const reach = CPU_PROFILES.hard.pickupReach;
+
+  it("desvia para pegar o consumível ao alcance", () => {
+    const decision = decideCpu(
+      input({
+        pickups: [{ at: { x: 0, y: 200 }, look: "fury", blocked: false }],
+        pickupReach: reach,
+      }),
+    );
+
+    expect(decision).toEqual({ action: "chase", move: { x: 0, y: 1 } });
+  });
+
+  it("vai no mais próximo e ignora armadilha, bloqueado e fora do alcance", () => {
+    const decision = decideCpu(
+      input({
+        pickups: [
+          { at: { x: 0, y: 50 }, look: "vulnerable", blocked: false },
+          { at: { x: 0, y: 60 }, look: "haste", blocked: true },
+          { at: { x: 0, y: -reach - 10 }, look: "rapid", blocked: false },
+          { at: { x: -300, y: 0 }, look: "mystery", blocked: false },
+        ],
+        pickupReach: reach,
+      }),
+    );
+
+    expect(decision).toEqual({ action: "chase", move: { x: -1, y: 0 } });
+  });
+
+  it("só busca cura quando ferida", () => {
+    const pickups = [{ at: { x: 0, y: 200 }, look: "heal" as const, blocked: false }];
+
+    expect(
+      decideCpu(input({ pickups, pickupReach: reach, selfHp: 100, selfMaxHp: 100 })),
+    ).toEqual({ action: "chase", move: { x: 1, y: 0 } });
+    expect(
+      decideCpu(input({ pickups, pickupReach: reach, selfHp: 40, selfMaxHp: 100 })),
+    ).toEqual({ action: "chase", move: { x: 0, y: 1 } });
+  });
+
+  it("colada no alvo prefere o corpo a corpo ao consumível", () => {
+    const decision = decideCpu(
+      input({
+        target: { x: CPU_MELEE_RANGE, y: 0 },
+        pickups: [{ at: { x: 0, y: 200 }, look: "fury", blocked: false }],
+        pickupReach: reach,
+      }),
+    );
+
+    expect(decision).toEqual({ action: "attack", kind: "melee", aim: { x: 1, y: 0 } });
+  });
+});
+
 describe("CPU_PROFILES", () => {
   it("normal é mais lenta, espera mais e bate mais fraco que difícil", () => {
     const { normal, hard } = CPU_PROFILES;
@@ -151,6 +205,7 @@ describe("CPU_PROFILES", () => {
     expect(normal.cooldownScale).toBeGreaterThan(hard.cooldownScale);
     expect(normal.damageScale).toBeLessThan(hard.damageScale);
     expect(normal.fireRange).toBeLessThan(hard.fireRange);
+    expect(normal.pickupReach).toBeLessThan(hard.pickupReach);
   });
 
   it("no normal não atira de onde o difícil atiraria", () => {

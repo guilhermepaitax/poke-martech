@@ -102,6 +102,64 @@ function spawnDamageNumber(
   });
 }
 
+const PICKUP_RISE = 44;
+const PICKUP_HOLD_MS = 700;
+
+// Texto de consumível pego: mesmo estilo dos números de dano, mais lento.
+function spawnPickupLabel(
+  scene: Phaser.Scene,
+  bucket: Phaser.GameObjects.Container[],
+  x: number,
+  y: number,
+  text: string,
+  color: number,
+  caption?: string,
+) {
+  const tone = `#${color.toString(16).padStart(6, "0")}`;
+  const container = scene.add.container(x, y).setDepth(NUMBER_DEPTH);
+  const title = scene.add
+    .text(0, 0, text, {
+      fontFamily: pixelFont(),
+      fontSize: "18px",
+      color: tone,
+    })
+    .setOrigin(0.5)
+    .setStroke(OUTLINE_COLOR, 6)
+    .setShadow(2, 3, OUTLINE_COLOR, 0, true, true);
+  container.add(title);
+  popIn(scene, title, NUMBER_POP_MS);
+  if (caption) {
+    const label = scene.add
+      .text(0, -LABEL_GAP_Y, caption, {
+        fontFamily: pixelFont(),
+        fontSize: "10px",
+        color: NUMBER_COLOR,
+      })
+      .setOrigin(0.5, 1)
+      .setStroke(OUTLINE_COLOR, 4);
+    container.add(label);
+    popIn(scene, label, LABEL_POP_MS, LABEL_DELAY_MS);
+  }
+  bucket.push(container);
+  scene.tweens.add({
+    targets: container,
+    y: y - PICKUP_RISE,
+    duration: NUMBER_POP_MS + PICKUP_HOLD_MS,
+    ease: "Quad.easeOut",
+  });
+  scene.tweens.add({
+    targets: container,
+    alpha: 0,
+    delay: NUMBER_POP_MS + PICKUP_HOLD_MS,
+    duration: NUMBER_FADE_MS,
+    onComplete: () => {
+      const index = bucket.indexOf(container);
+      if (index >= 0) bucket.splice(index, 1);
+      if (container.scene) container.destroy();
+    },
+  });
+}
+
 function clearDamageNumbers(
   scene: Phaser.Scene,
   bucket: Phaser.GameObjects.Container[],
@@ -114,4 +172,4 @@ function clearDamageNumbers(
   bucket.length = 0;
 }
 
-export { clearDamageNumbers, spawnDamageNumber };
+export { clearDamageNumbers, spawnDamageNumber, spawnPickupLabel };

@@ -2,7 +2,9 @@ import { registerCharacterAnimations } from "@/game/arena/animations/character";
 import { ARENA_EVENTS } from "@/game/arena/arena-events";
 import { preloadArenaAssets } from "@/game/arena/assets/catalog";
 import { playArenaAudio } from "@/game/arena/entities/audio";
+import { clearBuffAura, syncBuffAura } from "@/game/arena/entities/buff-aura";
 import {
+  blockRects,
   clearCombatAim,
   createCombat,
   cullProjectiles,
@@ -17,6 +19,7 @@ import {
   type Combat,
 } from "@/game/arena/entities/combat";
 import { updateCpu } from "@/game/arena/entities/cpu";
+import { spawnPickupLabel } from "@/game/arena/entities/damage-number";
 import { createFxTextures } from "@/game/arena/entities/fx-textures";
 import {
   clearMarkerFx,
@@ -26,10 +29,18 @@ import {
 } from "@/game/arena/entities/marker";
 import { destroyObstacles } from "@/game/arena/entities/obstacle";
 import {
+  clearPickups,
+  lookColor,
+  spawnPickup,
+  stepPickups,
+  type Pickup,
+} from "@/game/arena/entities/pickup";
+import {
   createPlayer,
   haltPlayer,
   isDashing,
   playerAnchor,
+  setPlayerHp,
   syncPlayerMarker,
   updatePlayer,
   type Player,
@@ -52,6 +63,17 @@ import {
 import type { ArenaMatchup } from "@/lib/arena/fighter";
 import { DASH_COOLDOWN_MS, facingFromAim } from "@/lib/arena/movement";
 import { resolveOutcome, type ArenaOutcome } from "@/lib/arena/outcome";
+import {
+  addBuff,
+  healAmount,
+  PICKUP_EFFECTS,
+  PICKUP_MAX_ON_MAP,
+  pickupDelay,
+  pickupSpot,
+  revealPickup,
+  rollPickup,
+  type PickupLook,
+} from "@/lib/arena/pickups";
 import type { ArenaHudState, ArenaSnapshot, HudSlot } from "@/lib/arena/snapshot";
 import { spawnPoints } from "@/lib/arena/spawn";
 import Phaser from "phaser";
@@ -59,6 +81,8 @@ import Phaser from "phaser";
 const DEFEATED_ALPHA = 0.45;
 const CHARGE_MOVE_SCALE = 0.55;
 const OUTCOME_DELAY_MS = 1100;
+const PICKUP_LABEL_OFFSET_Y = 84;
+const PICKUP_RETRY_MS = 1000;
 const CHARGE_BANNER: Record<Exclude<ChargeLevel, 0>, [string, "charge" | "max"]> = {
   1: ["CARREGADO!", "charge"],
   2: ["MÁXIMO!", "max"],
@@ -103,6 +127,9 @@ class ArenaScene extends Phaser.Scene {
   private chargeShown: ChargeLevel = 0;
   private chargeCycle = 0;
   private hudCycles = freshCycles();
+  private elapsedMs = 0;
+  private pickups: Pickup[] = [];
+  private nextPickupAt = 0;
 
   constructor() {
     super("arena");
@@ -122,6 +149,9 @@ class ArenaScene extends Phaser.Scene {
     this.chargeShown = 0;
     this.chargeCycle = 0;
     this.hudCycles = freshCycles();
+    this.elapsedMs = 0;
+    this.pickups = [];
+    this.nextPickupAt = 0;
   }
 
   preload() {
@@ -154,6 +184,7 @@ class ArenaScene extends Phaser.Scene {
     if (this.combat) stepCombat(this, this.combat, delta);
     if (this.outcome !== "ongoing") return;
     if (!this.player || !this.keys || !this.world) return;
+    this.tickClock(delta);
     this.applyAttackKeys();
     this.followPointer();
     const move = readMoveAxes(this.keys);
@@ -172,11 +203,19 @@ class ArenaScene extends Phaser.Scene {
       charge ? speed * CHARGE_MOVE_SCALE : speed,
     );
     if (this.combat && this.opponent) {
-      updateCpu(this, this.combat, this.opponent, this.player, this.cpuProfile);
+      updateCpu(
+        this,
+        this.combat,
+        this.opponent,
+        this.player,
+        this.cpuProfile,
+        this.pickups,
+      );
     }
     if (this.combat) {
       cullProjectiles(this, this.combat, this.world.width, this.world.height);
     }
+    this.stepConsumables();
     this.checkOutcome();
   }
 
@@ -295,11 +334,18 @@ class ArenaScene extends Phaser.Scene {
     this.emitHud();
   }
 
+  private tickClock(delta: number) {
+    const shown = Math.floor(this.elapsedMs / 1000);
+    this.elapsedMs += delta;
+    if (Math.floor(this.elapsedMs / 1000) !== shown) this.emitSnapshot();
+  }
+
   private emitSnapshot() {
     if (!this.player || !this.opponent) return;
     const snapshot: ArenaSnapshot = {
       player: { hp: this.player.hp, maxHp: this.player.maxHp },
       opponent: { hp: this.opponent.hp, maxHp: this.opponent.maxHp },
+      elapsedSeconds: Math.floor(this.elapsedMs / 1000),
     };
     this.game.registry.set("snapshot", snapshot);
     this.game.events.emit(ARENA_EVENTS.snapshot, snapshot);
@@ -311,6 +357,70 @@ class ArenaScene extends Phaser.Scene {
 
   restartMatch() {
     this.scene.restart();
+  }
+
+  private stepConsumables() {
+    const { player, opponent, combat } = this;
+    if (!player || !opponent || !combat || combat.over) return;
+    const now = this.time.now;
+    if (now >= this.nextPickupAt) this.dropPickup();
+    stepPickups(this, this.pickups, [player, opponent], (fighter, look) =>
+      this.consumePickup(fighter, look),
+    );
+  }
+
+  private dropPickup() {
+    const { player, opponent, combat } = this;
+    if (!player || !opponent || !combat) return;
+    const now = this.time.now;
+    if (this.pickups.length >= PICKUP_MAX_ON_MAP) {
+      this.nextPickupAt = now + pickupDelay(Math.random);
+      return;
+    }
+    const bounds = this.physics.world.bounds;
+    const spot = pickupSpot(Math.random, bounds, blockRects(combat), [
+      playerAnchor(player),
+      playerAnchor(opponent),
+    ]);
+    if (!spot) {
+      this.nextPickupAt = now + PICKUP_RETRY_MS;
+      return;
+    }
+    spawnPickup(this, this.pickups, spot, rollPickup(Math.random));
+    this.nextPickupAt = now + pickupDelay(Math.random);
+  }
+
+  private consumePickup(fighter: Player, look: PickupLook) {
+    if (!this.combat) return;
+    const now = this.time.now;
+    const effect = revealPickup(look, Math.random);
+    const spec = PICKUP_EFFECTS[effect];
+    let text = spec.label;
+    if (effect === "heal") {
+      const before = fighter.hp;
+      setPlayerHp(fighter, fighter.hp + healAmount(fighter.maxHp));
+      text = `+${fighter.hp - before} HP`;
+      this.combat.onHpChange();
+    } else {
+      fighter.buffs = addBuff(fighter.buffs, effect, now);
+    }
+    if (effect === "rapid") {
+      // Recarga em andamento acaba na hora.
+      fighter.readyAt = { melee: now, fire: now };
+      fighter.dashReadyAt = now;
+      if (fighter === this.player) this.emitHud();
+    }
+    spawnPickupLabel(
+      this,
+      this.combat.numbers,
+      fighter.sprite.x,
+      fighter.sprite.y - PICKUP_LABEL_OFFSET_Y,
+      text,
+      spec.color,
+      look === "mystery" ? "MISTÉRIO!" : undefined,
+    );
+    spawnRingWave(this, fighter.marker, { color: lookColor(effect), count: 2, grow: 2.6, width: 3 });
+    playArenaAudio(this, "appear");
   }
 
   private checkOutcome() {
@@ -328,8 +438,13 @@ class ArenaScene extends Phaser.Scene {
       clearCombatAim(this.combat);
       showBanner(this, this.combat, "K.O.!", "ko");
     }
-    if (this.player) haltPlayer(this.player);
-    if (this.opponent) haltPlayer(this.opponent);
+    clearPickups(this, this.pickups);
+    for (const fighter of [this.player, this.opponent]) {
+      if (!fighter) continue;
+      haltPlayer(fighter);
+      fighter.buffs = [];
+      clearBuffAura(fighter);
+    }
     const loser = outcome === "victory" ? this.opponent : this.player;
     loser?.sprite.setAlpha(DEFEATED_ALPHA);
     if (loser) setMarkerDead(loser.marker);
@@ -372,12 +487,17 @@ class ArenaScene extends Phaser.Scene {
   }
 
   private syncMarkers() {
-    if (this.player) syncPlayerMarker(this.player);
-    if (this.opponent) syncPlayerMarker(this.opponent);
+    for (const fighter of [this.player, this.opponent]) {
+      if (!fighter) continue;
+      syncPlayerMarker(fighter);
+      syncBuffAura(this, fighter);
+    }
   }
 
   private layout() {
     if (!this.world) return;
+    // Caixas usam coordenadas absolutas: no resize somem e voltam a cair.
+    clearPickups(this, this.pickups);
     this.anchors = layoutArena(this, this.world, this.anchors, this.player, this.opponent);
     if (this.combat) layoutCombat(this, this.combat);
   }
@@ -412,6 +532,7 @@ class ArenaScene extends Phaser.Scene {
     this.physics.add.collider(this.opponent.sprite, solids);
     this.physics.add.collider(this.player.sprite, this.opponent.sprite);
     this.combat = createCombat(this, this.player, this.opponent, world.obstacles, () => this.emitSnapshot());
+    this.nextPickupAt = this.time.now + pickupDelay(Math.random);
     this.emitSnapshot();
     this.emitHud();
     this.cameras.main.startFollow(this.player.sprite);
@@ -427,8 +548,12 @@ class ArenaScene extends Phaser.Scene {
     if (this.combat) destroyCombat(this, this.combat);
     this.combat = null;
     if (this.world) destroyObstacles(this, this.world.obstacles);
-    if (this.player) clearMarkerFx(this, this.player.marker);
-    if (this.opponent) clearMarkerFx(this, this.opponent.marker);
+    clearPickups(this, this.pickups);
+    for (const fighter of [this.player, this.opponent]) {
+      if (!fighter) continue;
+      clearMarkerFx(this, fighter.marker);
+      clearBuffAura(fighter);
+    }
     this.game.registry.remove("snapshot");
     this.game.registry.remove("hud");
   }

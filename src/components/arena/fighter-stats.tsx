@@ -21,11 +21,11 @@ function FighterStats({ fighter }: { fighter: ArenaFighter }) {
 
   return (
     <ArenaPanelSection title="Status" aria-live="polite">
-      <p className="text-sm text-(--picker-ink-subtle)">{fighter.description}</p>
+      <p className="text-sm text-(--arena-ink-subtle)">{fighter.description}</p>
       <div className="flex flex-col gap-1.5">
-        <div className="flex items-baseline justify-between text-xs font-semibold tracking-wide text-(--picker-ink-subtle) uppercase">
+        <div className="flex items-baseline justify-between text-xs font-semibold tracking-wide text-(--arena-ink-subtle) uppercase">
           <span>HP</span>
-          <span className="text-sm text-(--picker-ink) tabular-nums">{fighter.hp}</span>
+          <span className="text-sm text-(--arena-ink) tabular-nums">{fighter.hp}</span>
         </div>
         <div
           role="meter"
@@ -48,24 +48,24 @@ function FighterStats({ fighter }: { fighter: ArenaFighter }) {
           return (
             <li
               key={kind}
-              className="flex items-center gap-3 border-b border-dashed border-(--picker-line) py-2.5 last:border-b-0"
+              className="flex items-center gap-3 border-b border-dashed border-(--arena-line) py-2.5 last:border-b-0"
             >
               <span className="arena-picker-key flex size-9 shrink-0 items-center justify-center">
                 <Icon aria-hidden className="size-4.5" />
               </span>
               <div className="flex min-w-0 flex-1 flex-col">
                 <span className="flex items-center gap-2 text-sm font-semibold">
-                  <kbd className="rounded-sm bg-(--picker-line) px-1.5 text-[11px] leading-4 text-(--picker-ink-subtle)">
+                  <kbd className="rounded-sm bg-(--arena-line) px-1.5 text-[11px] leading-4 text-(--arena-ink-subtle)">
                     {index + 1}
                   </kbd>
                   <span className="truncate">{attack.name}</span>
                 </span>
-                <span className="text-xs text-(--picker-ink-subtle)">
+                <span className="text-xs text-(--arena-ink-subtle)">
                   {ATTACK_RANGE_LABEL[kind]} · recarga {formatCooldown(COOLDOWN_MS[kind])}
                 </span>
               </div>
               <span className="flex shrink-0 flex-col items-end">
-                <span className="text-[10px] font-semibold tracking-wide text-(--picker-ink-subtle) uppercase">
+                <span className="text-[10px] font-semibold tracking-wide text-(--arena-ink-subtle) uppercase">
                   Poder
                 </span>
                 <span className="font-arena-title text-lg leading-none tabular-nums">

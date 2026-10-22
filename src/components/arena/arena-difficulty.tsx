@@ -34,7 +34,7 @@ function ArenaDifficultyPicker({
             data-level={option.value}
             data-selected={selected ? "" : undefined}
             onClick={() => onValueChange(option.value)}
-            className="arena-choice flex items-center gap-2.5 px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--picker-cta)"
+            className="arena-choice flex items-center gap-2.5 px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--arena-cta)"
           >
             <Icon aria-hidden className="arena-choice-icon size-5 shrink-0" />
             <span className="flex min-w-0 flex-col">

@@ -1,22 +1,27 @@
 import type { AttackKind } from "./combat";
 import type { Facing } from "./movement";
 
-type FighterEnergy = "fire" | "grass";
+type FighterEnergy = "fire" | "grass" | "ground";
 
-type RangedStyle = "beam" | "orb";
+type RangedStyle = "beam" | "orb" | "bone";
 
-type FighterAction = "idle" | "walk" | "attack" | "hurt";
+type FighterAction = "idle" | "walk" | "attack" | "shoot" | "hurt";
+
+type RequiredFighterAction = Exclude<FighterAction, "shoot">;
 
 type FighterSheet = {
   path: string;
   frames: number;
   rows: Record<Facing, number>;
+  // Sobrescreve o frameRate padrão do clipe (folhas com muitos frames curtos).
+  frameRate?: number;
 };
 
 type FighterSprite = {
   cellSize: number;
   columns: number;
-  sheets: Record<FighterAction, FighterSheet>;
+  // Sem `shoot`, o ataque à distância reaproveita a folha `attack`.
+  sheets: Record<RequiredFighterAction, FighterSheet> & { shoot?: FighterSheet };
 };
 
 // Ajustes de jogo/render por personagem. Medidas da hitbox em px de uma
@@ -32,6 +37,8 @@ type FighterTuning = {
   // Tint aplicado quando os dois lados usam o mesmo personagem.
   mirrorTint: number;
   depth: number;
+  // Lado do quadrado exibido em px do mundo. Sem valor, usa o padrão da arena.
+  displaySize?: number;
 };
 
 type FighterBanner = {
