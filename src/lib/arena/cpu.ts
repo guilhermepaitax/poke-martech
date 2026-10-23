@@ -25,6 +25,8 @@ type CpuProfile = {
   // Chance de defender quando o jogador ataca e por quanto tempo segura.
   defendChance: number;
   defendMs: number;
+  // Fração das defesas que sai no tempo do parry.
+  parryChance: number;
 };
 
 const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
@@ -36,6 +38,7 @@ const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
     pickupReach: 200,
     defendChance: 0.15,
     defendMs: 350,
+    parryChance: 0,
   },
   normal: {
     speed: 260,
@@ -45,6 +48,7 @@ const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
     pickupReach: 450,
     defendChance: 0.35,
     defendMs: 450,
+    parryChance: 0.12,
   },
   hard: {
     speed: 320,
@@ -54,6 +58,7 @@ const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
     pickupReach: 900,
     defendChance: 0.6,
     defendMs: 550,
+    parryChance: 0.2,
   },
 };
 
@@ -163,12 +168,17 @@ function cpuDefends(rng: () => number, profile: CpuProfile, threat: CpuThreat, f
   return rng() < profile.defendChance;
 }
 
+function cpuParries(rng: () => number, profile: CpuProfile) {
+  return profile.parryChance > 0 && rng() < profile.parryChance;
+}
+
 export {
   CPU_DEFEND_MELEE_RANGE,
   CPU_HOLD_DISTANCE,
   CPU_MELEE_RANGE,
   CPU_PROFILES,
   cpuDefends,
+  cpuParries,
   decideCpu,
   DEFAULT_DIFFICULTY,
   isArenaDifficulty,

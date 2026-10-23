@@ -97,7 +97,9 @@ function lessonCopy(
             <Key>Segure Shift</Key> para defender: você leva bem menos dano e
             não fica atordoado. O boneco vai atirar em você, defenda um golpe!
             Cada bloqueio gasta a barra de guarda; se ela quebrar, você fica
-            atordoado.
+            atordoado. Dica: aperte <Key>Shift</Key> bem na hora do impacto
+            para dar um <span className="font-bold">parry</span>, que anula o
+            golpe e contra-ataca na hora.
           </>
         ),
       };

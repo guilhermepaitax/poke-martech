@@ -35,7 +35,7 @@ import {
   spawnDamageNumber,
 } from "@/game/arena/entities/damage-number";
 import { clearHitFx, spawnHitFx } from "@/game/arena/entities/hit-fx";
-import { flashShield, shatterShield } from "@/game/arena/entities/shield-fx";
+import { flashShield, parryShield, shatterShield } from "@/game/arena/entities/shield-fx";
 import { flashMarker, spawnRingWave } from "@/game/arena/entities/marker";
 import {
   clearOrbs,
@@ -70,6 +70,7 @@ import {
 import {
   isDashing,
   isEvading,
+  lowerDefense,
   playAttack,
   playHurt,
   playerAnchor,
@@ -110,7 +111,7 @@ import {
   facingVector,
   type MoveVector,
 } from "@/lib/arena/movement";
-import { defendHit, spendGuard } from "@/lib/arena/defense";
+import { canCounter, defendHit, isParry, spendGuard } from "@/lib/arena/defense";
 import { buffScale } from "@/lib/arena/pickups";
 import Phaser from "phaser";
 
@@ -124,6 +125,11 @@ const ATTACK_FLASH_MS = 220;
 const HURT_FLASH_MS = 320;
 const BLOCK_SHAKE_MS = 70;
 const BREAK_SHAKE_MS = 160;
+const PARRY_SHAKE_MS = 120;
+const PARRY_COLOR = 0xffd23a;
+// Contra-ataque do parry: sai logo depois do flash, com força de carga nível 1.
+const COUNTER_DELAY_MS = 70;
+const COUNTER_CHARGE: ChargeLevel = 1;
 const CHARGED_BEAM_MS = 90;
 const IMPACT_COLOR: Record<AttackKind, number> = {
   melee: 0xff8a2a,
@@ -162,10 +168,18 @@ type AttackTuning = {
 
 const PLAYER_TUNING: AttackTuning = { cooldownScale: 1, damageScale: 1 };
 
-// Golpe que acertou alguém defendendo; `broke` = a guarda quebrou nele.
+// Golpe que acertou alguém defendendo; `broke` = a guarda quebrou nele,
+// `parry` = defendeu no tempo certo e anulou o golpe.
 type BlockEvent = {
   target: Player;
   broke: boolean;
+  parry: boolean;
+};
+
+// Quem desferiu o golpe e com qual ataque: o parry devolve no mesmo tipo.
+type HitSource = {
+  attacker: Player;
+  kind: AttackKind;
 };
 
 type Combat = {
@@ -288,8 +302,13 @@ function hurtFighter(
   color: number,
   stars = true,
   charge: ChargeLevel = 0,
+  source: HitSource | null = null,
 ) {
   const skip = combat.over || isEvading(target);
+  if (!skip && target.defending && hit.damage > 0 && isParry(target.guard, scene.time.now)) {
+    parryHit(scene, combat, target, direction, source);
+    return { hp: target.hp, applied: false, dealt: 0 };
+  }
   const block = !skip && target.defending && hit.damage > 0 ? spendGuard(target.guard, charge, scene.time.now) : null;
   if (block) {
     target.guard = block.guard;
@@ -355,16 +374,66 @@ function blockedHit(
     hit.tags,
   );
   scene.cameras.main.shake(BLOCK_SHAKE_MS, 0.002);
-  combat.onBlock({ target, broke: false });
+  combat.onBlock({ target, broke: false, parry: false });
+}
+
+// Defesa no tempo certo: anula o golpe e devolve no mesmo tipo de ataque.
+function parryHit(
+  scene: Phaser.Scene,
+  combat: Combat,
+  target: Player,
+  direction: Point,
+  source: HitSource | null,
+) {
+  parryShield(scene, target, direction);
+  spawnRingWave(scene, target.marker, { color: PARRY_COLOR, count: 2, grow: 2.4, width: 3 });
+  showBanner(scene, combat, "PARRY!", "parry");
+  playArenaAudio(scene, "appear");
+  scene.cameras.main.shake(PARRY_SHAKE_MS, 0.004);
+  combat.onBlock({ target, broke: false, parry: true });
+  if (!source || source.attacker.hp <= 0 || !canCounter(target.guard)) return;
+  target.guard = { ...target.guard, counteredAt: scene.time.now };
+  const { attacker, kind } = source;
+  // Corpo a corpo aparado deixa o atacante atordoado na frente de quem defendeu.
+  if (kind === "melee") playHurt(attacker);
+  scene.time.delayedCall(COUNTER_DELAY_MS, () => counterAttack(scene, combat, target, attacker, kind));
+}
+
+function counterAttack(
+  scene: Phaser.Scene,
+  combat: Combat,
+  parrier: Player,
+  attacker: Player,
+  kind: AttackKind,
+) {
+  if (combat.over || !parrier.sprite.scene || !attacker.sprite.scene) return;
+  if (parrier.hp <= 0 || attacker.hp <= 0 || parrier.hurting) return;
+  const dx = attacker.sprite.x - parrier.sprite.x;
+  const dy = attacker.sprite.y - parrier.sprite.y;
+  const length = Math.hypot(dx, dy);
+  if (length === 0) return;
+  const aim = { x: dx / length, y: dy / length };
+  lowerDefense(parrier);
+  parrier.facing = facingFromAim(aim.x, aim.y, parrier.facing);
+  if (!playAttack(parrier, kind)) return;
+  const damage = attackDamage(parrier, attacker, kind, PLAYER_TUNING, COUNTER_CHARGE, scene.time.now);
+  flashMarker(parrier.marker, "attack", ATTACK_FLASH_MS);
+  spawnRingWave(scene, parrier.marker, { color: PARRY_COLOR, count: 2, grow: 2.6, width: 3 });
+  if (kind === "melee") {
+    playArenaAudio(scene, "hit");
+    startMelee(scene, combat, parrier, attacker, aim, damage, COUNTER_CHARGE);
+    return;
+  }
+  launchRanged(scene, combat, parrier, attacker, aim, damage, COUNTER_CHARGE);
 }
 
 function breakGuard(scene: Phaser.Scene, combat: Combat, target: Player) {
-  target.defending = false;
+  lowerDefense(target);
   shatterShield(scene, target);
   spawnRingWave(scene, target.marker, { color: 0x8b949e, count: 2, grow: 2.4, width: 3 });
   showBanner(scene, combat, "GUARDA QUEBRADA!", "guard");
   scene.cameras.main.shake(BREAK_SHAKE_MS, 0.006);
-  combat.onBlock({ target, broke: true });
+  combat.onBlock({ target, broke: true, parry: false });
 }
 
 function isGuarding(scene: Phaser.Scene, target: Player) {
@@ -499,6 +568,7 @@ function resolveMelee(
     CHARGE_COLOR[charge],
     true,
     charge,
+    { attacker: player, kind: "melee" },
   );
   if (result.applied) announceHit(scene, combat, hit, charge);
   spawnCracks(
@@ -555,6 +625,7 @@ function startMelee(
 function landRanged(
   scene: Phaser.Scene,
   combat: Combat,
+  attacker: Player,
   target: Player,
   impact: BeamEnd,
   connects: boolean,
@@ -571,7 +642,10 @@ function landRanged(
     spawnShockwave(scene, combat.hitFx, impact, CHARGE_COLOR[charge], 60 + charge * 30);
   }
   if (hit) {
-    const result = hurtFighter(scene, combat, target, hit, direction, color, stars, charge);
+    const result = hurtFighter(scene, combat, target, hit, direction, color, stars, charge, {
+      attacker,
+      kind: "fire",
+    });
     if (result.applied) announceHit(scene, combat, hit, charge);
   }
   if (impact.stop === "block") {
@@ -584,6 +658,7 @@ function landRanged(
 function fireOrbs(
   scene: Phaser.Scene,
   combat: Combat,
+  attacker: Player,
   target: Player,
   muzzle: Point,
   aim: Point,
@@ -604,6 +679,7 @@ function fireOrbs(
         landRanged(
           scene,
           combat,
+          attacker,
           target,
           impact,
           impact.stop === "fighter",
@@ -622,6 +698,7 @@ function fireOrbs(
 function fireStars(
   scene: Phaser.Scene,
   combat: Combat,
+  attacker: Player,
   target: Player,
   muzzle: Point,
   aim: Point,
@@ -645,6 +722,7 @@ function fireStars(
         landRanged(
           scene,
           combat,
+          attacker,
           target,
           impact,
           impact.stop === "fighter",
@@ -693,6 +771,7 @@ function fireBubbles(
           landRanged(
             scene,
             combat,
+            attacker,
             target,
             impact,
             impact.stop === "fighter",
@@ -736,6 +815,7 @@ function throwBones(
         landRanged(
           scene,
           combat,
+          attacker,
           target,
           impact,
           impact.stop === "fighter",
@@ -788,17 +868,7 @@ function tryAttack(
     now,
     COOLDOWN_MS[kind] * tuning.cooldownScale * buffScale(attacker.buffs, "rapid", now),
   );
-  const damage = chargedDamage(
-    Math.max(
-      1,
-      Math.round(
-        attackPower(kind, attacker.fighter.attacks[kind].power, target.maxHp) *
-          tuning.damageScale *
-          buffScale(attacker.buffs, "fury", now),
-      ),
-    ),
-    charge,
-  );
+  const damage = attackDamage(attacker, target, kind, tuning, charge, now);
   flashMarker(attacker.marker, "attack", ATTACK_FLASH_MS);
   spawnRingWave(scene, attacker.marker, {
     color: charge > 0 ? CHARGE_COLOR[charge] : attacker.marker.palette.attack,
@@ -810,6 +880,41 @@ function tryAttack(
     startMelee(scene, combat, attacker, target, aim, damage, charge);
     return true;
   }
+  launchRanged(scene, combat, attacker, target, aim, damage, charge);
+  return true;
+}
+
+function attackDamage(
+  attacker: Player,
+  target: Player,
+  kind: AttackKind,
+  tuning: AttackTuning,
+  charge: ChargeLevel,
+  now: number,
+) {
+  return chargedDamage(
+    Math.max(
+      1,
+      Math.round(
+        attackPower(kind, attacker.fighter.attacks[kind].power, target.maxHp) *
+          tuning.damageScale *
+          buffScale(attacker.buffs, "fury", now),
+      ),
+    ),
+    charge,
+  );
+}
+
+// Dispara o ataque à distância do lutador (osso, bolha, estrela, orbe ou feixe).
+function launchRanged(
+  scene: Phaser.Scene,
+  combat: Combat,
+  attacker: Player,
+  target: Player,
+  aim: Point,
+  damage: number,
+  charge: ChargeLevel,
+) {
   const muzzle = {
     x: attacker.sprite.x + aim.x * MUZZLE_FORWARD,
     y: attacker.sprite.y + aim.y * MUZZLE_DOWN,
@@ -817,19 +922,19 @@ function tryAttack(
   const obstacles = liveObstacles(combat);
   if (attacker.fighter.ranged === "bone") {
     throwBones(scene, combat, attacker, target, muzzle, aim, damage, charge);
-    return true;
+    return;
   }
   if (attacker.fighter.ranged === "bubble") {
     fireBubbles(scene, combat, attacker, target, aim, damage, charge);
-    return true;
+    return;
   }
   if (attacker.fighter.ranged === "star") {
-    fireStars(scene, combat, target, muzzle, aim, damage, charge, obstacles);
-    return true;
+    fireStars(scene, combat, attacker, target, muzzle, aim, damage, charge, obstacles);
+    return;
   }
   if (attacker.fighter.ranged === "orb") {
-    fireOrbs(scene, combat, target, muzzle, aim, damage, charge, obstacles);
-    return true;
+    fireOrbs(scene, combat, attacker, target, muzzle, aim, damage, charge, obstacles);
+    return;
   }
   castBeam(scene, combat.beams, {
     from: muzzle,
@@ -848,10 +953,9 @@ function tryAttack(
           y: target.sprite.y,
         }).stop === "fighter";
       const color = charge === 2 ? FIRE_BEAM_CHARGED.impact : IMPACT_COLOR.fire;
-      landRanged(scene, combat, target, impact, still, damage, charge, aim, color, obstacles);
+      landRanged(scene, combat, attacker, target, impact, still, damage, charge, aim, color, obstacles);
     },
   });
-  return true;
 }
 
 function tryPlayerAttack(
@@ -956,4 +1060,4 @@ export {
   tryPlayerAttack,
   tryPlayerDash,
 };
-export type { AttackTuning, BlockEvent, Combat };
+export type { AttackTuning, BlockEvent, Combat, HitSource };

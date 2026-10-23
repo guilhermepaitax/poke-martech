@@ -11,12 +11,24 @@ const GUARD_COST_PER_CHARGE = 18;
 const GUARD_REGEN_PER_S = 45;
 const GUARD_REGEN_DELAY_MS = 500;
 const GUARD_BREAK_MS = 1200;
+// Parry: golpe que chega logo depois de levantar a guarda é anulado e
+// devolvido. Baixar a guarda fecha a janela por um tempo (sem spam de Shift).
+const PARRY_WINDOW_MS = 100;
+const PARRY_COOLDOWN_MS = 500;
 
 type GuardState = {
   meter: number;
   brokenUntil: number;
   // Último instante em que a guarda foi usada (defendendo ou bloqueando).
   usedAt: number;
+  // Quando a guarda subiu e se esse levantar ainda vale parry.
+  raisedAt: number;
+  parryOpen: boolean;
+  // Duração da janela desse levantar (a CPU usa uma janela própria).
+  parryWindowMs: number;
+  parryReadyAt: number;
+  // Último contra-ataque: um só por levantar.
+  counteredAt: number;
 };
 
 type GuardSpend = {
@@ -25,7 +37,16 @@ type GuardSpend = {
 };
 
 function freshGuard(): GuardState {
-  return { meter: GUARD_MAX, brokenUntil: 0, usedAt: -Infinity };
+  return {
+    meter: GUARD_MAX,
+    brokenUntil: 0,
+    usedAt: -Infinity,
+    raisedAt: -Infinity,
+    parryOpen: false,
+    parryWindowMs: PARRY_WINDOW_MS,
+    parryReadyAt: 0,
+    counteredAt: -Infinity,
+  };
 }
 
 function canDefend(now: number, guard: GuardState) {
@@ -46,8 +67,30 @@ function guardCost(charge: ChargeLevel) {
 
 function spendGuard(guard: GuardState, charge: ChargeLevel, now: number): GuardSpend {
   const meter = Math.max(0, guard.meter - guardCost(charge));
-  if (meter > 0) return { guard: { meter, brokenUntil: guard.brokenUntil, usedAt: now }, broke: false };
-  return { guard: { meter: 0, brokenUntil: now + GUARD_BREAK_MS, usedAt: now }, broke: true };
+  if (meter > 0) return { guard: { ...guard, meter, usedAt: now }, broke: false };
+  return { guard: { ...guard, meter: 0, brokenUntil: now + GUARD_BREAK_MS, usedAt: now }, broke: true };
+}
+
+function raiseGuard(guard: GuardState, now: number, windowMs = PARRY_WINDOW_MS): GuardState {
+  return {
+    ...guard,
+    usedAt: now,
+    raisedAt: now,
+    parryOpen: now >= guard.parryReadyAt,
+    parryWindowMs: windowMs,
+  };
+}
+
+function lowerGuard(guard: GuardState, now: number): GuardState {
+  return { ...guard, parryOpen: false, parryReadyAt: now + PARRY_COOLDOWN_MS };
+}
+
+function isParry(guard: GuardState, now: number) {
+  return guard.parryOpen && now - guard.raisedAt <= guard.parryWindowMs;
+}
+
+function canCounter(guard: GuardState) {
+  return guard.counteredAt < guard.raisedAt;
 }
 
 // Só recarrega depois de um tempo sem defender; quebrada, volta cheia ao fim da pausa.
@@ -61,6 +104,7 @@ function regenGuard(guard: GuardState, deltaMs: number, now: number): GuardState
 }
 
 export {
+  canCounter,
   canDefend,
   DEFEND_DAMAGE_RATIO,
   DEFEND_MOVE_SCALE,
@@ -73,6 +117,11 @@ export {
   GUARD_REGEN_DELAY_MS,
   GUARD_REGEN_PER_S,
   guardCost,
+  isParry,
+  lowerGuard,
+  PARRY_COOLDOWN_MS,
+  PARRY_WINDOW_MS,
+  raiseGuard,
   regenGuard,
   spendGuard,
 };

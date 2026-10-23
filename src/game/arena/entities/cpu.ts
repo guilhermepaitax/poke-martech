@@ -2,13 +2,20 @@ import { blockRects, tryAttack, type Combat } from "@/game/arena/entities/combat
 import type { Pickup } from "@/game/arena/entities/pickup";
 import { isDashing, setDefending, updatePlayer, type Player } from "@/game/arena/entities/player";
 import { firstBlockHit } from "@/lib/arena/combat";
-import { cpuDefends, decideCpu, type CpuProfile } from "@/lib/arena/cpu";
+import { cpuDefends, cpuParries, decideCpu, type CpuProfile } from "@/lib/arena/cpu";
+import { PARRY_WINDOW_MS } from "@/lib/arena/defense";
 import { facingFromAim } from "@/lib/arena/movement";
 import type Phaser from "phaser";
 
+// Defesa comum sobe depois da janela de parry, para não virar parry sem querer.
+const CPU_BLOCK_DELAY_MS = PARRY_WINDOW_MS + 40;
+
 type CpuGuard = {
   targetAttacking: boolean;
+  raiseAt: number;
   defendUntil: number;
+  // Decidiu fazer parry: a janela cobre a defesa toda (tiro de longe incluso).
+  parry: boolean;
 };
 
 const guards = new WeakMap<Player, CpuGuard>();
@@ -16,7 +23,7 @@ const guards = new WeakMap<Player, CpuGuard>();
 function guardOf(cpu: Player) {
   let guard = guards.get(cpu);
   if (!guard) {
-    guard = { targetAttacking: false, defendUntil: 0 };
+    guard = { targetAttacking: false, raiseAt: 0, defendUntil: 0, parry: false };
     guards.set(cpu, guard);
   }
   return guard;
@@ -32,11 +39,18 @@ function updateCpuGuard(scene: Phaser.Scene, combat: Combat, cpu: Player, target
     const free = !cpu.attacking && !cpu.hurting && !isDashing(cpu);
     const distance = Math.hypot(target.sprite.x - cpu.sprite.x, target.sprite.y - cpu.sprite.y);
     if (cpuDefends(Math.random, profile, { kind: combat.kind, distance }, free)) {
-      guard.defendUntil = now + profile.defendMs;
+      guard.parry = cpuParries(Math.random, profile);
+      guard.raiseAt = guard.parry ? now : now + CPU_BLOCK_DELAY_MS;
+      guard.defendUntil = guard.raiseAt + profile.defendMs;
     }
   }
-  setDefending(cpu, !combat.over && now < guard.defendUntil);
-  return cpu.defending;
+  setDefending(
+    cpu,
+    !combat.over && now >= guard.raiseAt && now < guard.defendUntil,
+    guard.parry ? profile.defendMs : undefined,
+  );
+  // Esperando a hora de levantar a guarda, a CPU fica parada encarando.
+  return cpu.defending || (!combat.over && now < guard.raiseAt);
 }
 
 function updateCpu(

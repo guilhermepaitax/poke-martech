@@ -234,7 +234,9 @@ Substitui a etapa 3 (cartas como lutadores). `ListArenaRoster`, `GetArenaFighter
 - [x] Barra de guarda (100): cada bloqueio gasta 22 + 18 por nível de carga do golpe. Recarrega 45/s depois de 0,5s sem defender. Zerou: "GUARDA QUEBRADA!", o golpe atordoa e a defesa fica bloqueada por 1,2s (slot SHIFT do HUD em recarga, barra de guarda no rodapé)
 - [x] Papaitaxone e Joãovee usam a animação `Charge` do PMD como `defend.png`; quem não tem folha defende no `idle`. Todos ganham a bolha de escudo hexagonal (`shield-fx.ts`), que pisca e solta faíscas no bloqueio, racha com guarda baixa e estilhaça ao quebrar
 - [x] CPU defende ao ver o jogador iniciar um golpe (corpo a corpo só de perto): 15% / 35% / 60% de chance por 350 / 450 / 550 ms em fácil / normal / difícil
-- [x] Tutorial ganhou o passo "Defender" depois do Dash: o boneco atira fraco a cada 1,8s e o passo conclui ao bloquear um tiro. No treino o HP do jogador também recarrega abaixo de 30%
+- [x] Tutorial ganhou o passo "Defender" depois do Dash: o boneco atira fraco a cada 1,8s e o passo conclui ao bloquear um tiro (parry também conta). No treino o HP do jogador também recarrega abaixo de 30%
+- [x] Parry: golpe que chega até 100 ms depois de levantar a guarda é anulado (sem dano, sem gastar guarda), com banner "PARRY!", flash dourado e anel de estilhaços em pixel (`parryShield`). Baixar a guarda fecha a janela por 500 ms, então apertar/soltar Shift sem parar não funciona. Contra-ataque automático, um por levantar, com força de carga nível 1: corpo a corpo aparado atordoa o atacante e o defensor investe nele; tiro aparado vira um tiro do próprio defensor de volta no atacante
+- [x] CPU faz parry em 0% / 12% / 20% das defesas (fácil / normal / difícil). Quando decide fazer parry, a janela dela cobre a defesa inteira (pega tiro de longe); na defesa comum ela levanta a guarda só depois da janela de parry
 
 ## Etapa 8 — Polimento e validação final
 

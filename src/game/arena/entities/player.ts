@@ -14,7 +14,14 @@ import {
   type PlayerMarker,
 } from "@/game/arena/entities/marker";
 import type { AttackKind } from "@/lib/arena/combat";
-import { canDefend, DEFEND_MOVE_SCALE, freshGuard, type GuardState } from "@/lib/arena/defense";
+import {
+  canDefend,
+  DEFEND_MOVE_SCALE,
+  freshGuard,
+  lowerGuard,
+  raiseGuard,
+  type GuardState,
+} from "@/lib/arena/defense";
 import type { ArenaFighter } from "@/lib/arena/fighter";
 import { normalizeMove, type Facing } from "@/lib/arena/movement";
 import { buffScale, type Buff } from "@/lib/arena/pickups";
@@ -148,14 +155,15 @@ function playAttack(player: Player, kind: AttackKind) {
 
 function playHurt(player: Player) {
   player.dash = null;
-  player.defending = false;
+  lowerDefense(player);
   player.hurting = true;
   player.attacking = false;
   playLockedClip(player, "hurt");
 }
 
 // Liga/desliga a defesa. Só começa livre (sem golpe, hurt ou dash) e com guarda.
-function setDefending(player: Player, on: boolean) {
+// `parryWindowMs` alonga a janela de parry desse levantar (decisão da CPU).
+function setDefending(player: Player, on: boolean, parryWindowMs?: number) {
   const now = player.sprite.scene.time.now;
   const next =
     on &&
@@ -165,9 +173,20 @@ function setDefending(player: Player, on: boolean) {
     !isDashing(player) &&
     canDefend(now, player.guard);
   if (next === player.defending) return false;
-  player.defending = next;
-  if (next) player.guard = { ...player.guard, usedAt: now };
+  if (!next) {
+    lowerDefense(player);
+    return true;
+  }
+  player.defending = true;
+  player.guard = raiseGuard(player.guard, now, parryWindowMs);
   return true;
+}
+
+// Baixa a guarda; levantar de novo logo depois não vale parry.
+function lowerDefense(player: Player) {
+  if (!player.defending) return;
+  player.defending = false;
+  player.guard = lowerGuard(player.guard, player.sprite.scene.time.now);
 }
 
 function setPlayerHp(player: Player, hp: number) {
@@ -268,6 +287,7 @@ export {
   haltPlayer,
   isDashing,
   isEvading,
+  lowerDefense,
   placePlayer,
   playAttack,
   playerAnchor,

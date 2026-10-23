@@ -1,4 +1,5 @@
 import { FX_TEXTURES } from "@/game/arena/entities/fx-textures";
+import { pixelBurst, pixelRing, pixelScale } from "@/game/arena/entities/pixel-fx";
 import type { Player } from "@/game/arena/entities/player";
 import type { Point } from "@/lib/arena/combat";
 import { GUARD_MAX } from "@/lib/arena/defense";
@@ -21,10 +22,15 @@ const SPARK_MS = 280;
 const SHARD_COUNT = 12;
 const SHARD_DISTANCE = 80;
 const SHARD_MS = 420;
+const PARRY_COLOR = 0xffd23a;
+const PARRY_TINTS = [0xffd23a, 0xfff6d0, 0xffffff];
+const PARRY_RING_STEPS = 4;
+const PARRY_RING_STEP_MS = 45;
 
 type ShieldFx = {
   graphics: Phaser.GameObjects.Graphics;
   flashAt: number;
+  flashColor: number;
 };
 
 const shields = new WeakMap<Player, ShieldFx>();
@@ -53,6 +59,7 @@ function drawShield(
   now: number,
   guard: number,
   flash: number,
+  flashColor: number,
 ) {
   const pulse = 1 + Math.sin(now / PULSE_MS) * 0.03;
   const r = radius * pulse;
@@ -61,7 +68,7 @@ function drawShield(
   graphics.clear();
   graphics.fillStyle(SHIELD_COLOR, (0.1 + flash * 0.25) * strength);
   graphics.fillEllipse(0, 0, r * 2, r * 2 * SQUASH);
-  graphics.lineStyle(3 + flash * 2, flash > 0 ? 0xffffff : SHIELD_COLOR, 0.85 * strength + flash * 0.15);
+  graphics.lineStyle(3 + flash * 2, flash > 0 ? flashColor : SHIELD_COLOR, 0.85 * strength + flash * 0.15);
   graphics.strokePoints(hexPoints(r, angle), true);
   graphics.lineStyle(1.5, SHIELD_COLOR, 0.5 * strength);
   graphics.strokePoints(hexPoints(r * 0.62, -angle), true);
@@ -94,14 +101,21 @@ function syncShieldFx(scene: Phaser.Scene, player: Player) {
   }
   if (!shield) {
     const graphics = scene.add.graphics().setDepth(SHIELD_DEPTH).setBlendMode(Phaser.BlendModes.ADD);
-    shield = { graphics, flashAt: -Infinity };
+    shield = { graphics, flashAt: -Infinity, flashColor: 0xffffff };
     shields.set(player, shield);
   }
   const now = scene.time.now;
   const center = shieldCenter(player);
   const flash = Math.max(0, 1 - (now - shield.flashAt) / FLASH_MS);
   shield.graphics.setPosition(center.x, center.y);
-  drawShield(shield.graphics, shieldRadius(player), now, player.guard.meter / GUARD_MAX, flash);
+  drawShield(
+    shield.graphics,
+    shieldRadius(player),
+    now,
+    player.guard.meter / GUARD_MAX,
+    flash,
+    shield.flashColor,
+  );
 }
 
 function burst(
@@ -136,7 +150,10 @@ function burst(
 // Golpe bloqueado: a bolha pisca e faíscas saltam de onde o golpe bateu.
 function flashShield(scene: Phaser.Scene, player: Player, direction: Point) {
   const shield = shields.get(player);
-  if (shield) shield.flashAt = scene.time.now;
+  if (shield) {
+    shield.flashAt = scene.time.now;
+    shield.flashColor = 0xffffff;
+  }
   const center = shieldCenter(player);
   const radius = shieldRadius(player);
   const length = Math.hypot(direction.x, direction.y) || 1;
@@ -149,6 +166,36 @@ function flashShield(scene: Phaser.Scene, player: Player, direction: Point) {
     (_, index) => back + (index / (SPARK_COUNT - 1) - 0.5) * SPARK_SPREAD * 2,
   );
   burst(scene, at, angles, SPARK_DISTANCE, SPARK_MS, 1.6);
+}
+
+// Parry: a bolha pisca dourada e um anel de estilhaços em pixel cresce em
+// degraus no ponto do impacto (padrão de docs/arena-pixel-fx.md).
+function parryShield(scene: Phaser.Scene, player: Player, direction: Point) {
+  const shield = shields.get(player);
+  if (shield) {
+    shield.flashAt = scene.time.now;
+    shield.flashColor = PARRY_COLOR;
+  }
+  const center = shieldCenter(player);
+  const radius = shieldRadius(player);
+  const length = Math.hypot(direction.x, direction.y) || 1;
+  const at = {
+    x: Math.round(center.x - (direction.x / length) * radius),
+    y: Math.round(center.y - (direction.y / length) * radius * SQUASH),
+  };
+  const scale = pixelScale(radius * 0.5);
+  pixelRing(scene, at, FX_TEXTURES.shards, PARRY_COLOR, scale, PARRY_RING_STEPS, PARRY_RING_STEP_MS, SHIELD_DEPTH + 0.2);
+  pixelRing(
+    scene,
+    center,
+    FX_TEXTURES.shards,
+    0xfff6d0,
+    scale + 1,
+    PARRY_RING_STEPS + 1,
+    PARRY_RING_STEP_MS,
+    SHIELD_DEPTH + 0.1,
+  );
+  pixelBurst(scene, at, PARRY_TINTS, 18, scale, 0, SHIELD_DEPTH + 0.2);
 }
 
 // Guarda quebrada: estilhaços em todas as direções.
@@ -167,4 +214,4 @@ function clearShieldFx(player: Player) {
   shields.delete(player);
 }
 
-export { clearShieldFx, flashShield, shatterShield, syncShieldFx };
+export { clearShieldFx, flashShield, parryShield, shatterShield, syncShieldFx };

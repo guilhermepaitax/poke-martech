@@ -5,6 +5,7 @@ import {
   CPU_MELEE_RANGE,
   CPU_PROFILES,
   cpuDefends,
+  cpuParries,
   decideCpu,
   isArenaDifficulty,
   type CpuInput,
@@ -255,5 +256,20 @@ describe("cpuDefends", () => {
     expect(easy.defendChance).toBeLessThan(normal.defendChance);
     expect(normal.defendChance).toBeLessThan(hard.defendChance);
     expect(easy.defendMs).toBeLessThan(hard.defendMs);
+  });
+});
+
+describe("cpuParries", () => {
+  it("fácil nunca faz parry", () => {
+    expect(cpuParries(() => 0, CPU_PROFILES.easy)).toBe(false);
+  });
+
+  it("segue a chance do perfil", () => {
+    expect(cpuParries(() => 0, CPU_PROFILES.hard)).toBe(true);
+    expect(cpuParries(() => 0.99, CPU_PROFILES.hard)).toBe(false);
+  });
+
+  it("difícil faz parry mais que o normal", () => {
+    expect(CPU_PROFILES.normal.parryChance).toBeLessThan(CPU_PROFILES.hard.parryChance);
   });
 });
