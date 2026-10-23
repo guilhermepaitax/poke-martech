@@ -1460,6 +1460,17 @@ body {
   background: linear-gradient(90deg, var(--energy-fire), var(--energy-psychic));
 }
 
+.arena-guard-fill {
+  transform-origin: left;
+  background: #8fd8ff;
+  transition: transform 120ms linear;
+}
+
+.arena-slot[data-defending] {
+  --slot-glow: color-mix(in srgb, #8fd8ff 70%, transparent);
+  border-color: #8fd8ff;
+}
+
 .arena-plate {
   clip-path: polygon(0 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
   border-top: 2px solid var(--energy);

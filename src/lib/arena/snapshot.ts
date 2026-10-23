@@ -13,7 +13,7 @@ type ArenaSnapshot = {
   elapsedSeconds: number;
 };
 
-type HudSlot = AttackKind | "dash";
+type HudSlot = AttackKind | "dash" | "defend";
 
 type HudCooldown = {
   remainingMs: number;
@@ -27,10 +27,17 @@ type HudCharge = {
   cycle: number;
 };
 
+type HudGuard = {
+  // Guarda restante, de 0 a 1.
+  ratio: number;
+  defending: boolean;
+};
+
 type ArenaHudState = {
   kind: AttackKind;
   cooldowns: Record<HudSlot, HudCooldown>;
   charge: HudCharge | null;
+  guard: HudGuard;
 };
 
 export type {
@@ -39,5 +46,6 @@ export type {
   FighterSnapshot,
   HudCharge,
   HudCooldown,
+  HudGuard,
   HudSlot,
 };

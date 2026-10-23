@@ -85,6 +85,7 @@ function ArenaScreen() {
         fighters={ARENA_FIGHTERS}
         player={picker.player}
         opponent={picker.opponent}
+        random={picker.random}
         focused={picker.focused}
         active={picker.active}
         onChoose={picker.choose}

@@ -24,6 +24,7 @@ const TAG_COLOR: Record<HitTag, string> = {
   charged: CHARGED_COLOR,
   super: "#c6f135",
   resisted: "#bdb2da",
+  blocked: "#8fd8ff",
 };
 
 const TAG_TEXT: Record<HitTag, string> = {
@@ -31,6 +32,7 @@ const TAG_TEXT: Record<HitTag, string> = {
   charged: "Carregado!",
   super: "Super effective!",
   resisted: "Resisted",
+  blocked: "Defendeu",
 };
 
 function popIn(
@@ -60,14 +62,15 @@ function spawnDamageNumber(
 ) {
   const critical = tags.includes("critical");
   const charged = tags.includes("charged");
-  const size = (critical ? 26 : 20) + (charged ? 6 : 0);
+  const blocked = tags.includes("blocked");
+  const size = (critical ? 26 : blocked ? 16 : 20) + (charged ? 6 : 0);
   const jitter = (Math.random() * 2 - 1) * NUMBER_JITTER_X;
   const container = scene.add.container(x + jitter, y).setDepth(NUMBER_DEPTH);
   const number = scene.add
     .text(0, 0, String(dealt), {
       fontFamily: pixelFont(),
       fontSize: `${size}px`,
-      color: critical ? CRIT_COLOR : charged ? CHARGED_COLOR : NUMBER_COLOR,
+      color: blocked ? TAG_COLOR.blocked : critical ? CRIT_COLOR : charged ? CHARGED_COLOR : NUMBER_COLOR,
     })
     .setOrigin(0.5)
     .setStroke(OUTLINE_COLOR, 6)

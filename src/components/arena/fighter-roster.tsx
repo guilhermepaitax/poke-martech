@@ -1,35 +1,57 @@
 "use client";
 
 import type { ArenaFighter } from "@/lib/arena/fighter";
-import type { ArenaSide } from "@/lib/arena/selection";
+import { RANDOM_FIGHTER_ID, type ArenaSide } from "@/lib/arena/selection";
 import { cn } from "@/lib/utils";
 import type { CSSProperties } from "react";
 
 import { fighterAppearance } from "./fighter-appearance";
 import { FighterPortrait } from "./fighter-portrait";
+import { RANDOM_FIGHTER } from "./random-fighter";
 
 const SIDE_LABEL: Record<ArenaSide, string> = {
   player: "Você",
   opponent: "CPU",
 };
 
-function energyStyle(fighter: ArenaFighter | null) {
+function energyStyle(fighter: ArenaFighter | null, random = false) {
+  if (random) return { "--energy": RANDOM_FIGHTER.color } as CSSProperties;
   if (!fighter) return undefined;
   return { "--energy": fighterAppearance(fighter.energy).color } as CSSProperties;
+}
+
+function SideBadges({ sides }: { sides: readonly ArenaSide[] }) {
+  return (
+    <span className="absolute inset-x-1 top-1 flex justify-end gap-1">
+      {sides.map((side) => (
+        <span
+          key={side}
+          data-side={side}
+          className="arena-roster-badge px-1 font-arena-title text-[10px] leading-4 uppercase"
+        >
+          {side === "player" ? "P1" : "CPU"}
+        </span>
+      ))}
+    </span>
+  );
 }
 
 function ArenaSideSlot({
   side,
   fighter,
+  random,
   active,
   onActivate,
 }: {
   side: ArenaSide;
   fighter: ArenaFighter | null;
+  random: boolean;
   active: boolean;
   onActivate: () => void;
 }) {
   const label = SIDE_LABEL[side];
+  const name = random ? RANDOM_FIGHTER.name : fighter?.name;
+  const banner = random ? RANDOM_FIGHTER.banner : fighter?.banner;
 
   return (
     <button
@@ -38,23 +60,23 @@ function ArenaSideSlot({
       data-side={side}
       data-active={active ? "" : undefined}
       aria-pressed={active}
-      aria-label={fighter ? `${label}: ${fighter.name}` : `Escolher ${label}`}
+      aria-label={name ? `${label}: ${name}` : `Escolher ${label}`}
       onClick={onActivate}
-      style={energyStyle(fighter)}
+      style={energyStyle(fighter, random)}
       className={cn(
         "arena-side-slot flex min-w-0 flex-1 items-center gap-2.5 p-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--arena-cta)",
         side === "opponent" && "flex-row-reverse text-right",
       )}
     >
       <span className="size-9 shrink-0 bg-(--arena-line) max-[420px]:hidden">
-        {fighter ? <FighterPortrait fighter={fighter} className="block size-full" /> : null}
+        {banner ? <FighterPortrait banner={banner} className="block size-full" /> : null}
       </span>
       <span className="flex min-w-0 flex-col">
         <span className="text-[10px] font-semibold tracking-widest text-(--arena-ink-subtle) uppercase">
           {label}
         </span>
         <span className="truncate font-arena-title text-[11px] leading-tight uppercase">
-          {fighter?.name ?? "Escolher"}
+          {name ?? "Escolher"}
         </span>
       </span>
     </button>
@@ -64,11 +86,13 @@ function ArenaSideSlot({
 function ArenaMatchupSlots({
   player,
   opponent,
+  random,
   active,
   onActivate,
 }: {
   player: ArenaFighter | null;
   opponent: ArenaFighter | null;
+  random: Record<ArenaSide, boolean>;
   active: ArenaSide;
   onActivate: (side: ArenaSide) => void;
 }) {
@@ -77,6 +101,7 @@ function ArenaMatchupSlots({
       <ArenaSideSlot
         side="player"
         fighter={player}
+        random={random.player}
         active={active === "player"}
         onActivate={() => onActivate("player")}
       />
@@ -86,6 +111,7 @@ function ArenaMatchupSlots({
       <ArenaSideSlot
         side="opponent"
         fighter={opponent}
+        random={random.opponent}
         active={active === "opponent"}
         onActivate={() => onActivate("opponent")}
       />
@@ -97,17 +123,22 @@ function FighterRoster({
   fighters,
   player,
   opponent,
+  random,
   active,
   onChoose,
 }: {
   fighters: readonly ArenaFighter[];
   player: ArenaFighter | null;
   opponent: ArenaFighter | null;
+  random: Record<ArenaSide, boolean>;
   active: ArenaSide;
   onChoose: (id: string) => void;
 }) {
+  const randomSides = (["player", "opponent"] as const).filter((side) => random[side]);
+  const randomCurrent = random[active];
+
   return (
-    <ul data-slot="fighter-roster" className="grid grid-cols-4 gap-2.5">
+    <ul data-slot="fighter-roster" className="grid grid-cols-5 gap-2.5">
       {fighters.map((fighter) => {
         const sides: ArenaSide[] = [];
         if (fighter.id === player?.id) sides.push("player");
@@ -128,24 +159,32 @@ function FighterRoster({
               className="arena-roster-tile group relative block aspect-square w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--arena-cta)"
             >
               <FighterPortrait
-                fighter={fighter}
+                banner={fighter.banner}
                 className="absolute inset-0 transition-transform duration-300 group-hover:scale-110"
               />
-              <span className="absolute inset-x-1 top-1 flex justify-end gap-1">
-                {sides.map((side) => (
-                  <span
-                    key={side}
-                    data-side={side}
-                    className="arena-roster-badge px-1 font-arena-title text-[10px] leading-4 uppercase"
-                  >
-                    {side === "player" ? "P1" : "CPU"}
-                  </span>
-                ))}
-              </span>
+              <SideBadges sides={sides} />
             </button>
           </li>
         );
       })}
+      <li>
+        <button
+          type="button"
+          data-slot="fighter-tile"
+          data-current={randomCurrent ? "" : undefined}
+          aria-pressed={randomCurrent}
+          aria-label={RANDOM_FIGHTER.name}
+          onClick={() => onChoose(RANDOM_FIGHTER_ID)}
+          style={energyStyle(null, true)}
+          className="arena-roster-tile group relative block aspect-square w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--arena-cta)"
+        >
+          <FighterPortrait
+            banner={RANDOM_FIGHTER.banner}
+            className="absolute inset-0 transition-transform duration-300 group-hover:scale-110"
+          />
+          <SideBadges sides={randomSides} />
+        </button>
+      </li>
     </ul>
   );
 }

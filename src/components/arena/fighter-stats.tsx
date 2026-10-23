@@ -1,9 +1,11 @@
 import { COOLDOWN_MS, type AttackKind } from "@/lib/arena/combat";
 import type { ArenaFighter } from "@/lib/arena/fighter";
-import { Swords } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Dices, Swords, type LucideIcon } from "lucide-react";
 
 import { ArenaPanelSection } from "./arena-panel-section";
 import { fighterAppearance } from "./fighter-appearance";
+import { RANDOM_FIGHTER } from "./random-fighter";
 
 const HP_SCALE = 100;
 const ATTACK_ORDER: AttackKind[] = ["melee", "fire"];
@@ -16,35 +18,103 @@ function formatCooldown(ms: number) {
   return `${(ms / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}s`;
 }
 
-function FighterStats({ fighter }: { fighter: ArenaFighter }) {
+type StatsView = {
+  description: string;
+  hpLabel: string;
+  hp: number;
+  // Preenchimento do medidor, em %.
+  meter: number;
+  meterLabel: string;
+  random: boolean;
+  attacks: Record<
+    AttackKind,
+    { name: string; power: string; icon: LucideIcon }
+  >;
+};
+
+function fighterView(fighter: ArenaFighter): StatsView {
   const TypeIcon = fighterAppearance(fighter.energy).icon;
+  return {
+    description: fighter.description,
+    hpLabel: `${fighter.hp}`,
+    hp: fighter.hp,
+    meter: Math.min(fighter.hp / HP_SCALE, 1) * 100,
+    meterLabel: `HP de ${fighter.name}`,
+    random: false,
+    attacks: {
+      melee: {
+        name: fighter.attacks.melee.name,
+        power: `${fighter.attacks.melee.power}`,
+        icon: Swords,
+      },
+      fire: {
+        name: fighter.attacks.fire.name,
+        power: `${fighter.attacks.fire.power}`,
+        icon: TypeIcon,
+      },
+    },
+  };
+}
+
+function randomView(): StatsView {
+  const { stats } = RANDOM_FIGHTER;
+  const attack = (kind: AttackKind) => ({
+    ...stats.attacks[kind],
+    icon: Dices,
+  });
+  return {
+    description: stats.description,
+    hpLabel: stats.hp,
+    hp: 0,
+    meter: stats.meter,
+    meterLabel: "HP do lutador sorteado",
+    random: true,
+    attacks: { melee: attack("melee"), fire: attack("fire") },
+  };
+}
+
+// `fighter` nulo = escolha aleatória: mesmo layout, valores ocultos.
+function FighterStats({ fighter }: { fighter: ArenaFighter | null }) {
+  const view = fighter ? fighterView(fighter) : randomView();
 
   return (
     <ArenaPanelSection title="Status" aria-live="polite">
-      <p className="text-sm text-(--arena-ink-subtle)">{fighter.description}</p>
+      {/* Altura fixa de 2 linhas: trocar de lutador não muda o tamanho do painel. */}
+      <p
+        title={view.description}
+        className="line-clamp-2 min-h-[2lh] text-sm text-(--arena-ink-subtle)"
+      >
+        {view.description}
+      </p>
       <div className="flex flex-col gap-1.5">
         <div className="flex items-baseline justify-between text-xs font-semibold tracking-wide text-(--arena-ink-subtle) uppercase">
           <span>HP</span>
-          <span className="text-sm text-(--arena-ink) tabular-nums">{fighter.hp}</span>
+          <span className="text-sm text-(--arena-ink) tabular-nums">
+            {view.hpLabel}
+          </span>
         </div>
         <div
           role="meter"
-          aria-label={`HP de ${fighter.name}`}
+          aria-label={view.meterLabel}
           aria-valuemin={0}
           aria-valuemax={HP_SCALE}
-          aria-valuenow={fighter.hp}
+          aria-valuenow={view.random ? undefined : view.hp}
+          aria-valuetext={view.hpLabel}
           className="arena-picker-meter h-2 overflow-hidden"
         >
           <div
-            className="arena-picker-meter-fill h-full transition-[width] duration-500 ease-out"
-            style={{ width: `${Math.min(fighter.hp / HP_SCALE, 1) * 100}%` }}
+            className={cn(
+              "arena-picker-meter-fill h-full transition-[width,opacity] duration-500 ease-out",
+              view.random && "opacity-50",
+            )}
+            style={{ width: `${view.meter}%` }}
           />
         </div>
       </div>
       <ul className="flex flex-col">
         {ATTACK_ORDER.map((kind, index) => {
-          const attack = fighter.attacks[kind];
-          const Icon = kind === "melee" ? Swords : TypeIcon;
+          const attack = view.attacks[kind];
+          const Icon = attack.icon;
           return (
             <li
               key={kind}
@@ -61,7 +131,8 @@ function FighterStats({ fighter }: { fighter: ArenaFighter }) {
                   <span className="truncate">{attack.name}</span>
                 </span>
                 <span className="text-xs text-(--arena-ink-subtle)">
-                  {ATTACK_RANGE_LABEL[kind]} · recarga {formatCooldown(COOLDOWN_MS[kind])}
+                  {ATTACK_RANGE_LABEL[kind]} · recarga{" "}
+                  {formatCooldown(COOLDOWN_MS[kind])}
                 </span>
               </div>
               <span className="flex shrink-0 flex-col items-end">

@@ -88,6 +88,7 @@ type ArenaControls = {
   onHud: (listener: (hud: ArenaHudState) => void) => () => void;
   onTutorial: (listener: (action: TutorialAction) => void) => () => void;
   spawnTutorialPickup: () => void;
+  setTutorialDummyAttacks: (on: boolean) => void;
 };
 
 function arenaScene(game: Phaser.Game) {
@@ -129,6 +130,7 @@ function arenaControls(game: Phaser.Game): ArenaControls {
       };
     },
     spawnTutorialPickup: () => arenaScene(game)?.spawnTutorialPickup(),
+    setTutorialDummyAttacks: (on) => arenaScene(game)?.setTutorialDummyAttacks(on),
   };
 }
 

@@ -1,7 +1,13 @@
 import type { ArenaFighter, FighterAction, FighterSheet } from "@/lib/arena/fighter";
 import Phaser from "phaser";
 
-const FIGHTER_ACTIONS: readonly FighterAction[] = ["idle", "walk", "attack", "shoot", "hurt"];
+const FIGHTER_ACTIONS: readonly FighterAction[] = ["idle", "walk", "attack", "shoot", "hurt", "defend"];
+
+// Folha usada quando o lutador não tem a própria.
+const SHEET_FALLBACK: Partial<Record<FighterAction, FighterAction>> = {
+  shoot: "attack",
+  defend: "idle",
+};
 
 const ARENA_FLOOR = {
   key: "arena-floor",
@@ -14,17 +20,20 @@ const ARENA_AUDIO = {
   hit: { key: "arena-hit", path: "/arena/audio/hit.wav" },
   dash: { key: "arena-dash", path: "/arena/audio/dash.wav" },
   explosion: { key: "arena-explosion", path: "/arena/audio/explosion.wav" },
+  bone: { key: "arena-bone", path: "/arena/audio/bone.wav" },
 } as const;
 
 type ArenaCue = keyof typeof ARENA_AUDIO;
 
-// Ação sem folha própria (só `shoot` pode faltar) cai na folha `attack`.
+// Ação sem folha própria (`shoot` ou `defend`) cai na folha de reserva.
 function fighterSheetAction(fighter: ArenaFighter, action: FighterAction): FighterAction {
-  return fighter.sprite.sheets[action] ? action : "attack";
+  if (fighter.sprite.sheets[action]) return action;
+  return SHEET_FALLBACK[action] ?? "idle";
 }
 
 function fighterSheet(fighter: ArenaFighter, action: FighterAction): FighterSheet {
-  return fighter.sprite.sheets[action] ?? fighter.sprite.sheets.attack;
+  const sheets = fighter.sprite.sheets;
+  return sheets[action] ?? sheets[fighterSheetAction(fighter, action)] ?? sheets.idle;
 }
 
 function fighterSheetKey(fighter: ArenaFighter, action: FighterAction) {

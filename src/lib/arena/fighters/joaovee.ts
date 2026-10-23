@@ -7,7 +7,7 @@ const joaovee: ArenaFighter = {
   name: "Joãovee",
   title: "O adaptável do squad",
   description:
-    "Cachinhos no topo, cavanhaque no queixo e pelagem de raposa. O mais rápido do roster: entra num piscar de olhos e responde com estrelas que não erram o caminho.",
+    "Cachinhos, cavanhaque e pelagem de raposa. O mais rápido do roster: chega num piscar e manda estrelas que curvam.",
   banner: { path: "/arena/banners/joaovee.webp", focus: "41% 45%" },
   energy: "colorless",
   ranged: "star",
@@ -46,6 +46,7 @@ const joaovee: ArenaFighter = {
         frameRate: 20,
       },
       hurt: { path: `${SHEETS}/hurt.png`, frames: 2, rows: EIGHT_WAY_ROWS },
+      defend: { path: `${SHEETS}/defend.png`, frames: 10, rows: EIGHT_WAY_ROWS },
     },
   },
   tuning: {

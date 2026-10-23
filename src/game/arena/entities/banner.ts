@@ -22,7 +22,7 @@ const INK_COLOR = 0xf7f3ff;
 const TAB_INK = "#150e27";
 const SHADOW_INK = "#000000";
 
-type BannerTone = "critical" | "charge" | "max" | "super" | "ko";
+type BannerTone = "critical" | "charge" | "max" | "super" | "ko" | "guard";
 
 type BannerStyle = {
   tone: number;
@@ -38,6 +38,7 @@ const BANNER_STYLE: Record<BannerTone, BannerStyle> = {
   max: { tone: 0xc45cff, accent: "#c45cff", tab: "Carga", size: 36 },
   super: { tone: 0xff4ad8, accent: "#ff4ad8", tab: "Especial", size: 40 },
   ko: { tone: 0xc6f135, accent: "#c6f135", tab: "Fim de luta", size: 60 },
+  guard: { tone: 0x8fd8ff, accent: "#8fd8ff", tab: "Defesa", size: 34 },
 };
 
 type Banner = {

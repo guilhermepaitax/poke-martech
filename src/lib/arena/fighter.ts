@@ -5,9 +5,11 @@ type FighterEnergy = "fire" | "grass" | "ground" | "colorless";
 
 type RangedStyle = "beam" | "orb" | "bone" | "star";
 
-type FighterAction = "idle" | "walk" | "attack" | "shoot" | "hurt";
+type FighterAction = "idle" | "walk" | "attack" | "shoot" | "hurt" | "defend";
 
-type RequiredFighterAction = Exclude<FighterAction, "shoot">;
+type OptionalFighterAction = "shoot" | "defend";
+
+type RequiredFighterAction = Exclude<FighterAction, OptionalFighterAction>;
 
 type FighterSheet = {
   path: string;
@@ -20,8 +22,10 @@ type FighterSheet = {
 type FighterSprite = {
   cellSize: number;
   columns: number;
-  // Sem `shoot`, o ataque à distância reaproveita a folha `attack`.
-  sheets: Record<RequiredFighterAction, FighterSheet> & { shoot?: FighterSheet };
+  // Sem `shoot`, o ataque à distância reaproveita a folha `attack`; sem
+  // `defend`, a defesa fica no `idle` (o escudo é desenhado por cima).
+  sheets: Record<RequiredFighterAction, FighterSheet> &
+    Partial<Record<OptionalFighterAction, FighterSheet>>;
 };
 
 // Ajustes de jogo/render por personagem. Medidas da hitbox em px de uma

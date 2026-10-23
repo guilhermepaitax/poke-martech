@@ -225,6 +225,15 @@ Substitui a etapa 3 (cartas como lutadores). `ListArenaRoster`, `GetArenaFighter
 - [x] Efeito temporário desenha um anel girando nos pés com faíscas subindo, na cor do efeito (`buff-aura.ts`). Pisca no último segundo e some ao expirar
 - [x] K.O. e redimensionamento da tela limpam as caixas; K.O. limpa os efeitos
 
+## Defesa
+
+- [x] Segurar Shift defende: o golpe recebido causa 30% do dano (mín. 1, tag "Defendeu") e não coloca o lutador em hurt, então ele segue andando. Vale para corpo a corpo e todos os projéteis. Regras em `src/lib/arena/defense.ts`
+- [x] Defendendo, anda a 35% da velocidade e não ataca, carrega nem dá dash. Começar a defender cancela a carga
+- [x] Barra de guarda (100): cada bloqueio gasta 22 + 18 por nível de carga do golpe. Recarrega 45/s depois de 0,5s sem defender. Zerou: "GUARDA QUEBRADA!", o golpe atordoa e a defesa fica bloqueada por 1,2s (slot SHIFT do HUD em recarga, barra de guarda no rodapé)
+- [x] Papaitaxone e Joãovee usam a animação `Charge` do PMD como `defend.png`; quem não tem folha defende no `idle`. Todos ganham a bolha de escudo hexagonal (`shield-fx.ts`), que pisca e solta faíscas no bloqueio, racha com guarda baixa e estilhaça ao quebrar
+- [x] CPU defende ao ver o jogador iniciar um golpe (corpo a corpo só de perto): 15% / 35% / 60% de chance por 350 / 450 / 550 ms em fácil / normal / difícil
+- [x] Tutorial ganhou o passo "Defender" depois do Dash: o boneco atira fraco a cada 1,8s e o passo conclui ao bloquear um tiro. No treino o HP do jogador também recarrega abaixo de 30%
+
 ## Etapa 8 — Polimento e validação final
 
 Objetivo: fechar o MVP.

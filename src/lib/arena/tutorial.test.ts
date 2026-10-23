@@ -10,6 +10,7 @@ describe("advanceTutorial", () => {
       { type: "hit", kind: "fire" },
       { type: "attack", kind: "fire", level: 2 },
       { type: "dash" },
+      { type: "block" },
       { type: "pickup" },
     ];
     const visited = script.reduce(
@@ -34,12 +35,18 @@ describe("advanceTutorial", () => {
     expect(advanceTutorial("charge", { type: "attack", kind: "melee", level: 2 })).toBe("dash");
   });
 
+  it("defesa só avança bloqueando um golpe", () => {
+    expect(advanceTutorial("dash", { type: "dash" })).toBe("defend");
+    expect(advanceTutorial("defend", { type: "dash" })).toBe("defend");
+    expect(advanceTutorial("defend", { type: "block" })).toBe("pickup");
+  });
+
   it("fim não avança", () => {
     expect(advanceTutorial("done", { type: "pickup" })).toBe("done");
   });
 
   it("conta só os passos jogáveis", () => {
-    expect(TUTORIAL_LESSONS).toBe(7);
+    expect(TUTORIAL_LESSONS).toBe(8);
   });
 });
 

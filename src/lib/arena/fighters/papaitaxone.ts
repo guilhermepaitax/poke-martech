@@ -46,6 +46,7 @@ const papaitaxone: ArenaFighter = {
         frameRate: 24,
       },
       hurt: { path: `${SHEETS}/hurt.png`, frames: 2, rows: EIGHT_WAY_ROWS },
+      defend: { path: `${SHEETS}/defend.png`, frames: 10, rows: EIGHT_WAY_ROWS },
     },
   },
   tuning: {

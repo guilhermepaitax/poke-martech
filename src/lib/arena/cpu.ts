@@ -10,6 +10,8 @@ import type { PickupLook } from "@/lib/arena/pickups";
 
 const CPU_MELEE_RANGE = MELEE_RANGE;
 const CPU_HOLD_DISTANCE = Math.round(MELEE_RANGE * 0.7);
+// Até onde um corpo a corpo do jogador assusta a CPU a ponto de defender.
+const CPU_DEFEND_MELEE_RANGE = Math.round(MELEE_RANGE * 1.4);
 
 type ArenaDifficulty = "easy" | "normal" | "hard";
 
@@ -20,6 +22,9 @@ type CpuProfile = {
   fireRange: number;
   // Até onde a CPU desvia do alvo para buscar um consumível.
   pickupReach: number;
+  // Chance de defender quando o jogador ataca e por quanto tempo segura.
+  defendChance: number;
+  defendMs: number;
 };
 
 const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
@@ -29,6 +34,8 @@ const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
     damageScale: 0.55,
     fireRange: Math.round(BEAM_RANGE * 0.4),
     pickupReach: 200,
+    defendChance: 0.15,
+    defendMs: 350,
   },
   normal: {
     speed: 260,
@@ -36,6 +43,8 @@ const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
     damageScale: 0.8,
     fireRange: Math.round(BEAM_RANGE * 0.55),
     pickupReach: 450,
+    defendChance: 0.35,
+    defendMs: 450,
   },
   hard: {
     speed: 320,
@@ -43,6 +52,8 @@ const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
     damageScale: 1.15,
     fireRange: Math.round(BEAM_RANGE * 0.8),
     pickupReach: 900,
+    defendChance: 0.6,
+    defendMs: 550,
   },
 };
 
@@ -140,12 +151,26 @@ function decideCpu(input: CpuInput): CpuDecision {
   return { action: "idle" };
 }
 
+type CpuThreat = {
+  kind: AttackKind;
+  distance: number;
+};
+
+// Rola uma vez por golpe do jogador: corpo a corpo só assusta de perto.
+function cpuDefends(rng: () => number, profile: CpuProfile, threat: CpuThreat, free: boolean) {
+  if (!free || profile.defendChance <= 0) return false;
+  if (threat.kind === "melee" && threat.distance > CPU_DEFEND_MELEE_RANGE) return false;
+  return rng() < profile.defendChance;
+}
+
 export {
+  CPU_DEFEND_MELEE_RANGE,
   CPU_HOLD_DISTANCE,
   CPU_MELEE_RANGE,
   CPU_PROFILES,
+  cpuDefends,
   decideCpu,
   DEFAULT_DIFFICULTY,
   isArenaDifficulty,
 };
-export type { ArenaDifficulty, CpuDecision, CpuInput, CpuPickup, CpuProfile };
+export type { ArenaDifficulty, CpuDecision, CpuInput, CpuPickup, CpuProfile, CpuThreat };

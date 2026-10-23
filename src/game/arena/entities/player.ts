@@ -14,6 +14,7 @@ import {
   type PlayerMarker,
 } from "@/game/arena/entities/marker";
 import type { AttackKind } from "@/lib/arena/combat";
+import { canDefend, DEFEND_MOVE_SCALE, freshGuard, type GuardState } from "@/lib/arena/defense";
 import type { ArenaFighter } from "@/lib/arena/fighter";
 import { normalizeMove, type Facing } from "@/lib/arena/movement";
 import { buffScale, type Buff } from "@/lib/arena/pickups";
@@ -42,6 +43,9 @@ type Player = {
   dashReadyAt: number;
   // Até quando o golpe corpo a corpo reduz o dano à distância recebido.
   guardUntil: number;
+  // Shift segurado: corta o dano recebido e não entra em hurt.
+  defending: boolean;
+  guard: GuardState;
   // Efeitos temporários dos consumíveis (velocidade, dano, vulnerabilidade).
   buffs: Buff[];
   animToken: number;
@@ -103,6 +107,8 @@ function createPlayer(
     readyAt: { melee: 0, fire: 0 },
     dashReadyAt: 0,
     guardUntil: 0,
+    defending: false,
+    guard: freshGuard(),
     buffs: [],
     animToken: 0,
   };
@@ -142,9 +148,26 @@ function playAttack(player: Player, kind: AttackKind) {
 
 function playHurt(player: Player) {
   player.dash = null;
+  player.defending = false;
   player.hurting = true;
   player.attacking = false;
   playLockedClip(player, "hurt");
+}
+
+// Liga/desliga a defesa. Só começa livre (sem golpe, hurt ou dash) e com guarda.
+function setDefending(player: Player, on: boolean) {
+  const now = player.sprite.scene.time.now;
+  const next =
+    on &&
+    player.hp > 0 &&
+    !player.attacking &&
+    !player.hurting &&
+    !isDashing(player) &&
+    canDefend(now, player.guard);
+  if (next === player.defending) return false;
+  player.defending = next;
+  if (next) player.guard = { ...player.guard, usedAt: now };
+  return true;
 }
 
 function setPlayerHp(player: Player, hp: number) {
@@ -214,10 +237,17 @@ function updatePlayer(
   }
   const move = normalizeMove(x, y);
   const moving = move.x !== 0 || move.y !== 0;
-  const pace = speed * buffScale(player.buffs, "haste", player.sprite.scene.time.now);
+  const now = player.sprite.scene.time.now;
+  const guard = player.defending ? DEFEND_MOVE_SCALE : 1;
+  const pace = speed * guard * buffScale(player.buffs, "haste", now);
   player.sprite.setVelocity(move.x * pace, move.y * pace);
   // Durante o ataque desliza mantendo o clip do golpe até ele terminar.
   if (player.attacking) return;
+  if (player.defending) {
+    player.guard = { ...player.guard, usedAt: now };
+    playPlayerClip(player, "defend");
+    return;
+  }
   playPlayerClip(player, moving ? "walk" : "idle");
 }
 
@@ -242,6 +272,7 @@ export {
   playAttack,
   playerAnchor,
   playHurt,
+  setDefending,
   setPlayerHp,
   startDash,
   syncPlayerMarker,

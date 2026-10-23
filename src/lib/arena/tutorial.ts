@@ -11,9 +11,19 @@ type TutorialAction =
   | { type: "attack"; kind: AttackKind; level: ChargeLevel }
   | { type: "hit"; kind: AttackKind }
   | { type: "dash" }
+  | { type: "block" }
   | { type: "pickup" };
 
-type TutorialStep = "move" | "aim" | "melee" | "fire" | "charge" | "dash" | "pickup" | "done";
+type TutorialStep =
+  | "move"
+  | "aim"
+  | "melee"
+  | "fire"
+  | "charge"
+  | "dash"
+  | "defend"
+  | "pickup"
+  | "done";
 
 const TUTORIAL_STEPS: readonly TutorialStep[] = [
   "move",
@@ -22,6 +32,7 @@ const TUTORIAL_STEPS: readonly TutorialStep[] = [
   "fire",
   "charge",
   "dash",
+  "defend",
   "pickup",
   "done",
 ];
@@ -43,6 +54,8 @@ function satisfies(step: TutorialStep, action: TutorialAction) {
       return action.type === "attack" && action.level === 2;
     case "dash":
       return action.type === "dash";
+    case "defend":
+      return action.type === "block";
     case "pickup":
       return action.type === "pickup";
     case "done":

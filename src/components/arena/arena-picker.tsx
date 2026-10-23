@@ -3,7 +3,7 @@
 import type { ArenaDifficulty } from "@/lib/arena/cpu";
 import type { ArenaFighter } from "@/lib/arena/fighter";
 import type { ArenaSide } from "@/lib/arena/selection";
-import { GraduationCap, Swords } from "lucide-react";
+import { GraduationCap, Shuffle, Swords } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { ArenaActionButton } from "./arena-action-button";
@@ -13,6 +13,7 @@ import { fighterAppearance } from "./fighter-appearance";
 import { FighterBanner } from "./fighter-banner";
 import { ArenaMatchupSlots, FighterRoster } from "./fighter-roster";
 import { FighterStats } from "./fighter-stats";
+import { RANDOM_FIGHTER } from "./random-fighter";
 
 const SIDE_LABEL: Record<ArenaSide, string> = {
   player: "Você",
@@ -23,6 +24,7 @@ function ArenaPicker({
   fighters,
   player,
   opponent,
+  random,
   focused,
   active,
   onChoose,
@@ -36,6 +38,7 @@ function ArenaPicker({
   fighters: readonly ArenaFighter[];
   player: ArenaFighter | null;
   opponent: ArenaFighter | null;
+  random: Record<ArenaSide, boolean>;
   focused: ArenaFighter | null;
   active: ArenaSide;
   onChoose: (id: string) => void;
@@ -46,11 +49,11 @@ function ArenaPicker({
   difficulty: ArenaDifficulty;
   onDifficulty: (value: ArenaDifficulty) => void;
 }) {
+  const focusedRandom = random[active];
   const appearance = focused ? fighterAppearance(focused.energy) : null;
-  const TypeIcon = appearance?.icon;
-  const style = appearance
-    ? ({ "--energy": appearance.color } as CSSProperties)
-    : undefined;
+  const TypeIcon = focusedRandom ? Shuffle : appearance?.icon;
+  const color = focusedRandom ? RANDOM_FIGHTER.color : appearance?.color;
+  const style = color ? ({ "--energy": color } as CSSProperties) : undefined;
 
   return (
     <div
@@ -61,6 +64,7 @@ function ArenaPicker({
       <FighterBanner
         fighters={fighters}
         focused={focused}
+        random={focusedRandom}
         className="absolute inset-x-0 top-0 -z-10 aspect-[4/3] sm:aspect-video lg:inset-0 lg:aspect-auto"
       />
 
@@ -68,16 +72,16 @@ function ArenaPicker({
         <span className="arena-tab font-arena-title px-3 py-1 text-[11px] leading-none tracking-widest uppercase">
           Escolhendo · {SIDE_LABEL[active]}
         </span>
-        {focused ? (
+        {focused || focusedRandom ? (
           <>
             <h1 className="arena-name font-arena-title text-[clamp(2rem,9vw,4rem)] leading-[0.9] uppercase xl:text-7xl">
-              {focused.name}
+              {focusedRandom ? RANDOM_FIGHTER.name : focused?.name}
             </h1>
             <p className="arena-name flex items-center gap-2 text-sm font-semibold sm:text-base">
               {TypeIcon ? (
                 <TypeIcon aria-hidden className="size-4 text-(--energy)" />
               ) : null}
-              {focused.title}
+              {focusedRandom ? RANDOM_FIGHTER.title : focused?.title}
             </p>
           </>
         ) : (
@@ -91,6 +95,7 @@ function ArenaPicker({
         <ArenaMatchupSlots
           player={player}
           opponent={opponent}
+          random={random}
           active={active}
           onActivate={onActivate}
         />
@@ -103,12 +108,15 @@ function ArenaPicker({
             fighters={fighters}
             player={player}
             opponent={opponent}
+            random={random}
             active={active}
             onChoose={onChoose}
           />
         </ArenaPanelSection>
 
-        {focused ? <FighterStats fighter={focused} /> : null}
+        {focused || focusedRandom ? (
+          <FighterStats fighter={focusedRandom ? null : focused} />
+        ) : null}
 
         <div className="mt-auto flex flex-col gap-4">
           <ArenaPanelSection title="Dificuldade">
@@ -128,7 +136,11 @@ function ArenaPicker({
               Lutar
             </button>
           </div>
-          <ArenaActionButton variant="secondary" onClick={onTutorial} disabled={!canFight}>
+          <ArenaActionButton
+            variant="secondary"
+            onClick={onTutorial}
+            disabled={!canFight}
+          >
             <GraduationCap aria-hidden className="size-4" />
             Tutorial
           </ArenaActionButton>

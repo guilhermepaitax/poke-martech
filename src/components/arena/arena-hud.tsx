@@ -99,7 +99,7 @@ function ArenaHudFighter({
         )}
       >
         <FighterPortrait
-          fighter={fighter}
+          banner={fighter.banner}
           className={cn("arena-portrait-art absolute inset-0", opponent && "-scale-x-100")}
         />
       </div>

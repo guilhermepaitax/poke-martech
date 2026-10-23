@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  CPU_DEFEND_MELEE_RANGE,
   CPU_HOLD_DISTANCE,
   CPU_MELEE_RANGE,
   CPU_PROFILES,
+  cpuDefends,
   decideCpu,
   isArenaDifficulty,
   type CpuInput,
@@ -223,5 +225,35 @@ describe("CPU_PROFILES", () => {
     expect(isArenaDifficulty("easy")).toBe(true);
     expect(isArenaDifficulty("insane")).toBe(false);
     expect(isArenaDifficulty(undefined)).toBe(false);
+  });
+});
+
+describe("cpuDefends", () => {
+  const hard = CPU_PROFILES.hard;
+
+  it("defende quando a rolagem cai dentro da chance", () => {
+    expect(cpuDefends(() => 0, hard, { kind: "fire", distance: 600 }, true)).toBe(true);
+    expect(cpuDefends(() => 0.99, hard, { kind: "fire", distance: 600 }, true)).toBe(false);
+  });
+
+  it("corpo a corpo longe não assusta", () => {
+    expect(
+      cpuDefends(() => 0, hard, { kind: "melee", distance: CPU_DEFEND_MELEE_RANGE + 1 }, true),
+    ).toBe(false);
+    expect(cpuDefends(() => 0, hard, { kind: "melee", distance: 40 }, true)).toBe(true);
+  });
+
+  it("ocupada ou sem chance não defende", () => {
+    expect(cpuDefends(() => 0, hard, { kind: "fire", distance: 100 }, false)).toBe(false);
+    expect(
+      cpuDefends(() => 0, { ...hard, defendChance: 0 }, { kind: "fire", distance: 100 }, true),
+    ).toBe(false);
+  });
+
+  it("dificuldade maior defende mais e por mais tempo", () => {
+    const { easy, normal } = CPU_PROFILES;
+    expect(easy.defendChance).toBeLessThan(normal.defendChance);
+    expect(normal.defendChance).toBeLessThan(hard.defendChance);
+    expect(easy.defendMs).toBeLessThan(hard.defendMs);
   });
 });

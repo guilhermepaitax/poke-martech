@@ -190,6 +190,7 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty, mode: 
   useEffect(() => {
     if (mode !== "tutorial" || status !== "ready") return;
     const controls = controlsRef.current;
+    controls?.setTutorialDummyAttacks(tutorialStep === "defend");
     if (tutorialStep === "pickup") controls?.spawnTutorialPickup();
     // Fim do treino: congela a cena atrás da tela de conclusão.
     if (tutorialStep === "done") controls?.pause();

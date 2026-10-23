@@ -50,7 +50,7 @@ type BeamEnd = {
   block?: number;
 };
 
-type HitTag = "critical" | "charged" | "super" | "resisted";
+type HitTag = "critical" | "charged" | "super" | "resisted" | "blocked";
 
 type ImpactTier = "light" | "medium" | "heavy";
 

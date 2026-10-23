@@ -27,6 +27,7 @@ import {
   spawnDamageNumber,
 } from "@/game/arena/entities/damage-number";
 import { clearHitFx, spawnHitFx } from "@/game/arena/entities/hit-fx";
+import { flashShield, shatterShield } from "@/game/arena/entities/shield-fx";
 import { flashMarker, spawnRingWave } from "@/game/arena/entities/marker";
 import {
   clearOrbs,
@@ -99,6 +100,7 @@ import {
   facingVector,
   type MoveVector,
 } from "@/lib/arena/movement";
+import { defendHit, spendGuard } from "@/lib/arena/defense";
 import { buffScale } from "@/lib/arena/pickups";
 import Phaser from "phaser";
 
@@ -110,6 +112,8 @@ const HIT_FX_OFFSET_Y = 10;
 const MELEE_RESOLVE_MS = 90;
 const ATTACK_FLASH_MS = 220;
 const HURT_FLASH_MS = 320;
+const BLOCK_SHAKE_MS = 70;
+const BREAK_SHAKE_MS = 160;
 const CHARGED_BEAM_MS = 90;
 const IMPACT_COLOR: Record<AttackKind, number> = {
   melee: 0xff8a2a,
@@ -144,11 +148,18 @@ type AttackTuning = {
 
 const PLAYER_TUNING: AttackTuning = { cooldownScale: 1, damageScale: 1 };
 
+// Golpe que acertou alguém defendendo; `broke` = a guarda quebrou nele.
+type BlockEvent = {
+  target: Player;
+  broke: boolean;
+};
+
 type Combat = {
   kind: AttackKind;
   over: boolean;
   banner: BannerBucket;
   onHpChange: () => void;
+  onBlock: (event: BlockEvent) => void;
   projectiles: Phaser.Physics.Arcade.Group;
   cracks: Phaser.GameObjects.GameObject[];
   hitFx: Phaser.GameObjects.GameObject[];
@@ -169,6 +180,7 @@ function createCombat(
   opponent: Player,
   obstacles: Obstacle[],
   onHpChange: () => void = () => {},
+  onBlock: (event: BlockEvent) => void = () => {},
 ): Combat {
   const projectiles = scene.physics.add.group();
   const combat: Combat = {
@@ -176,6 +188,7 @@ function createCombat(
     over: false,
     banner: { current: null },
     onHpChange,
+    onBlock,
     projectiles,
     cracks: [],
     hitFx: [],
@@ -258,12 +271,24 @@ function hurtFighter(
   direction: Point,
   color: number,
   stars = true,
+  charge: ChargeLevel = 0,
 ) {
+  const skip = combat.over || isEvading(target);
+  const block = !skip && target.defending && hit.damage > 0 ? spendGuard(target.guard, charge, scene.time.now) : null;
+  if (block) {
+    target.guard = block.guard;
+    hit = defendHit(hit);
+  }
   const exposed = buffScale(target.buffs, "vulnerable", scene.time.now);
   const damage = exposed === 1 ? hit.damage : Math.round(hit.damage * exposed);
-  const result = applyHit(target.hp, damage, combat.over || isEvading(target));
+  const result = applyHit(target.hp, damage, skip);
   if (!result.applied) return result;
   setPlayerHp(target, result.hp);
+  if (block && !block.broke) {
+    blockedHit(scene, combat, target, hit, direction, result.dealt);
+    return result;
+  }
+  if (block?.broke) breakGuard(scene, combat, target);
   playHurt(target);
   combat.onHpChange();
   const critical = hit.tags.includes("critical");
@@ -291,6 +316,39 @@ function hurtFighter(
     hit.tags,
   );
   return result;
+}
+
+// Defesa segurou o golpe: sem hurt, o lutador segue andando.
+function blockedHit(
+  scene: Phaser.Scene,
+  combat: Combat,
+  target: Player,
+  hit: ResolvedHit,
+  direction: Point,
+  dealt: number,
+) {
+  combat.onHpChange();
+  flashShield(scene, target, direction);
+  spawnRingWave(scene, target.marker, { color: 0x8fd8ff, count: 1, grow: 1.8 });
+  spawnDamageNumber(
+    scene,
+    combat.numbers,
+    target.sprite.x,
+    target.sprite.y - HURT_NUMBER_OFFSET_Y,
+    dealt,
+    hit.tags,
+  );
+  scene.cameras.main.shake(BLOCK_SHAKE_MS, 0.002);
+  combat.onBlock({ target, broke: false });
+}
+
+function breakGuard(scene: Phaser.Scene, combat: Combat, target: Player) {
+  target.defending = false;
+  shatterShield(scene, target);
+  spawnRingWave(scene, target.marker, { color: 0x8b949e, count: 2, grow: 2.4, width: 3 });
+  showBanner(scene, combat, "GUARDA QUEBRADA!", "guard");
+  scene.cameras.main.shake(BREAK_SHAKE_MS, 0.006);
+  combat.onBlock({ target, broke: true });
 }
 
 function isGuarding(scene: Phaser.Scene, target: Player) {
@@ -415,6 +473,8 @@ function resolveMelee(
     hit,
     aim,
     CHARGE_COLOR[charge],
+    true,
+    charge,
   );
   if (result.applied) announceHit(scene, combat, hit, charge);
   spawnCracks(
@@ -485,7 +545,7 @@ function landRanged(
     spawnShockwave(scene, combat.hitFx, impact, CHARGE_COLOR[charge], 60 + charge * 30);
   }
   if (hit) {
-    const result = hurtFighter(scene, combat, target, hit, direction, color, stars);
+    const result = hurtFighter(scene, combat, target, hit, direction, color, stars, charge);
     if (result.applied) announceHit(scene, combat, hit, charge);
   }
   if (impact.stop === "block") {
@@ -585,7 +645,7 @@ function throwBones(
   charge: ChargeLevel,
 ) {
   const style = charge === 2 ? GROUND_BONE_CHARGED : GROUND_BONE;
-  playArenaAudio(scene, "dash");
+  playArenaAudio(scene, "bone");
   for (const direction of boneVolley(aim, charge)) {
     launchBone(scene, combat.bones, {
       from: muzzle,
@@ -635,7 +695,7 @@ function tryAttack(
   charge: ChargeLevel = 0,
 ) {
   if (combat.over) return false;
-  if (attacker.attacking || attacker.hurting || isDashing(attacker)) return false;
+  if (attacker.attacking || attacker.hurting || attacker.defending || isDashing(attacker)) return false;
   const now = scene.time.now;
   if (!canAttack(now, attacker.readyAt[kind])) return false;
   attacker.facing = facingFromAim(aim.x, aim.y, attacker.facing);
@@ -735,7 +795,7 @@ function tryPlayerDash(
   move: MoveVector,
 ) {
   if (combat.over) return false;
-  if (player.attacking || player.hurting || isDashing(player)) return false;
+  if (player.attacking || player.hurting || player.defending || isDashing(player)) return false;
   const now = scene.time.now;
   if (!canAttack(now, player.dashReadyAt)) return false;
   const heading = dashHeading(move, player.facing);
@@ -808,4 +868,4 @@ export {
   tryPlayerAttack,
   tryPlayerDash,
 };
-export type { AttackTuning, Combat };
+export type { AttackTuning, BlockEvent, Combat };

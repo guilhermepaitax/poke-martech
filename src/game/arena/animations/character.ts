@@ -16,6 +16,7 @@ const CLIP = {
   attack: { sheet: "attack", frameRate: 12, repeat: 0 },
   shoot: { sheet: "shoot", frameRate: 12, repeat: 0 },
   hurt: { sheet: "hurt", frameRate: 12, repeat: 0 },
+  defend: { sheet: "defend", frameRate: 10, repeat: -1 },
 } as const satisfies Record<
   string,
   {

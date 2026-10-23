@@ -89,6 +89,18 @@ function lessonCopy(
           </>
         ),
       };
+    case "defend":
+      return {
+        title: "Defender",
+        body: (
+          <>
+            <Key>Segure Shift</Key> para defender: você leva bem menos dano e
+            não fica atordoado. O boneco vai atirar em você, defenda um golpe!
+            Cada bloqueio gasta a barra de guarda; se ela quebrar, você fica
+            atordoado.
+          </>
+        ),
+      };
     case "pickup":
       return {
         title: "Caixas",

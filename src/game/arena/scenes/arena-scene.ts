@@ -14,8 +14,11 @@ import {
   showBanner,
   stepCombat,
   syncCombatAim,
+  tryAttack,
   tryPlayerAttack,
   tryPlayerDash,
+  type AttackTuning,
+  type BlockEvent,
   type Combat,
 } from "@/game/arena/entities/combat";
 import { updateCpu } from "@/game/arena/entities/cpu";
@@ -40,11 +43,13 @@ import {
   haltPlayer,
   isDashing,
   playerAnchor,
+  setDefending,
   setPlayerHp,
   syncPlayerMarker,
   updatePlayer,
   type Player,
 } from "@/game/arena/entities/player";
+import { clearShieldFx, syncShieldFx } from "@/game/arena/entities/shield-fx";
 import { bindArenaKeys, bindArenaPointer, readMoveAxes, type ArenaKeys } from "@/game/arena/input/arena-input";
 import {
   createArenaWorld,
@@ -60,6 +65,7 @@ import {
   isArenaDifficulty,
   type CpuProfile,
 } from "@/lib/arena/cpu";
+import { GUARD_BREAK_MS, GUARD_MAX, regenGuard } from "@/lib/arena/defense";
 import type { ArenaMatchup } from "@/lib/arena/fighter";
 import { DASH_COOLDOWN_MS, facingFromAim } from "@/lib/arena/movement";
 import { resolveOutcome, type ArenaOutcome } from "@/lib/arena/outcome";
@@ -90,6 +96,11 @@ const TUTORIAL_MOVE_MS = 700;
 const TUTORIAL_AIM_MS = 500;
 const TUTORIAL_REFILL_RATIO = 0.3;
 const TUTORIAL_PICKUP_REACH = 320;
+// Passo de defesa: o boneco atira fraco no jogador a cada intervalo.
+const TUTORIAL_DUMMY_SHOT_MS = 1800;
+const TUTORIAL_DUMMY_TUNING: AttackTuning = { cooldownScale: 1, damageScale: 0.5 };
+// Degraus da barra de guarda no HUD: evita emitir HUD a cada frame da recarga.
+const GUARD_HUD_STEPS = 20;
 const CHARGE_BANNER: Record<Exclude<ChargeLevel, 0>, [string, "charge" | "max"]> = {
   1: ["CARREGADO!", "charge"],
   2: ["MÁXIMO!", "max"],
@@ -117,7 +128,16 @@ function freshCycles(): Record<HudSlot, { readyAt: number; cycle: number }> {
     melee: { readyAt: 0, cycle: 0 },
     fire: { readyAt: 0, cycle: 0 },
     dash: { readyAt: 0, cycle: 0 },
+    defend: { readyAt: 0, cycle: 0 },
   };
+}
+
+function guardStep(player: Player) {
+  return Math.round((player.guard.meter / GUARD_MAX) * GUARD_HUD_STEPS);
+}
+
+function guardKey(player: Player) {
+  return `${player.defending}-${guardStep(player)}-${player.guard.brokenUntil}`;
 }
 
 function freshAnchors(): FighterAnchors {
@@ -148,6 +168,9 @@ class ArenaScene extends Phaser.Scene {
   private lastFiredKind: AttackKind = "melee";
   private opponentHp = 0;
   private tutorialPickup = false;
+  private dummyAttacks = false;
+  private nextDummyShotAt = 0;
+  private guardShown = "";
 
   constructor() {
     super("arena");
@@ -176,6 +199,9 @@ class ArenaScene extends Phaser.Scene {
     this.lastFiredKind = "melee";
     this.opponentHp = 0;
     this.tutorialPickup = false;
+    this.dummyAttacks = false;
+    this.nextDummyShotAt = 0;
+    this.guardShown = "";
   }
 
   preload() {
@@ -215,6 +241,7 @@ class ArenaScene extends Phaser.Scene {
     this.followPointer();
     const move = readMoveAxes(this.keys);
     this.trackMove(move, delta);
+    this.syncDefense(delta);
     if (this.combat && Phaser.Input.Keyboard.JustDown(this.keys.space)) {
       if (tryPlayerDash(this, this.combat, this.player, move)) {
         this.cancelCharge(true);
@@ -231,8 +258,11 @@ class ArenaScene extends Phaser.Scene {
       charge ? speed * CHARGE_MOVE_SCALE : speed,
     );
     if (this.mode === "tutorial") {
-      // Boneco de treino: fica parado e não revida.
-      if (this.opponent) updatePlayer(this.opponent, 0, 0);
+      // Boneco de treino: fica parado; só atira no passo de defesa.
+      if (this.opponent) {
+        updatePlayer(this.opponent, 0, 0);
+        this.dummyShoot();
+      }
     } else if (this.combat && this.opponent) {
       updateCpu(
         this,
@@ -259,7 +289,7 @@ class ArenaScene extends Phaser.Scene {
   private startCharge() {
     if (this.outcome !== "ongoing" || !this.player || !this.combat || this.combat.over) return;
     const player = this.player;
-    if (player.attacking || player.hurting || isDashing(player)) return;
+    if (player.attacking || player.hurting || player.defending || isDashing(player)) return;
     if (!canAttack(this.time.now, player.readyAt[this.combat.kind])) return;
     this.chargeStartedAt = this.time.now;
     this.chargeShown = 0;
@@ -325,6 +355,43 @@ class ArenaScene extends Phaser.Scene {
     return charge;
   }
 
+  // Shift segurado liga a defesa; a guarda dos dois lutadores recarrega aqui.
+  private syncDefense(delta: number) {
+    const { player, opponent, keys } = this;
+    if (!player || !keys) return;
+    const now = this.time.now;
+    if (setDefending(player, keys.shift.isDown) && player.defending) this.cancelCharge(true);
+    for (const fighter of [player, opponent]) {
+      if (fighter) fighter.guard = regenGuard(fighter.guard, delta, now);
+    }
+    if (guardKey(player) !== this.guardShown) this.emitHud();
+  }
+
+  private onBlock(event: BlockEvent) {
+    if (event.target !== this.player) return;
+    this.emitHud();
+    if (!event.broke) this.emitTutorial({ type: "block" });
+  }
+
+  setTutorialDummyAttacks(on: boolean) {
+    if (this.mode !== "tutorial") return;
+    this.dummyAttacks = on;
+    this.nextDummyShotAt = this.time.now + TUTORIAL_DUMMY_SHOT_MS / 2;
+  }
+
+  private dummyShoot() {
+    const { player, opponent, combat } = this;
+    if (!this.dummyAttacks || !player || !opponent || !combat) return;
+    const now = this.time.now;
+    if (now < this.nextDummyShotAt) return;
+    const dx = player.sprite.x - opponent.sprite.x;
+    const dy = player.sprite.y - opponent.sprite.y;
+    const length = Math.hypot(dx, dy);
+    if (length === 0) return;
+    this.nextDummyShotAt = now + TUTORIAL_DUMMY_SHOT_MS;
+    tryAttack(this, combat, opponent, player, "fire", { x: dx / length, y: dy / length }, TUTORIAL_DUMMY_TUNING);
+  }
+
   private hudCooldown(slot: HudSlot, readyAt: number, durationMs: number) {
     const entry = this.hudCycles[slot];
     if (entry.readyAt !== readyAt) {
@@ -348,6 +415,11 @@ class ArenaScene extends Phaser.Scene {
         melee: this.hudCooldown("melee", player.readyAt.melee, COOLDOWN_MS.melee),
         fire: this.hudCooldown("fire", player.readyAt.fire, COOLDOWN_MS.fire),
         dash: this.hudCooldown("dash", player.dashReadyAt, DASH_COOLDOWN_MS),
+        defend: this.hudCooldown("defend", player.guard.brokenUntil, GUARD_BREAK_MS),
+      },
+      guard: {
+        ratio: guardStep(player) / GUARD_HUD_STEPS,
+        defending: player.defending,
       },
       charge:
         started === null
@@ -358,6 +430,7 @@ class ArenaScene extends Phaser.Scene {
               cycle: this.chargeCycle,
             },
     };
+    this.guardShown = guardKey(player);
     this.game.registry.set("hud", hud);
     this.game.events.emit(ARENA_EVENTS.hud, hud);
   }
@@ -397,11 +470,15 @@ class ArenaScene extends Phaser.Scene {
   }
 
   private onHpChange() {
-    const opponent = this.opponent;
+    const { opponent, player } = this;
     if (this.mode === "tutorial" && opponent) {
       if (opponent.hp < this.opponentHp) this.emitTutorial({ type: "hit", kind: this.lastFiredKind });
       if (opponent.hp < opponent.maxHp * TUTORIAL_REFILL_RATIO) setPlayerHp(opponent, opponent.maxHp);
       this.opponentHp = opponent.hp;
+    }
+    // No treino o jogador também não morre: os tiros do boneco só ensinam.
+    if (this.mode === "tutorial" && player && player.hp < player.maxHp * TUTORIAL_REFILL_RATIO) {
+      setPlayerHp(player, player.maxHp);
     }
     this.emitSnapshot();
   }
@@ -548,7 +625,9 @@ class ArenaScene extends Phaser.Scene {
       if (!fighter) continue;
       haltPlayer(fighter);
       fighter.buffs = [];
+      fighter.defending = false;
       clearBuffAura(fighter);
+      clearShieldFx(fighter);
     }
     const loser = outcome === "victory" ? this.opponent : this.player;
     loser?.sprite.setAlpha(DEFEATED_ALPHA);
@@ -596,6 +675,7 @@ class ArenaScene extends Phaser.Scene {
       if (!fighter) continue;
       syncPlayerMarker(fighter);
       syncBuffAura(this, fighter);
+      syncShieldFx(this, fighter);
     }
   }
 
@@ -636,7 +716,14 @@ class ArenaScene extends Phaser.Scene {
     this.physics.add.collider(this.player.sprite, solids);
     this.physics.add.collider(this.opponent.sprite, solids);
     this.physics.add.collider(this.player.sprite, this.opponent.sprite);
-    this.combat = createCombat(this, this.player, this.opponent, world.obstacles, () => this.onHpChange());
+    this.combat = createCombat(
+      this,
+      this.player,
+      this.opponent,
+      world.obstacles,
+      () => this.onHpChange(),
+      (event) => this.onBlock(event),
+    );
     this.opponentHp = this.opponent.hp;
     this.nextPickupAt = this.time.now + pickupDelay(Math.random);
     this.emitSnapshot();
@@ -659,6 +746,7 @@ class ArenaScene extends Phaser.Scene {
       if (!fighter) continue;
       clearMarkerFx(this, fighter.marker);
       clearBuffAura(fighter);
+      clearShieldFx(fighter);
     }
     this.game.registry.remove("snapshot");
     this.game.registry.remove("hud");

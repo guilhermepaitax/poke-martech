@@ -1,15 +1,15 @@
-import type { ArenaFighter } from "@/lib/arena/fighter";
+import type { FighterBanner } from "@/lib/arena/fighter";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 function FighterPortrait({
-  fighter,
+  banner,
   className,
 }: {
-  fighter: ArenaFighter;
+  banner: FighterBanner;
   className?: string;
 }) {
-  const { path, focus } = fighter.banner;
+  const { path, focus } = banner;
 
   return (
     <span data-slot="fighter-portrait" className={cn("relative overflow-hidden", className)}>
