@@ -1,4 +1,5 @@
 import { FX_TEXTURES } from "@/game/arena/entities/fx-textures";
+import { pixelBurst, pixelRing, pixelScale, pixelTrail } from "@/game/arena/entities/pixel-fx";
 import {
   BEAM_TARGET_RADIUS,
   beamImpact,
@@ -12,6 +13,8 @@ import {
 import Phaser from "phaser";
 
 type OrbStyle = {
+  // Quadros da pixel art, alternados enquanto a bola avança (pulso).
+  frames: readonly [string, string];
   core: number;
   mid: number;
   glow: number;
@@ -29,9 +32,7 @@ type OrbShot = {
   target: () => Point | null;
   onArrive: (impact: BeamEnd) => void;
   objects: Phaser.GameObjects.GameObject[];
-  body: Phaser.GameObjects.Arc[];
-  halo: Phaser.GameObjects.Image;
-  emitter: Phaser.GameObjects.Particles.ParticleEmitter;
+  orb: Phaser.GameObjects.Image;
 };
 
 type OrbLaunch = {
@@ -44,6 +45,7 @@ type OrbLaunch = {
 };
 
 const GRASS_ORB: OrbStyle = {
+  frames: [FX_TEXTURES.orb, FX_TEXTURES.orbAlt],
   core: 0xa8ff8a,
   mid: 0x22e03a,
   glow: 0x00b83a,
@@ -51,6 +53,7 @@ const GRASS_ORB: OrbStyle = {
 };
 
 const GRASS_ORB_CHARGED: OrbStyle = {
+  frames: [FX_TEXTURES.orbCharged, FX_TEXTURES.orbChargedAlt],
   core: 0xd8ffb0,
   mid: 0x3cff2a,
   glow: 0x00e05a,
@@ -58,82 +61,30 @@ const GRASS_ORB_CHARGED: OrbStyle = {
 };
 
 const ORB_DEPTH = 5;
-const GLOW_TEXTURE_RADIUS = 32;
-const HALO_SCALE = 2.6;
-const PULSE_MS = 140;
-const MUZZLE_MS = 160;
-const BURST_MS = 260;
+// Px percorridos por quadro da animação.
+const FRAME_DISTANCE = 28;
+const BURST_STEPS = 3;
+const BURST_STEP_MS = 70;
+const MUZZLE_SPARKS = 5;
+const IMPACT_SPARKS = 12;
 
-function addGlow(
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  color: number,
-  radius: number,
-) {
-  return scene.add
-    .image(x, y, FX_TEXTURES.glow)
-    .setTint(color)
-    .setBlendMode(Phaser.BlendModes.ADD)
-    .setDepth(ORB_DEPTH + 0.1)
-    .setScale(radius / GLOW_TEXTURE_RADIUS);
-}
-
-function orbTrail(
-  scene: Phaser.Scene,
-  follow: Phaser.GameObjects.Arc,
-  shot: Pick<OrbShot, "radius" | "style">,
-) {
-  const size = shot.radius / ORB_RADIUS;
-  const emitter = scene.add.particles(0, 0, FX_TEXTURES.pixel, {
-    follow,
-    emitZone: {
-      type: "random",
-      source: new Phaser.Geom.Circle(0, 0, shot.radius * 0.9),
-      quantity: 1,
-    },
-    lifespan: { min: 220, max: 420 },
-    frequency: 10,
-    quantity: Math.ceil(2 * size),
-    speed: { min: 8, max: 36 },
-    scale: { start: 1.1 + size * 0.4, end: 0.4 },
-    alpha: { start: 1, end: 0 },
-    tint: [shot.style.core, shot.style.mid, shot.style.glow],
-  });
-  emitter.setDepth(ORB_DEPTH - 0.1);
-  return emitter;
+function sparks(scene: Phaser.Scene, at: Point, style: OrbStyle, count: number, scale: number) {
+  pixelBurst(scene, at, [style.core, style.mid, style.glow], count, scale, 0, ORB_DEPTH + 0.2);
 }
 
 function launchOrb(scene: Phaser.Scene, bucket: OrbShot[], launch: OrbLaunch) {
   const length = Math.hypot(launch.direction.x, launch.direction.y);
   if (length === 0) return null;
-  const scale = launch.scale ?? 1;
-  const radius = ORB_RADIUS * scale;
+  const radius = ORB_RADIUS * (launch.scale ?? 1);
   const { x, y } = launch.from;
-  const halo = addGlow(scene, x, y, launch.style.glow, radius * HALO_SCALE);
-  const shell = scene.add.circle(x, y, radius, launch.style.mid, 1).setDepth(ORB_DEPTH);
-  const core = scene.add
-    .circle(x, y, radius * 0.5, launch.style.core, 1)
-    .setDepth(ORB_DEPTH + 0.05);
-  const emitter = orbTrail(scene, core, { radius, style: launch.style });
-  const muzzle = addGlow(scene, x, y, launch.style.mid, radius * 3);
-  scene.tweens.add({
-    targets: muzzle,
-    alpha: 0,
-    scale: muzzle.scale * 1.6,
-    duration: MUZZLE_MS,
-    onComplete: () => {
-      if (muzzle.scene) muzzle.destroy();
-    },
-  });
-  scene.tweens.add({
-    targets: halo,
-    scale: halo.scale * 1.25,
-    duration: PULSE_MS,
-    yoyo: true,
-    repeat: -1,
-    ease: "Sine.easeInOut",
-  });
+  const scale = pixelScale(radius);
+  const orb = scene.add
+    .image(Math.round(x), Math.round(y), launch.style.frames[0])
+    .setDepth(ORB_DEPTH)
+    .setScale(scale);
+  const { core, mid, glow } = launch.style;
+  const emitter = pixelTrail(scene, orb, [core, mid, glow], scale, radius * 0.6, ORB_DEPTH - 0.1);
+  sparks(scene, launch.from, launch.style, MUZZLE_SPARKS, scale);
   const shot: OrbShot = {
     x,
     y,
@@ -144,10 +95,8 @@ function launchOrb(scene: Phaser.Scene, bucket: OrbShot[], launch: OrbLaunch) {
     style: launch.style,
     target: launch.target,
     onArrive: launch.onArrive,
-    objects: [halo, shell, core, emitter],
-    body: [shell, core],
-    halo,
-    emitter,
+    objects: [orb, emitter],
+    orb,
   };
   bucket.push(shot);
   return shot;
@@ -161,31 +110,29 @@ function destroyShot(scene: Phaser.Scene, shot: OrbShot) {
   shot.objects.length = 0;
 }
 
+// Estouro em degraus inteiros, como o resto da pixel art.
 function burstOrb(scene: Phaser.Scene, shot: OrbShot, at: Point) {
-  const flash = addGlow(scene, at.x, at.y, shot.style.impact, shot.radius * 3);
-  const ring = scene.add
-    .circle(at.x, at.y, shot.radius, shot.style.mid, 0)
-    .setStrokeStyle(3, shot.style.mid, 0.9)
-    .setBlendMode(Phaser.BlendModes.ADD)
-    .setDepth(ORB_DEPTH + 0.1);
-  scene.tweens.add({
-    targets: [flash, ring],
-    alpha: 0,
-    scale: "*=2.4",
-    duration: BURST_MS,
-    ease: "Quad.easeOut",
-    onComplete: () => {
-      if (flash.scene) flash.destroy();
-      if (ring.scene) ring.destroy();
-    },
-  });
+  const scale = shot.orb.scale;
+  pixelRing(
+    scene,
+    at,
+    FX_TEXTURES.shards,
+    shot.style.impact,
+    scale,
+    BURST_STEPS,
+    BURST_STEP_MS,
+    ORB_DEPTH + 0.1,
+  );
+  sparks(scene, at, shot.style, IMPACT_SPARKS, scale);
 }
 
 function moveShot(shot: OrbShot, x: number, y: number) {
   shot.x = x;
   shot.y = y;
-  shot.halo.setPosition(x, y);
-  for (const part of shot.body) part.setPosition(x, y);
+  const frame = Math.floor(shot.travelled / FRAME_DISTANCE) % 2;
+  shot.orb
+    .setPosition(Math.round(x), Math.round(y))
+    .setTexture(shot.style.frames[frame] ?? shot.style.frames[0]);
 }
 
 function stepOrbs(scene: Phaser.Scene, bucket: OrbShot[], deltaMs: number, blocks: Rect[]) {

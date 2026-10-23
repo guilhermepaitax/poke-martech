@@ -102,7 +102,7 @@ const ORB_RADIUS = 16;
 const ORB_SPREAD = Math.PI / 6;
 const BONE_SPEED = 640;
 const BONE_RANGE = 420;
-const BONE_RADIUS = 14;
+const BONE_RADIUS = 16;
 const BONE_SPREAD = Math.PI / 10;
 const BONE_CATCH_RADIUS = 28;
 // Estrelas do Meteoro: curvam para o alvo com giro limitado, então o dash

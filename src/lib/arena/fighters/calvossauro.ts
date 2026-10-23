@@ -28,29 +28,37 @@ const calvossauro: ArenaFighter = {
     },
   },
   sprite: {
-    cellSize: 256,
-    columns: 8,
+    cellSize: 34,
+    columns: 11,
     sheets: {
-      idle: { path: `${SHEETS}/idle.png`, frames: 8, rows: EIGHT_WAY_ROWS },
-      walk: {
-        path: `${SHEETS}/walk.png`,
-        frames: 8,
-        // A folha exportada repete a linha "west"; a sudoeste fica na linha 9.
-        rows: { ...EIGHT_WAY_ROWS, "south-west": 9 },
+      idle: { path: `${SHEETS}/idle.png`, frames: 3, rows: EIGHT_WAY_ROWS, frameRate: 5 },
+      walk: { path: `${SHEETS}/walk.png`, frames: 6, rows: EIGHT_WAY_ROWS },
+      attack: {
+        path: `${SHEETS}/attack.png`,
+        frames: 11,
+        rows: EIGHT_WAY_ROWS,
+        frameRate: 24,
       },
-      attack: { path: `${SHEETS}/attack.png`, frames: 5, rows: EIGHT_WAY_ROWS },
-      hurt: { path: `${SHEETS}/hurt.png`, frames: 7, rows: EIGHT_WAY_ROWS },
+      shoot: {
+        path: `${SHEETS}/shoot.png`,
+        frames: 6,
+        rows: EIGHT_WAY_ROWS,
+        frameRate: 16,
+      },
+      hurt: { path: `${SHEETS}/hurt.png`, frames: 2, rows: EIGHT_WAY_ROWS },
+      defend: { path: `${SHEETS}/defend.png`, frames: 10, rows: EIGHT_WAY_ROWS },
     },
   },
   tuning: {
     speed: 340,
-    bodyReferenceCell: 128,
-    bodyWidth: 60,
-    bodyHeight: 100,
-    bodyOffsetY: 20,
-    feetOffsetY: 26,
+    bodyReferenceCell: 34,
+    bodyWidth: 16,
+    bodyHeight: 16,
+    bodyOffsetY: 14,
+    feetOffsetY: 36,
     mirrorTint: 0xc8c8ff,
     depth: 2,
+    displaySize: 110,
   },
 };
 

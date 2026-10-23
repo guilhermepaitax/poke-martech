@@ -1,4 +1,11 @@
-import { FX_TEXTURES } from "@/game/arena/entities/fx-textures";
+import { FX_TEXTURES, SWIFT_ART_SIZE } from "@/game/arena/entities/fx-textures";
+import {
+  pixelBurst,
+  pixelRing,
+  pixelScale,
+  pixelTrail,
+  snapAngle,
+} from "@/game/arena/entities/pixel-fx";
 import {
   BEAM_TARGET_RADIUS,
   beamImpact,
@@ -14,6 +21,7 @@ import {
 import Phaser from "phaser";
 
 type StarStyle = {
+  texture: string;
   core: number;
   glow: number;
   impact: number;
@@ -31,7 +39,8 @@ type StarShot = {
   onArrive: (impact: BeamEnd) => void;
   objects: Phaser.GameObjects.GameObject[];
   star: Phaser.GameObjects.Image;
-  halo: Phaser.GameObjects.Image;
+  // Ângulo contínuo do giro; o sprite mostra a versão em degraus.
+  spin: number;
 };
 
 type StarLaunch = {
@@ -44,82 +53,43 @@ type StarLaunch = {
 };
 
 const SWIFT_STAR: StarStyle = {
+  texture: FX_TEXTURES.swift,
   core: 0xfff3a8,
   glow: 0xffc23a,
   impact: 0xffe066,
 };
 
 const SWIFT_STAR_CHARGED: StarStyle = {
+  texture: FX_TEXTURES.swiftCharged,
   core: 0xfff0fb,
   glow: 0xff7ad9,
   impact: 0xffa8ec,
 };
 
 const STAR_DEPTH = 5;
-const GLOW_TEXTURE_RADIUS = 32;
-const SWIFT_TEXTURE_RADIUS = 16;
-const HALO_SCALE = 2.4;
-const SPIN_MS = 360;
-const MUZZLE_MS = 160;
-const BURST_MS = 240;
-
-function addGlow(
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  color: number,
-  radius: number,
-) {
-  return scene.add
-    .image(x, y, FX_TEXTURES.glow)
-    .setTint(color)
-    .setBlendMode(Phaser.BlendModes.ADD)
-    .setDepth(STAR_DEPTH - 0.1)
-    .setScale(radius / GLOW_TEXTURE_RADIUS);
-}
-
-function starTrail(
-  scene: Phaser.Scene,
-  follow: Phaser.GameObjects.Image,
-  shot: Pick<StarShot, "radius" | "style">,
-) {
-  const emitter = scene.add.particles(0, 0, FX_TEXTURES.pixel, {
-    follow,
-    lifespan: { min: 180, max: 340 },
-    frequency: 16,
-    quantity: 1,
-    speed: { min: 4, max: 24 },
-    scale: { start: 0.9 + shot.radius / STAR_RADIUS / 2, end: 0.2 },
-    alpha: { start: 1, end: 0 },
-    tint: [shot.style.core, shot.style.glow],
-  });
-  emitter.setDepth(STAR_DEPTH - 0.2);
-  return emitter;
-}
+// A arte cobre um pouco além do raio de acerto (pontas da estrela).
+const ART_REACH = 1.4;
+// Voltas por segundo; 20 degraus por volta (4 por ponta).
+const SPIN_TURNS = 2.8;
+const SPIN_STEPS = 20;
+const BURST_STEPS = 3;
+const BURST_STEP_MS = 60;
+const MUZZLE_SPARKS = 4;
+const IMPACT_SPARKS = 10;
 
 function launchStar(scene: Phaser.Scene, bucket: StarShot[], launch: StarLaunch) {
   const length = Math.hypot(launch.direction.x, launch.direction.y);
   if (length === 0) return null;
   const radius = STAR_RADIUS * (launch.scale ?? 1);
   const { x, y } = launch.from;
-  const halo = addGlow(scene, x, y, launch.style.glow, radius * HALO_SCALE);
+  const scale = pixelScale(radius * ART_REACH, SWIFT_ART_SIZE);
   const star = scene.add
-    .image(x, y, FX_TEXTURES.swift)
-    .setTint(launch.style.core)
+    .image(Math.round(x), Math.round(y), launch.style.texture)
     .setDepth(STAR_DEPTH)
-    .setScale((radius / SWIFT_TEXTURE_RADIUS) * 1.4);
-  const emitter = starTrail(scene, star, { radius, style: launch.style });
-  const muzzle = addGlow(scene, x, y, launch.style.glow, radius * 2.6);
-  scene.tweens.add({
-    targets: muzzle,
-    alpha: 0,
-    scale: muzzle.scale * 1.6,
-    duration: MUZZLE_MS,
-    onComplete: () => {
-      if (muzzle.scene) muzzle.destroy();
-    },
-  });
-  scene.tweens.add({ targets: star, angle: 360, duration: SPIN_MS, repeat: -1 });
+    .setScale(scale);
+  const tints = [launch.style.core, launch.style.glow];
+  const emitter = pixelTrail(scene, star, tints, scale, radius * 0.4, STAR_DEPTH - 0.2);
+  pixelBurst(scene, launch.from, tints, MUZZLE_SPARKS, scale, 0, STAR_DEPTH + 0.2);
   const shot: StarShot = {
     x,
     y,
@@ -130,9 +100,9 @@ function launchStar(scene: Phaser.Scene, bucket: StarShot[], launch: StarLaunch)
     style: launch.style,
     target: launch.target,
     onArrive: launch.onArrive,
-    objects: [halo, star, emitter],
+    objects: [star, emitter],
     star,
-    halo,
+    spin: 0,
   };
   bucket.push(shot);
   return shot;
@@ -147,25 +117,19 @@ function destroyShot(scene: Phaser.Scene, shot: StarShot) {
 }
 
 function burstStar(scene: Phaser.Scene, shot: StarShot, at: Point) {
-  const flash = addGlow(scene, at.x, at.y, shot.style.impact, shot.radius * 3);
-  const spark = scene.add
-    .image(at.x, at.y, FX_TEXTURES.swift)
-    .setTint(shot.style.core)
-    .setBlendMode(Phaser.BlendModes.ADD)
-    .setDepth(STAR_DEPTH + 0.1)
-    .setScale(shot.star.scale);
-  scene.tweens.add({
-    targets: [flash, spark],
-    alpha: 0,
-    scale: "*=2.2",
-    angle: 90,
-    duration: BURST_MS,
-    ease: "Quad.easeOut",
-    onComplete: () => {
-      if (flash.scene) flash.destroy();
-      if (spark.scene) spark.destroy();
-    },
-  });
+  const scale = shot.star.scale;
+  pixelRing(
+    scene,
+    at,
+    FX_TEXTURES.shards,
+    shot.style.impact,
+    scale,
+    BURST_STEPS,
+    BURST_STEP_MS,
+    STAR_DEPTH + 0.1,
+  );
+  const tints = [shot.style.core, shot.style.glow, 0xffffff];
+  pixelBurst(scene, at, tints, IMPACT_SPARKS, scale, 0, STAR_DEPTH + 0.2);
 }
 
 function stepStars(scene: Phaser.Scene, bucket: StarShot[], deltaMs: number, blocks: Rect[]) {
@@ -191,8 +155,10 @@ function stepStars(scene: Phaser.Scene, bucket: StarShot[], deltaMs: number, blo
     shot.travelled += impact.distance;
     shot.x = impact.x;
     shot.y = impact.y;
-    shot.star.setPosition(impact.x, impact.y);
-    shot.halo.setPosition(impact.x, impact.y);
+    shot.spin += Math.PI * 2 * SPIN_TURNS * (deltaMs / 1000);
+    shot.star
+      .setPosition(Math.round(impact.x), Math.round(impact.y))
+      .setRotation(snapAngle(shot.spin, SPIN_STEPS));
     if (impact.stop === "range" && shot.travelled < STAR_RANGE) continue;
     bucket.splice(bucket.indexOf(shot), 1);
     burstStar(scene, shot, impact);

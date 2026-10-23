@@ -1,4 +1,5 @@
-import { BUBBLE_ART_SIZE, FX_TEXTURES } from "@/game/arena/entities/fx-textures";
+import { FX_TEXTURES } from "@/game/arena/entities/fx-textures";
+import { pixelBurst, pixelRing, pixelScale } from "@/game/arena/entities/pixel-fx";
 import {
   BEAM_TARGET_RADIUS,
   beamImpact,
@@ -67,12 +68,7 @@ const POP_STEP_MS = 70;
 const MUZZLE_DROPS = 4;
 const SPLASH_DROPS = 10;
 
-// Escala inteira para os pixels da arte ficarem do mesmo tamanho.
-function pixelScale(radius: number) {
-  return Math.max(2, Math.round((radius * 2) / BUBBLE_ART_SIZE));
-}
-
-function pixelBurst(
+function bubbleBurst(
   scene: Phaser.Scene,
   at: Point,
   style: BubbleStyle,
@@ -80,20 +76,8 @@ function pixelBurst(
   scale: number,
   gravity: number,
 ) {
-  const burst = scene.add.particles(Math.round(at.x), Math.round(at.y), FX_TEXTURES.pixel, {
-    lifespan: { min: 180, max: 340 },
-    speed: { min: 50, max: 140 },
-    gravityY: gravity,
-    scale: { start: scale / 2, end: scale / 4 },
-    alpha: { start: 1, end: 0 },
-    tint: [style.core, style.glow, 0xffffff],
-    emitting: false,
-  });
-  burst.setDepth(BUBBLE_DEPTH + 0.2);
-  burst.explode(count);
-  scene.time.delayedCall(400, () => {
-    if (burst.scene) burst.destroy();
-  });
+  const tints = [style.core, style.glow, 0xffffff];
+  pixelBurst(scene, at, tints, count, scale, gravity, BUBBLE_DEPTH + 0.2);
 }
 
 function launchBubble(
@@ -110,7 +94,7 @@ function launchBubble(
     .image(Math.round(x), Math.round(y), launch.style.frames[0])
     .setDepth(BUBBLE_DEPTH)
     .setScale(scale);
-  pixelBurst(scene, launch.from, launch.style, MUZZLE_DROPS, scale, 0);
+  bubbleBurst(scene, launch.from, launch.style, MUZZLE_DROPS, scale, 0);
   const shot: BubbleShot = {
     from: { x, y },
     direction: { x: launch.direction.x / length, y: launch.direction.y / length },
@@ -140,22 +124,17 @@ function destroyShot(scene: Phaser.Scene, shot: BubbleShot) {
 // Estouro em degraus (sem interpolação suave): o anel cresce em passos inteiros.
 function popBubble(scene: Phaser.Scene, shot: BubbleShot, at: Point) {
   const scale = shot.bubble.scale;
-  const ring = scene.add
-    .image(Math.round(at.x), Math.round(at.y), FX_TEXTURES.bubblePop)
-    .setTint(shot.style.impact)
-    .setDepth(BUBBLE_DEPTH + 0.1)
-    .setScale(scale);
-  for (let step = 1; step <= POP_STEPS; step += 1) {
-    scene.time.delayedCall(step * POP_STEP_MS, () => {
-      if (!ring.scene) return;
-      if (step === POP_STEPS) {
-        ring.destroy();
-        return;
-      }
-      ring.setScale(scale + step).setAlpha(1 - step / POP_STEPS);
-    });
-  }
-  pixelBurst(scene, at, shot.style, SPLASH_DROPS, scale, 320);
+  pixelRing(
+    scene,
+    at,
+    FX_TEXTURES.bubblePop,
+    shot.style.impact,
+    scale,
+    POP_STEPS,
+    POP_STEP_MS,
+    BUBBLE_DEPTH + 0.1,
+  );
+  bubbleBurst(scene, at, shot.style, SPLASH_DROPS, scale, 320);
 }
 
 function stepBubbles(

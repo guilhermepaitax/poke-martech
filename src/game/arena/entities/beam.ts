@@ -1,5 +1,6 @@
 import { playArenaAudio } from "@/game/arena/entities/audio";
 import { FX_TEXTURES } from "@/game/arena/entities/fx-textures";
+import { pixelBurst } from "@/game/arena/entities/pixel-fx";
 import {
   BEAM_RANGE,
   BEAM_TARGET_RADIUS,
@@ -79,7 +80,6 @@ const BEAM_DEPTH = 5;
 const GLOW_WIDTH = 22;
 const MID_WIDTH = 10;
 const CORE_WIDTH = 3;
-const WAVE_STEP = 10;
 const WAVE_FREQUENCY = 0.09;
 const WAVE_SPEED = 0.025;
 const WAVE_SWELL = 0.18;
@@ -87,7 +87,61 @@ const WAVE_DRIFT = 2;
 const TAPER_IN = 0.15;
 const TAPER_OUT = 0.12;
 const CHARGE_SPARKS = 7;
-const GLOW_TEXTURE_RADIUS = 32;
+const MUZZLE_SPARKS = 8;
+// Lado do bloco da grade em px do mundo: o feixe é desenhado em "pixels".
+const BEAM_PIXEL = 4;
+// Passo de amostragem menor que o bloco para não deixar furos na diagonal.
+const SAMPLE_STEP = BEAM_PIXEL * 0.7;
+
+function snap(value: number) {
+  return Math.floor(value / BEAM_PIXEL) * BEAM_PIXEL;
+}
+
+// Junta blocos da grade sem repetir (repetidos somariam no blend ADD).
+function pixelGrid() {
+  const seen = new Set<number>();
+  const cells: number[] = [];
+  return {
+    add(x: number, y: number) {
+      const gx = snap(x);
+      const gy = snap(y);
+      const key = (gx / BEAM_PIXEL + 32768) * 65536 + gy / BEAM_PIXEL + 32768;
+      if (seen.has(key)) return;
+      seen.add(key);
+      cells.push(gx, gy);
+    },
+    fill(graphics: Phaser.GameObjects.Graphics, color: number, alpha: number) {
+      graphics.fillStyle(color, alpha);
+      for (let index = 0; index < cells.length; index += 2) {
+        graphics.fillRect(cells[index] ?? 0, cells[index + 1] ?? 0, BEAM_PIXEL, BEAM_PIXEL);
+      }
+    },
+  };
+}
+
+function pixelDisc(
+  graphics: Phaser.GameObjects.Graphics,
+  x: number,
+  y: number,
+  radius: number,
+  color: number,
+  alpha: number,
+  ring = false,
+) {
+  // Raio em degraus de um bloco: o círculo cresce "pulando" de pixel em pixel.
+  const steps = Math.round(radius / BEAM_PIXEL);
+  if (steps <= 0) return;
+  const grid = pixelGrid();
+  for (let row = -steps; row <= steps; row += 1) {
+    for (let column = -steps; column <= steps; column += 1) {
+      const distance = Math.hypot(row, column);
+      if (distance > steps + 0.3) continue;
+      if (ring && distance < steps - 0.7) continue;
+      grid.add(x + column * BEAM_PIXEL, y + row * BEAM_PIXEL);
+    }
+  }
+  grid.fill(graphics, color, alpha);
+}
 
 function drawCharge(
   graphics: Phaser.GameObjects.Graphics,
@@ -97,14 +151,10 @@ function drawCharge(
   scale: number,
 ) {
   graphics.clear();
-  graphics.fillStyle(style.glow, 0.28);
-  graphics.fillCircle(x, y, 26 * scale);
-  graphics.fillStyle(style.charge, 0.55);
-  graphics.fillCircle(x, y, 14 * scale);
-  graphics.fillStyle(style.core, 0.95);
-  graphics.fillCircle(x, y, 5 * scale);
-  graphics.lineStyle(2, style.mid, 0.8 * scale);
-  graphics.strokeCircle(x, y, 40 * (1.4 - scale));
+  pixelDisc(graphics, x, y, 26 * scale, style.glow, 0.28);
+  pixelDisc(graphics, x, y, 14 * scale, style.charge, 0.55);
+  pixelDisc(graphics, x, y, 5 * scale, style.core, 0.95);
+  pixelDisc(graphics, x, y, 40 * (1.4 - scale), style.mid, 0.8 * scale, true);
 }
 
 function taper(t: number) {
@@ -120,11 +170,10 @@ function fillRibbon(
   color: number,
   alpha: number,
 ) {
-  const steps = Math.max(2, Math.ceil(body.distance / WAVE_STEP));
-  const top: Phaser.Math.Vector2[] = [];
-  const bottom: Phaser.Math.Vector2[] = [];
+  const grid = pixelGrid();
   const px = -body.uy;
   const py = body.ux;
+  const steps = Math.max(2, Math.ceil(body.distance / SAMPLE_STEP));
   for (let index = 0; index <= steps; index += 1) {
     const t = index / steps;
     const along = t * body.distance;
@@ -133,11 +182,13 @@ function fillRibbon(
     const half = halfWidth * body.width * body.scale * taper(t) * (1 + wave * WAVE_SWELL);
     const cx = body.from.x + body.ux * along + px * drift;
     const cy = body.from.y + body.uy * along + py * drift;
-    top.push(new Phaser.Math.Vector2(cx + px * half, cy + py * half));
-    bottom.push(new Phaser.Math.Vector2(cx - px * half, cy - py * half));
+    const slices = Math.max(1, Math.ceil((half * 2) / SAMPLE_STEP));
+    for (let slice = 0; slice <= slices; slice += 1) {
+      const across = -half + (half * 2 * slice) / slices;
+      grid.add(cx + px * across, cy + py * across);
+    }
   }
-  graphics.fillStyle(color, alpha);
-  graphics.fillPoints([...top, ...bottom.reverse()], true);
+  grid.fill(graphics, color, alpha);
 }
 
 function drawLaser(
@@ -150,26 +201,13 @@ function drawLaser(
   fillRibbon(graphics, body, GLOW_WIDTH, style.glow, 0.25);
   fillRibbon(graphics, body, MID_WIDTH, style.mid, 0.7);
   fillRibbon(graphics, body, CORE_WIDTH, style.core, 1);
-  graphics.fillStyle(style.core, 0.9 * body.width);
-  graphics.fillCircle(body.from.x, body.from.y, 6 * body.width * body.scale);
-}
-
-function addGlow(
-  scene: Phaser.Scene,
-  shot: BeamShot,
-  x: number,
-  y: number,
-  color: number,
-  radius: number,
-) {
-  const glow = scene.add
-    .image(x, y, FX_TEXTURES.glow)
-    .setTint(color)
-    .setBlendMode(Phaser.BlendModes.ADD)
-    .setDepth(BEAM_DEPTH + 0.1)
-    .setScale(radius / GLOW_TEXTURE_RADIUS);
-  shot.objects.push(glow);
-  return glow;
+  const size = body.width * body.scale;
+  pixelDisc(graphics, body.from.x, body.from.y, 6 * size, style.core, 0.9 * body.width);
+  // Clarão na ponta do feixe.
+  const tipX = body.from.x + body.ux * body.distance;
+  const tipY = body.from.y + body.uy * body.distance;
+  pixelDisc(graphics, tipX, tipY, 12 * size, style.mid, 0.5);
+  pixelDisc(graphics, tipX, tipY, 6 * size, style.core, 0.8);
 }
 
 function chargeSparks(
@@ -184,7 +222,12 @@ function chargeSparks(
     const angle = (Math.PI * 2 * index) / count + Math.random() * 0.6;
     const reach = 34 + Math.random() * 16;
     const spark = scene.add
-      .image(from.x + Math.cos(angle) * reach, from.y + Math.sin(angle) * reach, FX_TEXTURES.spark)
+      .image(
+        Math.round(from.x + Math.cos(angle) * reach),
+        Math.round(from.y + Math.sin(angle) * reach),
+        FX_TEXTURES.pixel,
+      )
+      .setScale(1.5)
       .setTint(style.mid)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setDepth(BEAM_DEPTH + 0.1);
@@ -193,7 +236,7 @@ function chargeSparks(
       targets: spark,
       x: from.x,
       y: from.y,
-      scale: 0.3,
+      scale: 0.5,
       duration: durationMs,
       ease: "Quad.easeIn",
       onComplete: () => {
@@ -204,13 +247,13 @@ function chargeSparks(
 }
 
 function beamEmbers(scene: Phaser.Scene, shot: BeamShot, line: Phaser.Geom.Line, style: BeamStyle) {
-  const emitter = scene.add.particles(0, 0, FX_TEXTURES.spark, {
+  const emitter = scene.add.particles(0, 0, FX_TEXTURES.pixel, {
     emitZone: { type: "random", source: line, quantity: 1 },
     lifespan: 250,
     frequency: 12,
     quantity: 2,
     speed: { min: 20, max: 70 },
-    scale: { start: 0.9, end: 0 },
+    scale: 1,
     alpha: { start: 1, end: 0 },
     tint: [style.core, style.mid, style.glow],
     blendMode: Phaser.BlendModes.ADD,
@@ -240,7 +283,6 @@ function finishShot(
   body: BeamBody,
   style: BeamStyle,
   emitter: Phaser.GameObjects.Particles.ParticleEmitter,
-  flare: Phaser.GameObjects.Image,
 ) {
   emitter.stop();
   const fade = scene.tweens.add({
@@ -258,7 +300,6 @@ function finishShot(
       if (shot.graphics.scene) shot.graphics.destroy();
     },
   });
-  scene.tweens.add({ targets: flare, alpha: 0, scale: 0, duration: FADE_MS });
   shot.motions.push(fade);
 }
 
@@ -277,16 +318,14 @@ function releaseBeam(
   const scale = cast.widthScale ?? 1;
   const body: BeamBody = { from: cast.from, ux, uy, distance: 0, width: 1, scale, phase: 0 };
   shot.motions.push(body);
-  const muzzle = addGlow(scene, shot, cast.from.x, cast.from.y, cast.style.glow, 34 * scale);
-  scene.tweens.add({ targets: muzzle, alpha: 0, scale: muzzle.scale * 1.6, duration: 160 });
-  const flare = addGlow(scene, shot, cast.from.x, cast.from.y, cast.style.mid, 26 * scale);
+  const tints = [cast.style.core, cast.style.mid, cast.style.glow];
+  pixelBurst(scene, cast.from, tints, Math.round(MUZZLE_SPARKS * scale), 2, 0, BEAM_DEPTH + 0.2);
   const line = new Phaser.Geom.Line(cast.from.x, cast.from.y, cast.from.x, cast.from.y);
   const emitter = beamEmbers(scene, shot, line, cast.style);
   const reach = (distance: number) => {
     const tipX = cast.from.x + ux * distance;
     const tipY = cast.from.y + uy * distance;
     line.setTo(cast.from.x, cast.from.y, tipX, tipY);
-    flare.setPosition(tipX, tipY);
   };
   const duration = Math.max(EXTEND_MS * (span / BEAM_RANGE), 40);
   const extend = scene.tweens.add({
@@ -315,7 +354,7 @@ function releaseBeam(
         },
         onComplete: () => {
           if (!shot.graphics.scene) return;
-          finishShot(scene, bucket, shot, body, cast.style, emitter, flare);
+          finishShot(scene, bucket, shot, body, cast.style, emitter);
         },
       });
       shot.motions.push(hold);
