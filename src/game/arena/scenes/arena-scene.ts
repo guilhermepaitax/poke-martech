@@ -30,7 +30,7 @@ import {
   setMarkerDead,
   spawnRingWave,
 } from "@/game/arena/entities/marker";
-import { destroyObstacles } from "@/game/arena/entities/obstacle";
+import { stepMapProps } from "@/game/arena/entities/map-props";
 import {
   clearPickups,
   lookColor,
@@ -50,10 +50,14 @@ import {
   type Player,
 } from "@/game/arena/entities/player";
 import { clearShieldFx, syncShieldFx } from "@/game/arena/entities/shield-fx";
+import { stepWaterFx, syncFighterWater } from "@/game/arena/entities/water-fx";
 import { bindArenaKeys, bindArenaPointer, readMoveAxes, type ArenaKeys } from "@/game/arena/input/arena-input";
 import {
   createArenaWorld,
+  destroyArenaWorld,
   layoutArena,
+  mapSpawn,
+  worldIsWater,
   type ArenaWorld,
   type FighterAnchors,
 } from "@/game/arena/world/layout";
@@ -67,6 +71,9 @@ import {
 } from "@/lib/arena/cpu";
 import { GUARD_BREAK_MS, GUARD_MAX, regenGuard } from "@/lib/arena/defense";
 import type { ArenaMatchup } from "@/lib/arena/fighter";
+import type { ArenaMap } from "@/lib/arena/map";
+import { DEFAULT_MAP } from "@/lib/arena/maps";
+import { buildNavGrid, type NavGrid } from "@/lib/arena/navigation";
 import { DASH_COOLDOWN_MS, facingFromAim } from "@/lib/arena/movement";
 import { resolveOutcome, type ArenaOutcome } from "@/lib/arena/outcome";
 import {
@@ -82,6 +89,7 @@ import {
 } from "@/lib/arena/pickups";
 import type { ArenaHudState, ArenaSnapshot, HudSlot } from "@/lib/arena/snapshot";
 import { spawnPoints } from "@/lib/arena/spawn";
+import { blockedRects, canEnter, terrainScale, toWorldRect } from "@/lib/arena/terrain";
 import { isArenaMode, type ArenaMode, type TutorialAction } from "@/lib/arena/tutorial";
 import Phaser from "phaser";
 
@@ -101,6 +109,8 @@ const TUTORIAL_DUMMY_SHOT_MS = 1800;
 const TUTORIAL_DUMMY_TUNING: AttackTuning = { cooldownScale: 1, damageScale: 0.5 };
 // Degraus da barra de guarda no HUD: evita emitir HUD a cada frame da recarga.
 const GUARD_HUD_STEPS = 20;
+// Recalcula a grade de navegação da CPU (obstáculos quebram durante a luta).
+const NAV_REBUILD_MS = 1000;
 const CHARGE_BANNER: Record<Exclude<ChargeLevel, 0>, [string, "charge" | "max"]> = {
   1: ["CARREGADO!", "charge"],
   2: ["MÁXIMO!", "max"],
@@ -111,6 +121,10 @@ function readMatchup(registry: Phaser.Data.DataManager): ArenaMatchup | null {
   if (!value || typeof value !== "object") return null;
   if (!("player" in value) || !("opponent" in value)) return null;
   return value as ArenaMatchup;
+}
+
+function readMap(registry: Phaser.Data.DataManager): ArenaMap {
+  return readMatchup(registry)?.map ?? DEFAULT_MAP;
 }
 
 function readCpuProfile(registry: Phaser.Data.DataManager): CpuProfile {
@@ -171,6 +185,9 @@ class ArenaScene extends Phaser.Scene {
   private dummyAttacks = false;
   private nextDummyShotAt = 0;
   private guardShown = "";
+  private nav: NavGrid | null = null;
+  private navBuiltAt = -Infinity;
+  private waterShown = false;
 
   constructor() {
     super("arena");
@@ -202,16 +219,19 @@ class ArenaScene extends Phaser.Scene {
     this.dummyAttacks = false;
     this.nextDummyShotAt = 0;
     this.guardShown = "";
+    this.nav = null;
+    this.navBuiltAt = -Infinity;
+    this.waterShown = false;
   }
 
   preload() {
     const matchup = readMatchup(this.game.registry);
-    preloadArenaAssets(this, matchup ? [matchup.player, matchup.opponent] : []);
+    preloadArenaAssets(this, matchup ? [matchup.player, matchup.opponent] : [], readMap(this.game.registry));
   }
 
   create() {
     createFxTextures(this);
-    this.world = createArenaWorld(this);
+    this.world = createArenaWorld(this, readMap(this.game.registry));
     this.scale.on(Phaser.Scale.Events.RESIZE, this.layout, this);
     this.releaseInput = bindArenaPointer(this, {
       onPrimaryDown: () => this.startCharge(),
@@ -242,6 +262,7 @@ class ArenaScene extends Phaser.Scene {
     const move = readMoveAxes(this.keys);
     this.trackMove(move, delta);
     this.syncDefense(delta);
+    this.syncTerrain();
     if (this.combat && Phaser.Input.Keyboard.JustDown(this.keys.space)) {
       if (tryPlayerDash(this, this.combat, this.player, move)) {
         this.cancelCharge(true);
@@ -271,13 +292,66 @@ class ArenaScene extends Phaser.Scene {
         this.player,
         this.cpuProfile,
         this.pickups,
+        this.cpuNav(),
       );
     }
     if (this.combat) {
       cullProjectiles(this, this.combat, this.world.width, this.world.height);
     }
     this.stepConsumables();
+    this.stepScenery();
     this.checkOutcome();
+  }
+
+  // Pés na água: bônus do nadador, espirro/som ao entrar e selo no HUD.
+  private syncTerrain() {
+    const world = this.world;
+    if (!world || world.zones.length === 0) return;
+    for (const fighter of [this.player, this.opponent]) {
+      if (!fighter) continue;
+      const feet = { x: fighter.sprite.x, y: fighter.sprite.y + fighter.fighter.tuning.feetOffsetY };
+      const inWater = worldIsWater(world, feet);
+      if (world.water) syncFighterWater(this, world.water, fighter, inWater);
+      fighter.inWater = inWater;
+      fighter.terrain = terrainScale(world.map.water, fighter.fighter.mobility, inWater);
+    }
+    const boosted = (this.player?.terrain.damage ?? 1) > 1;
+    if (boosted !== this.waterShown) {
+      this.waterShown = boosted;
+      this.emitHud();
+    }
+  }
+
+  private stepScenery() {
+    const world = this.world;
+    if (!world) return;
+    if (world.water) stepWaterFx(this, world.water);
+    if (world.props && this.player && this.opponent) {
+      stepMapProps(this, world.props, [this.player, this.opponent]);
+    }
+  }
+
+  // Grade só existe quando o mapa tem terreno que a CPU não atravessa.
+  private cpuNav() {
+    const { world, opponent, combat } = this;
+    if (!world || !opponent || !combat) return null;
+    const blocked = blockedRects(world.zones, world, opponent.fighter.mobility);
+    if (blocked.length === 0) return null;
+    if (this.nav && this.time.now - this.navBuiltAt < NAV_REBUILD_MS) return this.nav;
+    const bounds = this.physics.world.bounds;
+    const body = opponent.sprite.body;
+    const margin = body ? Math.max(body.width, body.height) / 2 : 24;
+    this.nav = buildNavGrid(bounds, [...blocked, ...blockRects(combat)], margin);
+    this.navBuiltAt = this.time.now;
+    return this.nav;
+  }
+
+  // Caixas não nascem em água nem em rocha (nem todo mundo alcança).
+  private pickupBlocks() {
+    const { world, combat } = this;
+    if (!combat) return [];
+    const terrain = world ? world.zones.map((zone) => toWorldRect(zone.rect, world)) : [];
+    return [...blockRects(combat), ...terrain];
   }
 
   pauseMatch() {
@@ -421,6 +495,7 @@ class ArenaScene extends Phaser.Scene {
         ratio: guardStep(player) / GUARD_HUD_STEPS,
         defending: player.defending,
       },
+      waterBoost: player.terrain.damage > 1,
       charge:
         started === null
           ? null
@@ -533,7 +608,7 @@ class ArenaScene extends Phaser.Scene {
       return;
     }
     const bounds = this.physics.world.bounds;
-    const spot = pickupSpot(Math.random, bounds, blockRects(combat), [
+    const spot = pickupSpot(Math.random, bounds, this.pickupBlocks(), [
       playerAnchor(player),
       playerAnchor(opponent),
     ]);
@@ -559,8 +634,8 @@ class ArenaScene extends Phaser.Scene {
     };
     const avoid = [origin, playerAnchor(opponent)];
     const spot =
-      pickupSpot(Math.random, near, blockRects(combat), avoid) ??
-      pickupSpot(Math.random, world, blockRects(combat), avoid);
+      pickupSpot(Math.random, near, this.pickupBlocks(), avoid) ??
+      pickupSpot(Math.random, world, this.pickupBlocks(), avoid);
     if (!spot) {
       this.nextPickupAt = this.time.now + PICKUP_RETRY_MS;
       return;
@@ -685,13 +760,14 @@ class ArenaScene extends Phaser.Scene {
     clearPickups(this, this.pickups);
     this.anchors = layoutArena(this, this.world, this.anchors, this.player, this.opponent);
     if (this.combat) layoutCombat(this, this.combat);
+    this.nav = null;
   }
 
   private spawnFighters(matchup: ArenaMatchup) {
     const world = this.world;
     if (!world) return;
     const bounds = this.physics.world.bounds;
-    const spawn = spawnPoints(bounds);
+    const spawn = mapSpawn(world) ?? spawnPoints(bounds);
     registerCharacterAnimations(this, matchup.player);
     registerCharacterAnimations(this, matchup.opponent);
     this.player = createPlayer(this, spawn.player.x, spawn.player.y, matchup.player, "east");
@@ -713,8 +789,13 @@ class ArenaScene extends Phaser.Scene {
       };
     }
     const solids = world.obstacles.map((obstacle) => obstacle.body);
-    this.physics.add.collider(this.player.sprite, solids);
-    this.physics.add.collider(this.opponent.sprite, solids);
+    for (const fighter of [this.player, this.opponent]) {
+      // Cada lutador só esbarra no terreno que não alcança (quem nada entra na água).
+      const walls = world.terrain
+        .filter(({ zone }) => !canEnter(zone.kind, fighter.fighter.mobility))
+        .map(({ body }) => body);
+      this.physics.add.collider(fighter.sprite, [...solids, ...walls]);
+    }
     this.physics.add.collider(this.player.sprite, this.opponent.sprite);
     this.combat = createCombat(
       this,
@@ -723,6 +804,7 @@ class ArenaScene extends Phaser.Scene {
       world.obstacles,
       () => this.onHpChange(),
       (event) => this.onBlock(event),
+      (at) => worldIsWater(world, at),
     );
     this.opponentHp = this.opponent.hp;
     this.nextPickupAt = this.time.now + pickupDelay(Math.random);
@@ -740,7 +822,7 @@ class ArenaScene extends Phaser.Scene {
     this.events.off(Phaser.Scenes.Events.POST_UPDATE, this.syncMarkers, this);
     if (this.combat) destroyCombat(this, this.combat);
     this.combat = null;
-    if (this.world) destroyObstacles(this, this.world.obstacles);
+    if (this.world) destroyArenaWorld(this, this.world);
     clearPickups(this, this.pickups);
     for (const fighter of [this.player, this.opponent]) {
       if (!fighter) continue;

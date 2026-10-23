@@ -31,7 +31,7 @@ Cada etapa abaixo deve poder ser jogada e verificada antes da seguinte. Não ava
 - Lutadores são fixos em código, um arquivo por lutador em `src/lib/arena/fighters/` (nome, título, descrição, tipo, HP, ataques e folhas de sprite). Não vêm mais das cartas cadastradas. Ver "Roster fixo".
 - A partida não é persistida. Sem tabela nova e sem recompensa.
 - O canvas ocupa a tela abaixo do header e nunca passa da largura da janela. Não há scroll horizontal.
-- O fundo é `public/arena/arena-floor.jpg`. A proporção da arte é mantida. O mundo é maior que a câmera nos dois eixos (`arenaWorldSize`, overflow 1.5), centralizado. O que fica fora da tela será revelado quando a câmera seguir o personagem.
+- Fundo, obstáculos, terreno e spawn vêm do mapa escolhido (ver `docs/arena-maps.md`). A proporção da arte é mantida. O mundo é maior que a câmera nos dois eixos (`arenaWorldSize`, overflow 1.5), centralizado. O que fica fora da tela será revelado quando a câmera seguir o personagem.
 - A borda do canvas é reta, de 4px, na cor âmbar atual. Sem cantos arredondados.
 
 ## Etapa 0 — Auditoria e planejamento

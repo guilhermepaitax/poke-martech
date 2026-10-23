@@ -30,6 +30,12 @@ describe("ARENA_FIGHTERS", () => {
       });
     },
   );
+
+  it("todo lutador de água nada", () => {
+    ARENA_FIGHTERS.filter((fighter) => fighter.energy === "water").forEach((fighter) => {
+      expect(fighter.mobility).toContain("swim");
+    });
+  });
 });
 
 describe("findFighter", () => {

@@ -21,8 +21,12 @@ const aiCardGeneration = booleanFlag(
   "Geração de cartas com IA no admin",
 );
 const arena = booleanFlag("arena", "Batalha na arena");
+const arenaMapEditor = booleanFlag(
+  "arena-map-editor",
+  "Editor de mapas da arena no admin",
+);
 const pokedex = booleanFlag("pokedex", "Acesso à Pokédex");
 const trocas = booleanFlag("trocas", "Acesso às trocas");
 const loja = booleanFlag("loja", "Acesso à loja");
 
-export { aiCardGeneration, arena, loja, pokedex, trocas };
+export { aiCardGeneration, arena, arenaMapEditor, loja, pokedex, trocas };

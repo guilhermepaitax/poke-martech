@@ -1,7 +1,8 @@
 type ArenaSide = "player" | "opponent";
 
-// Id reservado: o lutador só é sorteado na hora da luta.
+// Id reservado: o lutador (ou o mapa) só é sorteado na hora da luta.
 const RANDOM_FIGHTER_ID = "random";
+const RANDOM_MAP_ID = RANDOM_FIGHTER_ID;
 
 type ArenaSelection = {
   playerId: string | null;
@@ -45,8 +46,13 @@ function resolveArenaFighterId(
   return ids[Math.min(Math.floor(random() * ids.length), ids.length - 1)];
 }
 
+// Mesmo sorteio dos lutadores, para a escolha de mapa.
+const resolveArenaMapId = resolveArenaFighterId;
+
 export {
   RANDOM_FIGHTER_ID,
+  RANDOM_MAP_ID,
+  resolveArenaMapId,
   canStartArena,
   chooseArenaFighter,
   isRandomPick,

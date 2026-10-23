@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   RANDOM_FIGHTER_ID,
+  RANDOM_MAP_ID,
   canStartArena,
+  resolveArenaMapId,
   resolveArenaFighterId,
   chooseArenaFighter,
   type ArenaSelection,
@@ -74,5 +76,14 @@ describe("resolveArenaFighterId", () => {
     expect(
       canStartArena({ playerId: RANDOM_FIGHTER_ID, opponentId: "calvossauro", active: "player" }),
     ).toBe(true);
+  });
+});
+
+describe("resolveArenaMapId", () => {
+  const ids = ["arena-da-selva", "ilha-das-estrelas"];
+
+  it("mantém o mapa escolhido e sorteia o aleatório", () => {
+    expect(resolveArenaMapId("ilha-das-estrelas", ids, () => 0)).toBe("ilha-das-estrelas");
+    expect(resolveArenaMapId(RANDOM_MAP_ID, ids, () => 0.9)).toBe("ilha-das-estrelas");
   });
 });

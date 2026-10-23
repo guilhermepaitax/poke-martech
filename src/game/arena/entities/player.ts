@@ -25,6 +25,7 @@ import {
 import type { ArenaFighter } from "@/lib/arena/fighter";
 import { normalizeMove, type Facing } from "@/lib/arena/movement";
 import { buffScale, type Buff } from "@/lib/arena/pickups";
+import { NEUTRAL_SCALE, type TerrainScale } from "@/lib/arena/terrain";
 import Phaser from "phaser";
 
 type DashKind = "lunge" | "evade";
@@ -55,6 +56,9 @@ type Player = {
   guard: GuardState;
   // Efeitos temporários dos consumíveis (velocidade, dano, vulnerabilidade).
   buffs: Buff[];
+  // Pés na água e o bônus de terreno que vale agora (nadador na água).
+  inWater: boolean;
+  terrain: TerrainScale;
   animToken: number;
 };
 
@@ -117,6 +121,8 @@ function createPlayer(
     defending: false,
     guard: freshGuard(),
     buffs: [],
+    inWater: false,
+    terrain: NEUTRAL_SCALE,
     animToken: 0,
   };
 }
@@ -258,7 +264,7 @@ function updatePlayer(
   const moving = move.x !== 0 || move.y !== 0;
   const now = player.sprite.scene.time.now;
   const guard = player.defending ? DEFEND_MOVE_SCALE : 1;
-  const pace = speed * guard * buffScale(player.buffs, "haste", now);
+  const pace = speed * guard * buffScale(player.buffs, "haste", now) * player.terrain.speed;
   player.sprite.setVelocity(move.x * pace, move.y * pace);
   // Durante o ataque desliza mantendo o clip do golpe até ele terminar.
   if (player.attacking) return;

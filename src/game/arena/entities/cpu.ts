@@ -1,10 +1,11 @@
 import { blockRects, tryAttack, type Combat } from "@/game/arena/entities/combat";
 import type { Pickup } from "@/game/arena/entities/pickup";
 import { isDashing, setDefending, updatePlayer, type Player } from "@/game/arena/entities/player";
-import { firstBlockHit } from "@/lib/arena/combat";
+import { firstBlockHit, type Point } from "@/lib/arena/combat";
 import { cpuDefends, cpuParries, decideCpu, type CpuProfile } from "@/lib/arena/cpu";
 import { PARRY_WINDOW_MS } from "@/lib/arena/defense";
-import { facingFromAim } from "@/lib/arena/movement";
+import { facingFromAim, normalizeMove, type MoveVector } from "@/lib/arena/movement";
+import { nextWaypoint, type NavGrid } from "@/lib/arena/navigation";
 import type Phaser from "phaser";
 
 // Defesa comum sobe depois da janela de parry, para não virar parry sem querer.
@@ -53,6 +54,33 @@ function updateCpuGuard(scene: Phaser.Scene, combat: Combat, cpu: Player, target
   return cpu.defending || (!combat.over && now < guard.raiseAt);
 }
 
+// O vetor da decisão aponta para o alvo ou para uma caixa; acha qual.
+function chaseGoal(self: Point, move: MoveVector, enemy: Point, pickups: readonly { at: Point }[]) {
+  const candidates = [enemy, ...pickups.map((pickup) => pickup.at)];
+  let best = enemy;
+  let bestDot = -Infinity;
+  for (const point of candidates) {
+    const aim = normalizeMove(point.x - self.x, point.y - self.y);
+    const dot = aim.x * move.x + aim.y * move.y;
+    if (dot > bestDot) {
+      best = point;
+      bestDot = dot;
+    }
+  }
+  return best;
+}
+
+// Com grade de navegação, contorna água/rocha em vez de andar reto contra a margem.
+function steer(nav: NavGrid | null, self: Point, move: MoveVector, goal: Point): MoveVector {
+  if (!nav) return move;
+  const waypoint = nextWaypoint(nav, self, goal);
+  if (!waypoint) return move;
+  const next = normalizeMove(waypoint.x - self.x, waypoint.y - self.y);
+  // Já na margem mais perto de um alvo inalcançável: espera ali.
+  if (Math.hypot(waypoint.x - self.x, waypoint.y - self.y) < nav.cell / 4) return { x: 0, y: 0 };
+  return next;
+}
+
 function updateCpu(
   scene: Phaser.Scene,
   combat: Combat,
@@ -60,6 +88,7 @@ function updateCpu(
   target: Player,
   profile: CpuProfile,
   pickups: readonly Pickup[] = [],
+  nav: NavGrid | null = null,
 ) {
   const self = { x: cpu.sprite.x, y: cpu.sprite.y };
   const enemy = { x: target.sprite.x, y: target.sprite.y };
@@ -98,7 +127,11 @@ function updateCpu(
     return;
   }
   if (decision.action === "chase") {
-    updatePlayer(cpu, decision.move.x, decision.move.y, profile.speed);
+    const goal = chaseGoal(self, decision.move, enemy, goals);
+    const body = cpu.sprite.body;
+    const feet = body ? { x: body.center.x, y: body.center.y } : self;
+    const move = steer(nav, feet, decision.move, goal);
+    updatePlayer(cpu, move.x, move.y, profile.speed);
     return;
   }
   updatePlayer(cpu, 0, 0);

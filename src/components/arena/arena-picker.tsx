@@ -3,7 +3,7 @@
 import type { ArenaDifficulty } from "@/lib/arena/cpu";
 import type { ArenaFighter } from "@/lib/arena/fighter";
 import type { ArenaSide } from "@/lib/arena/selection";
-import { GraduationCap, Shuffle, Swords } from "lucide-react";
+import { GraduationCap, Map as MapIcon, Shuffle } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { ArenaActionButton } from "./arena-action-button";
@@ -132,8 +132,8 @@ function ArenaPicker({
               disabled={!canFight}
               className="arena-cta flex h-14 w-full items-center justify-center gap-3 font-arena-title text-2xl uppercase focus-visible:outline-none"
             >
-              <Swords aria-hidden className="size-6" />
-              Lutar
+              <MapIcon aria-hidden className="size-6" />
+              Escolher arena
             </button>
           </div>
           <ArenaActionButton

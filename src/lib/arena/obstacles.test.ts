@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { crackStage, damageObstacle, OBSTACLE_LAYOUT } from "./obstacles";
+import { crackStage, damageObstacle } from "./obstacles";
 
 describe("damageObstacle", () => {
   it("desconta o dano sem passar de zero", () => {
@@ -25,19 +25,5 @@ describe("crackStage", () => {
     expect(crackStage(50, 100)).toBe(2);
     expect(crackStage(30, 100)).toBe(3);
     expect(crackStage(1, 100)).toBe(3);
-  });
-});
-
-describe("OBSTACLE_LAYOUT", () => {
-  it("tem tamanhos variados e vida positiva", () => {
-    const areas = new Set(OBSTACLE_LAYOUT.map((spec) => spec.width * spec.height));
-    expect(areas.size).toBeGreaterThan(2);
-    OBSTACLE_LAYOUT.forEach((spec) => {
-      expect(spec.hp).toBeGreaterThan(0);
-      expect(spec.x).toBeGreaterThan(0);
-      expect(spec.x).toBeLessThan(1);
-      expect(spec.y).toBeGreaterThan(0);
-      expect(spec.y).toBeLessThan(1);
-    });
   });
 });

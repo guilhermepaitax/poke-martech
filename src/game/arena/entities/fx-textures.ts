@@ -21,6 +21,13 @@ const FX_TEXTURES = {
   orbCharged: "fx-orb-charged",
   orbChargedAlt: "fx-orb-charged-alt",
   shards: "fx-shards",
+  waterRipple: "fx-water-ripple",
+  waterGlint: "fx-water-glint",
+  waterGlintAlt: "fx-water-glint-alt",
+  fish: "fx-fish",
+  fishAlt: "fx-fish-alt",
+  starfish: "fx-starfish",
+  starfishAlt: "fx-starfish-alt",
 } as const;
 
 // Pixel art 12x12 das bolhas: `#` contorno, `.` miolo translúcido,
@@ -150,7 +157,104 @@ const SWIFT_ART = [
   " ##       ## ",
 ];
 
+// Ondinha 14x8 em volta dos pés na água, branca para receber tint.
+const WATER_RIPPLE_ART = [
+  "    ######    ",
+  "  ##      ##  ",
+  " #          # ",
+  "#            #",
+  "#            #",
+  " #          # ",
+  "  ##      ##  ",
+  "    ######    ",
+];
+
+// Brilho 5x5 da água: ponto que vira cruz (dois quadros).
+const WATER_GLINT_ART = [
+  "     ",
+  "     ",
+  "  w  ",
+  "     ",
+  "     ",
+];
+
+const WATER_GLINT_ART_ALT = [
+  "  c  ",
+  "  w  ",
+  "cwwwc",
+  "  w  ",
+  "  c  ",
+];
+
+// Peixe 12x8 olhando para a direita: `#` contorno, `.` corpo, `o` barriga,
+// `w` olho. O quadro alternativo dobra a cauda.
+const FISH_ART = [
+  "            ",
+  "#     ####  ",
+  "##  ##....# ",
+  "#.##..w....#",
+  "#.#......oo#",
+  "##  ##oooo# ",
+  "#     ####  ",
+  "            ",
+];
+
+const FISH_ART_ALT = [
+  "            ",
+  "      ####  ",
+  " ## ##....# ",
+  " #.#..w....#",
+  " #.#.....oo#",
+  " ## ##oooo# ",
+  "      ####  ",
+  "            ",
+];
+
+// Estrela-do-mar 9x9: `#` contorno, `.` corpo, `o` pintas, `w` brilho.
+const STARFISH_ART = [
+  "    #    ",
+  "   #.#   ",
+  "####o####",
+  "#..o.o..#",
+  " #..o..# ",
+  "  #...#  ",
+  " #.#.#.# ",
+  "#.#   #.#",
+  "##     ##",
+];
+
+const STARFISH_ART_ALT = [
+  "    #    ",
+  "   #w#   ",
+  "####o####",
+  "#.wo.o..#",
+  " #..o..# ",
+  "  #...#  ",
+  " #.#.#.# ",
+  "#.#   #w#",
+  "##     ##",
+];
+
 type PixelPalette = Record<string, { color: number; alpha: number }>;
+
+const GLINT_PALETTE: PixelPalette = {
+  w: { color: 0xffffff, alpha: 1 },
+  c: { color: 0xbfeaff, alpha: 0.85 },
+};
+
+const FISH_PALETTE: PixelPalette = {
+  "#": { color: 0x6a2410, alpha: 1 },
+  ".": { color: 0xff8a2a, alpha: 1 },
+  o: { color: 0xffe0a8, alpha: 1 },
+  w: { color: 0x101018, alpha: 1 },
+};
+
+const STARFISH_PALETTE: PixelPalette = {
+  "#": { color: 0x7a1e2a, alpha: 1 },
+  ".": { color: 0xff6a5a, alpha: 1 },
+  o: { color: 0xffc0a0, alpha: 1 },
+  w: { color: 0xffffff, alpha: 1 },
+};
 
 const WATER_PALETTE: PixelPalette = {
   "#": { color: 0x1f6fc4, alpha: 1 },
@@ -324,6 +428,13 @@ function createFxTextures(scene: Phaser.Scene) {
     [FX_TEXTURES.boneCharged, BONE_ART, BONE_CHARGED_PALETTE],
     [FX_TEXTURES.swift, SWIFT_ART, SWIFT_PALETTE],
     [FX_TEXTURES.swiftCharged, SWIFT_ART, SWIFT_CHARGED_PALETTE],
+    [FX_TEXTURES.waterRipple, WATER_RIPPLE_ART, POP_PALETTE],
+    [FX_TEXTURES.waterGlint, WATER_GLINT_ART, GLINT_PALETTE],
+    [FX_TEXTURES.waterGlintAlt, WATER_GLINT_ART_ALT, GLINT_PALETTE],
+    [FX_TEXTURES.fish, FISH_ART, FISH_PALETTE],
+    [FX_TEXTURES.fishAlt, FISH_ART_ALT, FISH_PALETTE],
+    [FX_TEXTURES.starfish, STARFISH_ART, STARFISH_PALETTE],
+    [FX_TEXTURES.starfishAlt, STARFISH_ART_ALT, STARFISH_PALETTE],
   ];
   pixelArt.forEach(([key, art, palette]) => {
     bake(scene, key, art[0]?.length ?? 0, art.length, (graphics) => {

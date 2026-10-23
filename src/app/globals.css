@@ -1226,6 +1226,60 @@ body {
     0 0 22px color-mix(in srgb, var(--energy) 60%, transparent);
 }
 
+.arena-water-boost {
+  transform: skewX(-8deg);
+  background: #4fb8ff;
+  color: #06233d;
+}
+
+.arena-map-tile {
+  overflow: hidden;
+  border: 2px solid var(--arena-line);
+  background: rgb(255 255 255 / 0.04);
+  transition:
+    border-color 160ms ease-out,
+    box-shadow 160ms ease-out,
+    transform 160ms ease-out;
+}
+
+.arena-map-tile:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--arena-cta) 60%, white);
+}
+
+.arena-map-tile[data-current] {
+  border-color: var(--arena-ink);
+  box-shadow:
+    0 0 0 2px var(--arena-cta),
+    0 0 22px color-mix(in srgb, var(--arena-cta) 45%, transparent);
+}
+
+/* Fundo em pixel art: amplia sem borrar. */
+.arena-banner[data-pixel],
+.arena-map-thumb[data-pixel] {
+  image-rendering: pixelated;
+}
+
+.arena-map-trait {
+  --trait-tone: var(--arena-ink-subtle);
+  transform: skewX(-8deg);
+  border: 2px solid color-mix(in srgb, var(--trait-tone) 60%, transparent);
+  background: color-mix(in srgb, var(--trait-tone) 16%, transparent);
+  color: var(--arena-ink);
+}
+
+.arena-map-trait[data-tone="water"] {
+  --trait-tone: #4fb8ff;
+}
+
+.arena-map-trait[data-tone="boost"] {
+  --trait-tone: var(--arena-cta);
+}
+
+.arena-map-trait > * {
+  transform: skewX(8deg);
+}
+
 .arena-roster-badge {
   background: var(--arena-ink);
   color: var(--arena-bg);

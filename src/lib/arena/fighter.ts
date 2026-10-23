@@ -1,5 +1,7 @@
 import type { AttackKind } from "./combat";
+import type { ArenaMap } from "./map";
 import type { Facing } from "./movement";
+import type { Mobility } from "./terrain";
 
 type FighterEnergy = "fire" | "grass" | "ground" | "colorless" | "water";
 
@@ -70,6 +72,8 @@ type ArenaFighter = {
   banner: FighterBanner;
   energy: FighterEnergy;
   ranged: RangedStyle;
+  // Terrenos extras que alcança (água para quem nada). Sem valor, só terra.
+  mobility?: readonly Mobility[];
   hp: number;
   attacks: Record<AttackKind, FighterAttack>;
   sprite: FighterSprite;
@@ -79,6 +83,7 @@ type ArenaFighter = {
 type ArenaMatchup = {
   player: ArenaFighter;
   opponent: ArenaFighter;
+  map: ArenaMap;
 };
 
 const EIGHT_WAY_ROWS: Record<Facing, number> = {

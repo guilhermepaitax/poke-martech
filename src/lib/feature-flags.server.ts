@@ -1,10 +1,11 @@
-import { aiCardGeneration, arena, loja, pokedex, trocas } from "@/flags";
+import { aiCardGeneration, arena, arenaMapEditor, loja, pokedex, trocas } from "@/flags";
 import type { FeatureFlag, FeatureFlagMap } from "@/lib/feature-flags";
 import { evaluate } from "flags/next";
 
 const FLAG_DECLARATIONS = {
   "ai-card-generation": aiCardGeneration,
   arena,
+  "arena-map-editor": arenaMapEditor,
   pokedex,
   trocas,
   loja,

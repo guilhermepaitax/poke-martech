@@ -1,6 +1,7 @@
 "use client";
 
 import { ARENA_FIGHTERS } from "@/lib/arena/fighters";
+import { ARENA_MAPS } from "@/lib/arena/maps";
 import type { ArenaSelection } from "@/lib/arena/selection";
 import type { ArenaMode } from "@/lib/arena/tutorial";
 import dynamic from "next/dynamic";
@@ -8,6 +9,7 @@ import dynamic from "next/dynamic";
 import { unlockArenaAudio } from "@/game/arena/unlock-audio";
 
 import { useArenaCanvasLayout } from "./arena-canvas-layout";
+import { ArenaMapPicker } from "./arena-map-picker";
 import { ArenaPicker } from "./arena-picker";
 import { ArenaTitleCard } from "./arena-title-card";
 import { useArenaPicker } from "./use-arena-picker";
@@ -45,8 +47,12 @@ function ArenaScreen() {
   const tutorial = useArenaTutorial();
 
   // Primeira luta passa pelo treino antes.
-  function start(mode: ArenaMode = tutorial.done ? "match" : "tutorial") {
-    if (!picker.fight(mode)) return;
+  function chooseMap(mode: ArenaMode = tutorial.done ? "match" : "tutorial") {
+    picker.openMaps(mode);
+  }
+
+  function start() {
+    if (!picker.fight()) return;
     unlockArenaAudio();
     canvas.setActive(true);
   }
@@ -58,6 +64,7 @@ function ArenaScreen() {
 
   function exit() {
     picker.reset();
+    picker.backToFighters();
     canvas.setActive(false);
   }
 
@@ -79,6 +86,25 @@ function ArenaScreen() {
     );
   }
 
+  if (picker.step === "map") {
+    return (
+      <section data-slot="arena-screen">
+        <ArenaMapPicker
+          maps={ARENA_MAPS}
+          map={picker.map}
+          random={picker.randomMap}
+          player={picker.player}
+          opponent={picker.opponent}
+          fighterRandom={picker.random}
+          mode={picker.mode}
+          onChoose={picker.chooseMap}
+          onBack={picker.backToFighters}
+          onFight={start}
+        />
+      </section>
+    );
+  }
+
   return (
     <section data-slot="arena-screen">
       <ArenaPicker
@@ -90,8 +116,8 @@ function ArenaScreen() {
         active={picker.active}
         onChoose={picker.choose}
         onActivate={picker.activate}
-        onFight={() => start()}
-        onTutorial={() => start("tutorial")}
+        onFight={() => chooseMap()}
+        onTutorial={() => chooseMap("tutorial")}
         canFight={picker.canFight}
         difficulty={picker.difficulty}
         onDifficulty={picker.setDifficulty}

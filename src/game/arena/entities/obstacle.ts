@@ -8,6 +8,7 @@ import {
   type Polyline,
 } from "@/game/arena/entities/cracks";
 import type { Point } from "@/lib/arena/combat";
+import type { ObstacleTheme } from "@/lib/arena/map";
 import {
   crackStage,
   damageObstacle,
@@ -33,18 +34,53 @@ const SHARD_SPREAD_MS = 320;
 const BREAK_SHAKE_MS = 160;
 const BREAK_SHAKE = 0.006;
 const BRANCHES_BY_STAGE: Record<Exclude<CrackStage, 0>, number> = { 1: 3, 2: 4, 3: 5 };
-const STONE = {
-  shadow: 0x000000,
-  side: 0x7a5530,
-  face: 0xc99d64,
-  light: 0xe9c995,
-  edge: 0x4a2f18,
-  frame: 0x8a6236,
-  trim: 0xf0cf7a,
-  inlay: 0x9c6f3c,
-  speck: 0x9f7748,
-} as const;
-const SHARD_COLORS = [STONE.face, STONE.side, STONE.light, STONE.frame, STONE.trim] as const;
+type StonePalette = {
+  shadow: number;
+  side: number;
+  face: number;
+  light: number;
+  edge: number;
+  frame: number;
+  trim: number;
+  inlay: number;
+  speck: number;
+};
+
+// Paleta por tema do mapa: arenito da selva, basalto com musgo da ilha.
+const OBSTACLE_THEMES: Record<ObstacleTheme, StonePalette> = {
+  sandstone: {
+    shadow: 0x000000,
+    side: 0x7a5530,
+    face: 0xc99d64,
+    light: 0xe9c995,
+    edge: 0x4a2f18,
+    frame: 0x8a6236,
+    trim: 0xf0cf7a,
+    inlay: 0x9c6f3c,
+    speck: 0x9f7748,
+  },
+  basalt: {
+    shadow: 0x000000,
+    side: 0x34374a,
+    face: 0x5c6178,
+    light: 0x8a90a8,
+    edge: 0x1c1d2a,
+    frame: 0x43475c,
+    trim: 0x7cbf4a,
+    inlay: 0x4a4f64,
+    speck: 0x3e4256,
+  },
+};
+
+function shardColors(stone: StonePalette) {
+  return [stone.face, stone.side, stone.light, stone.frame, stone.trim] as const;
+}
+
+function pickShard(stone: StonePalette) {
+  const colors = shardColors(stone);
+  return colors[Math.floor(Math.random() * colors.length)] ?? stone.face;
+}
+
 const CRACK_COLOR = 0x2a1a10;
 const CRACK_HIGHLIGHT = 0xf3dcb0;
 
@@ -52,6 +88,7 @@ type CrackSet = { trunk: Polyline; forks: Polyline[] }[];
 
 type Obstacle = {
   spec: ObstacleSpec;
+  stone: StonePalette;
   body: Phaser.GameObjects.Rectangle;
   art: Phaser.GameObjects.Graphics;
   cracks: Phaser.GameObjects.Graphics;
@@ -88,11 +125,16 @@ function diamond(cx: number, cy: number, radius: number) {
   ];
 }
 
-function paintObstacle(graphics: Phaser.GameObjects.Graphics, spec: ObstacleSpec, seed: number) {
+function paintObstacle(
+  graphics: Phaser.GameObjects.Graphics,
+  spec: ObstacleSpec,
+  seed: number,
+  stone: StonePalette,
+) {
   const face = faceBounds(spec);
   const rng = createRng(seed);
   graphics.clear();
-  graphics.fillStyle(STONE.shadow, 0.3);
+  graphics.fillStyle(stone.shadow, 0.3);
   graphics.fillRoundedRect(
     face.left + SHADOW_OFFSET.x,
     face.top + SHADOW_OFFSET.y,
@@ -100,15 +142,15 @@ function paintObstacle(graphics: Phaser.GameObjects.Graphics, spec: ObstacleSpec
     spec.height,
     CORNER,
   );
-  graphics.fillStyle(STONE.side, 1);
+  graphics.fillStyle(stone.side, 1);
   graphics.fillRoundedRect(face.left, face.top, spec.width, spec.height, CORNER);
-  graphics.fillStyle(STONE.face, 1);
+  graphics.fillStyle(stone.face, 1);
   graphics.fillRoundedRect(face.left, face.top, face.width, face.height, CORNER);
-  graphics.fillStyle(STONE.light, 0.7);
+  graphics.fillStyle(stone.light, 0.7);
   graphics.fillRect(face.left + CORNER, face.top + 1, face.width - CORNER * 2, 2);
   const specks = Math.round((face.width * face.height) / 260);
   for (let index = 0; index < specks; index += 1) {
-    graphics.fillStyle(rng() < 0.5 ? STONE.speck : STONE.light, 0.45);
+    graphics.fillStyle(rng() < 0.5 ? stone.speck : stone.light, 0.45);
     graphics.fillRect(
       face.left + 4 + rng() * (face.width - 8),
       face.top + 4 + rng() * (face.height - 8),
@@ -123,9 +165,9 @@ function paintObstacle(graphics: Phaser.GameObjects.Graphics, spec: ObstacleSpec
     width: face.width - inset * 2,
     height: face.height - inset * 2,
   };
-  graphics.lineStyle(2, STONE.frame, 0.9);
+  graphics.lineStyle(2, stone.frame, 0.9);
   graphics.strokeRect(frame.x, frame.y, frame.width, frame.height);
-  graphics.lineStyle(1, STONE.light, 0.55);
+  graphics.lineStyle(1, stone.light, 0.55);
   graphics.strokeRect(frame.x + 2, frame.y + 2, frame.width - 4, frame.height - 4);
   const stud = Math.min(STUD_SIZE, inset);
   [
@@ -134,21 +176,21 @@ function paintObstacle(graphics: Phaser.GameObjects.Graphics, spec: ObstacleSpec
     [frame.x, frame.y + frame.height],
     [frame.x + frame.width, frame.y + frame.height],
   ].forEach(([x = 0, y = 0]) => {
-    graphics.fillStyle(STONE.edge, 1);
+    graphics.fillStyle(stone.edge, 1);
     graphics.fillRect(x - stud / 2 - 1, y - stud / 2 - 1, stud + 2, stud + 2);
-    graphics.fillStyle(STONE.trim, 1);
+    graphics.fillStyle(stone.trim, 1);
     graphics.fillRect(x - stud / 2, y - stud / 2, stud, stud);
   });
   const cx = face.left + face.width / 2;
   const cy = face.top + face.height / 2;
   const radius = Math.min(face.width, face.height) * 0.2;
-  graphics.fillStyle(STONE.inlay, 1);
+  graphics.fillStyle(stone.inlay, 1);
   graphics.fillPoints(diamond(cx, cy, radius), true);
-  graphics.lineStyle(2, STONE.trim, 1);
+  graphics.lineStyle(2, stone.trim, 1);
   graphics.strokePoints(diamond(cx, cy, radius * 0.55), true);
-  graphics.lineStyle(2, STONE.edge, 1);
+  graphics.lineStyle(2, stone.edge, 1);
   graphics.strokeRoundedRect(face.left, face.top, spec.width, spec.height, CORNER);
-  graphics.lineStyle(1, STONE.edge, 0.8);
+  graphics.lineStyle(1, stone.edge, 0.8);
   graphics.lineBetween(
     face.left + 1,
     face.top + face.height,
@@ -223,14 +265,21 @@ function paintCracks(obstacle: Obstacle, fresh: CrackSet = [], progress = 1) {
   if (fresh.length > 0) paintLines(graphics, fresh, width, progress);
 }
 
-function createObstacle(scene: Phaser.Scene, spec: ObstacleSpec, seed: number): Obstacle {
+function createObstacle(
+  scene: Phaser.Scene,
+  spec: ObstacleSpec,
+  seed: number,
+  theme: ObstacleTheme = "sandstone",
+): Obstacle {
+  const stone = OBSTACLE_THEMES[theme];
   const body = scene.add.rectangle(0, 0, spec.width, spec.height).setVisible(false);
   scene.physics.add.existing(body, true);
   const art = scene.add.graphics().setDepth(ART_DEPTH);
   const cracks = scene.add.graphics().setDepth(CRACK_DEPTH);
-  paintObstacle(art, spec, seed);
+  paintObstacle(art, spec, seed, stone);
   return {
     spec,
+    stone,
     body,
     art,
     cracks,
@@ -296,7 +345,7 @@ function flingPiece(
 function spawnChips(scene: Phaser.Scene, obstacle: Obstacle, at: Point, count: number) {
   for (let index = 0; index < count; index += 1) {
     const size = 3 + Math.random() * 4;
-    const color = SHARD_COLORS[Math.floor(Math.random() * SHARD_COLORS.length)] ?? STONE.face;
+    const color = pickShard(obstacle.stone);
     const chip = scene.add.rectangle(at.x, at.y, size, size, color).setDepth(CHIP_DEPTH);
     const angle = Math.random() * Math.PI * 2;
     const reach = 16 + Math.random() * 22;
@@ -330,7 +379,7 @@ function leaveRubble(scene: Phaser.Scene, obstacle: Obstacle) {
   const pieces = 6 + Math.floor(Math.random() * 4);
   for (let index = 0; index < pieces; index += 1) {
     const size = 4 + Math.random() * 8;
-    const color = SHARD_COLORS[Math.floor(Math.random() * 3)] ?? STONE.side;
+    const color = shardColors(obstacle.stone)[Math.floor(Math.random() * 3)] ?? obstacle.stone.side;
     const rubble = scene.add
       .rectangle(
         x + (Math.random() - 0.5) * spread.x * 1.6,
@@ -361,10 +410,10 @@ function breakObstacle(scene: Phaser.Scene, obstacle: Obstacle) {
     const startX = x + (Math.random() - 0.5) * width;
     const startY = y + (Math.random() - 0.5) * height;
     const size = 6 + Math.random() * Math.min(18, Math.min(width, height) / 4);
-    const color = SHARD_COLORS[Math.floor(Math.random() * SHARD_COLORS.length)] ?? STONE.face;
+    const color = pickShard(obstacle.stone);
     const shard = scene.add
       .rectangle(startX, startY, size, size * (0.6 + Math.random() * 0.5), color)
-      .setStrokeStyle(1, STONE.edge, 0.8)
+      .setStrokeStyle(1, obstacle.stone.edge, 0.8)
       .setDepth(CHIP_DEPTH);
     const angle = Math.atan2(startY - y, startX - x) + (Math.random() - 0.5) * 0.8;
     const reach = 40 + Math.random() * 70;

@@ -47,6 +47,7 @@ function ArenaGame({
             opponent={matchup.opponent}
             snapshot={snapshot}
             charge={hud?.charge ?? null}
+            waterBoost={hud?.waterBoost ?? false}
           />
           <ArenaAttackBar fighter={matchup.player} hud={hud} />
           {mode === "tutorial" ? (

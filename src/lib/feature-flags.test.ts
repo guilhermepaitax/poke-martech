@@ -6,6 +6,7 @@ const { evaluate, flagFns } = vi.hoisted(() => ({
   flagFns: {
     aiCardGeneration: vi.fn(),
     arena: vi.fn(),
+    arenaMapEditor: vi.fn(),
     pokedex: vi.fn(),
     trocas: vi.fn(),
     loja: vi.fn(),
@@ -18,6 +19,7 @@ vi.mock("@/flags", () => flagFns);
 const allOn = {
   "ai-card-generation": true,
   arena: true,
+  "arena-map-editor": true,
   pokedex: true,
   trocas: true,
   loja: true,
@@ -36,6 +38,7 @@ describe("readFeatureFlags", () => {
     expect(evaluate).toHaveBeenCalledWith({
       "ai-card-generation": flagFns.aiCardGeneration,
       arena: flagFns.arena,
+      "arena-map-editor": flagFns.arenaMapEditor,
       pokedex: flagFns.pokedex,
       trocas: flagFns.trocas,
       loja: flagFns.loja,
@@ -54,12 +57,14 @@ describe("readFeatureFlags", () => {
   it("desliga só a flag informada", async () => {
     flagFns.aiCardGeneration.mockResolvedValue(false);
     flagFns.arena.mockResolvedValue(true);
+    flagFns.arenaMapEditor.mockResolvedValue(false);
     flagFns.pokedex.mockResolvedValue(true);
     flagFns.trocas.mockResolvedValue(true);
     flagFns.loja.mockResolvedValue(true);
 
     await expect(isFeatureEnabled("ai-card-generation")).resolves.toBe(false);
     await expect(isFeatureEnabled("arena")).resolves.toBe(true);
+    await expect(isFeatureEnabled("arena-map-editor")).resolves.toBe(false);
     await expect(isFeatureEnabled("pokedex")).resolves.toBe(true);
     await expect(isFeatureEnabled("trocas")).resolves.toBe(true);
     await expect(isFeatureEnabled("loja")).resolves.toBe(true);

@@ -38,6 +38,8 @@ type ArenaHudState = {
   cooldowns: Record<HudSlot, HudCooldown>;
   charge: HudCharge | null;
   guard: HudGuard;
+  // Nadador dentro da água: mais rápido e com mais dano.
+  waterBoost: boolean;
 };
 
 export type {

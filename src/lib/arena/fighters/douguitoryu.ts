@@ -11,6 +11,7 @@ const douguitoryu: ArenaFighter = {
   banner: { path: "/arena/banners/douguitoryu.webp", focus: "34% 45%" },
   energy: "water",
   ranged: "bubble",
+  mobility: ["swim"],
   hp: 70,
   attacks: {
     melee: {

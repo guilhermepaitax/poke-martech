@@ -1,4 +1,5 @@
 import type { ArenaFighter, FighterAction, FighterSheet } from "@/lib/arena/fighter";
+import type { ArenaMap } from "@/lib/arena/map";
 import Phaser from "phaser";
 
 const FIGHTER_ACTIONS: readonly FighterAction[] = ["idle", "walk", "attack", "shoot", "hurt", "defend"];
@@ -9,11 +10,6 @@ const SHEET_FALLBACK: Partial<Record<FighterAction, FighterAction>> = {
   defend: "idle",
 };
 
-const ARENA_FLOOR = {
-  key: "arena-floor",
-  path: "/arena/backgrounds/floor.jpg",
-} as const;
-
 const ARENA_AUDIO = {
   appear: { key: "arena-appear", path: "/arena/audio/appear.wav" },
   laser: { key: "arena-laser", path: "/arena/audio/laser.wav" },
@@ -21,6 +17,7 @@ const ARENA_AUDIO = {
   dash: { key: "arena-dash", path: "/arena/audio/dash.wav" },
   explosion: { key: "arena-explosion", path: "/arena/audio/explosion.wav" },
   bone: { key: "arena-bone", path: "/arena/audio/bone.wav" },
+  waterIn: { key: "arena-water-in", path: "/arena/audio/water-in.wav" },
 } as const;
 
 type ArenaCue = keyof typeof ARENA_AUDIO;
@@ -40,8 +37,12 @@ function fighterSheetKey(fighter: ArenaFighter, action: FighterAction) {
   return `${fighter.id}-${fighterSheetAction(fighter, action)}`;
 }
 
-function preloadArenaAssets(scene: Phaser.Scene, fighters: readonly ArenaFighter[]) {
-  scene.load.image(ARENA_FLOOR.key, ARENA_FLOOR.path);
+function preloadArenaAssets(
+  scene: Phaser.Scene,
+  fighters: readonly ArenaFighter[],
+  map: ArenaMap,
+) {
+  scene.load.image(map.background.key, map.background.path);
   fighters.forEach((fighter) => {
     FIGHTER_ACTIONS.forEach((action) => {
       if (fighterSheetAction(fighter, action) !== action) return;
@@ -69,7 +70,6 @@ function applyNearestCharacterFilter(scene: Phaser.Scene, fighter: ArenaFighter)
 
 export {
   ARENA_AUDIO,
-  ARENA_FLOOR,
   applyNearestCharacterFilter,
   fighterSheet,
   fighterSheetKey,

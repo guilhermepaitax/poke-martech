@@ -130,7 +130,8 @@ function arenaControls(game: Phaser.Game): ArenaControls {
       };
     },
     spawnTutorialPickup: () => arenaScene(game)?.spawnTutorialPickup(),
-    setTutorialDummyAttacks: (on) => arenaScene(game)?.setTutorialDummyAttacks(on),
+    setTutorialDummyAttacks: (on) =>
+      arenaScene(game)?.setTutorialDummyAttacks(on),
   };
 }
 

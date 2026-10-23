@@ -71,11 +71,13 @@ function ArenaHudFighter({
   state,
   side,
   charge,
+  waterBoost = false,
 }: {
   fighter: ArenaFighter;
   state: FighterSnapshot;
   side: "player" | "opponent";
   charge: HudCharge | null;
+  waterBoost?: boolean;
 }) {
   const ratio = state.maxHp > 0 ? Math.min(Math.max(state.hp / state.maxHp, 0), 1) : 0;
   const width = `${ratio * 100}%`;
@@ -141,6 +143,15 @@ function ArenaHudFighter({
             <span className="text-(--arena-ink)">{state.hp}</span>/{state.maxHp}
           </span>
           {opponent ? null : <ArenaChargeMeter charge={charge} />}
+          {waterBoost ? (
+            <span
+              data-slot="arena-water-boost"
+              title="Na água: mais rápido e mais dano"
+              className="arena-water-boost shrink-0 px-1.5 font-arena-title text-[10px] leading-4 uppercase"
+            >
+              Maré+
+            </span>
+          ) : null}
         </div>
       </div>
     </div>
@@ -172,11 +183,13 @@ function ArenaHud({
   opponent,
   snapshot,
   charge,
+  waterBoost = false,
 }: {
   player: ArenaFighter;
   opponent: ArenaFighter;
   snapshot: ArenaSnapshot | null;
   charge: HudCharge | null;
+  waterBoost?: boolean;
 }) {
   if (!snapshot) return null;
 
@@ -185,7 +198,7 @@ function ArenaHud({
       data-slot="arena-hud"
       className="pointer-events-none absolute inset-x-0 top-0 z-[5] flex items-start justify-between gap-1.5 p-2 text-(--arena-ink) sm:gap-3 sm:p-3"
     >
-      <ArenaHudFighter fighter={player} state={snapshot.player} side="player" charge={charge} />
+      <ArenaHudFighter fighter={player} state={snapshot.player} side="player" charge={charge} waterBoost={waterBoost} />
       <ArenaHudClock seconds={snapshot.elapsedSeconds} />
       <ArenaHudFighter fighter={opponent} state={snapshot.opponent} side="opponent" charge={null} />
     </div>

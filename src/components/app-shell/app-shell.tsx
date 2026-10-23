@@ -69,6 +69,8 @@ function AppShellFrame({ role, username, children }: AppShellProps) {
   const canvas = useArenaCanvasLayout();
   const arenaScreen = pathname.startsWith("/batalha");
   const arenaLayout = arenaScreen && canvas.active;
+  // Editor de mapas precisa da largura toda da janela para a malha.
+  const wideScreen = pathname.startsWith("/admin/mapas");
   const headerRef = useRef<HTMLElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
 
@@ -218,6 +220,7 @@ function AppShellFrame({ role, username, children }: AppShellProps) {
             : cn(
                 "mx-auto w-full max-w-6xl px-4 pb-12 pt-36 md:pt-24",
                 arenaScreen && "max-w-7xl",
+                wideScreen && "max-w-none",
               ),
         )}
         style={arenaLayout ? { top: headerHeight } : undefined}

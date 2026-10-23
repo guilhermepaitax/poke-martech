@@ -30,6 +30,7 @@ import {
   type BubbleShot,
 } from "@/game/arena/entities/bubble";
 import { clearCracks, spawnCracks } from "@/game/arena/entities/cracks";
+import { spawnWaterSplash } from "@/game/arena/entities/water-fx";
 import {
   clearDamageNumbers,
   spawnDamageNumber,
@@ -200,6 +201,8 @@ type Combat = {
   overlap: Phaser.Physics.Arcade.Collider;
   blockOverlap: Phaser.Physics.Arcade.Collider;
   obstacles: Obstacle[];
+  // Ponto do chão em água: impacto espirra em vez de rachar.
+  isWater: (at: Point) => boolean;
   aim: Phaser.GameObjects.Graphics;
 };
 
@@ -210,6 +213,7 @@ function createCombat(
   obstacles: Obstacle[],
   onHpChange: () => void = () => {},
   onBlock: (event: BlockEvent) => void = () => {},
+  isWater: (at: Point) => boolean = () => false,
 ): Combat {
   const projectiles = scene.physics.add.group();
   const combat: Combat = {
@@ -228,6 +232,7 @@ function createCombat(
     stars: [],
     bubbles: [],
     obstacles,
+    isWater,
     overlap: scene.physics.add.overlap(
       projectiles,
       opponent.sprite,
@@ -504,8 +509,17 @@ function strikeProjectile(
   projectile.setVelocity(0, 0);
   const hit = guardHit(rollHit(damage), isGuarding(scene, opponent));
   hurtFighter(scene, combat, opponent, hit, direction, IMPACT_COLOR.fire);
-  spawnCracks(scene, combat.cracks, projectile.x, projectile.y, damage);
+  markGround(scene, combat, projectile.x, projectile.y, damage);
   projectile.destroy();
+}
+
+// Marca do impacto no chão: rachadura em terra, espirro na água.
+function markGround(scene: Phaser.Scene, combat: Combat, x: number, y: number, damage: number) {
+  if (combat.isWater({ x, y })) {
+    spawnWaterSplash(scene, { x, y }, damage);
+    return;
+  }
+  spawnCracks(scene, combat.cracks, x, y, damage);
 }
 
 function liveObstacles(combat: Combat) {
@@ -571,13 +585,7 @@ function resolveMelee(
     { attacker: player, kind: "melee" },
   );
   if (result.applied) announceHit(scene, combat, hit, charge);
-  spawnCracks(
-    scene,
-    combat.cracks,
-    opponent.sprite.x,
-    opponent.sprite.y + MELEE_CRACK_OFFSET_Y,
-    hit.damage,
-  );
+  markGround(scene, combat, opponent.sprite.x, opponent.sprite.y + MELEE_CRACK_OFFSET_Y, hit.damage);
 }
 
 function startMelee(
@@ -651,7 +659,7 @@ function landRanged(
   if (impact.stop === "block") {
     hitObstacle(scene, obstacles[impact.block ?? -1], damage, impact);
   } else if (impact.stop === "fighter") {
-    spawnCracks(scene, combat.cracks, impact.x, impact.y, hit?.damage ?? damage);
+    markGround(scene, combat, impact.x, impact.y, hit?.damage ?? damage);
   }
 }
 
@@ -898,7 +906,8 @@ function attackDamage(
       Math.round(
         attackPower(kind, attacker.fighter.attacks[kind].power, target.maxHp) *
           tuning.damageScale *
-          buffScale(attacker.buffs, "fury", now),
+          buffScale(attacker.buffs, "fury", now) *
+          attacker.terrain.damage,
       ),
     ),
     charge,

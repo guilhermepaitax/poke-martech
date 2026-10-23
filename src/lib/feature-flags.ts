@@ -1,6 +1,7 @@
 const FEATURE_FLAGS = {
   aiCardGeneration: "ai-card-generation",
   arena: "arena",
+  arenaMapEditor: "arena-map-editor",
   pokedex: "pokedex",
   trocas: "trocas",
   loja: "loja",
