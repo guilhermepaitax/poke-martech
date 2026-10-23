@@ -74,6 +74,13 @@ type BoneStep = {
   done: boolean;
 };
 
+type BubbleLaunch = {
+  direction: Point;
+  delayMs: number;
+  // Sentido da ondulação (+1/-1).
+  sway: number;
+};
+
 type ResolvedHit = {
   damage: number;
   tags: HitTag[];
@@ -105,6 +112,15 @@ const STAR_RANGE = 680;
 const STAR_RADIUS = 12;
 const STAR_SPREAD = Math.PI / 9;
 const STAR_TURN_RATE = Math.PI * 1.1;
+// Bolhas do Jato de Bolhas: saem em rajada na mesma linha e ondulam de lado
+// enquanto avançam, alternando o sentido da onda entre uma bolha e outra.
+const BUBBLE_SPEED = 520;
+const BUBBLE_RANGE = 600;
+const BUBBLE_RADIUS = 11;
+const BUBBLE_SPREAD = Math.PI / 10;
+const BUBBLE_STAGGER_MS = 80;
+const BUBBLE_WOBBLE = 14;
+const BUBBLE_WAVELENGTH = 150;
 const CRACK_RADIUS_MIN = 36;
 const CRACK_RADIUS_MAX = 140;
 const CRACK_BRANCH_MIN = 5;
@@ -174,6 +190,12 @@ function meleeConnect(
     (dx / distance) * (aim.x / aimLength) +
     (dy / distance) * (aim.y / aimLength);
   return dot > 0;
+}
+
+// Golpe em giro: acerta qualquer alvo dentro do raio, sem depender da mira.
+function spinConnect(attacker: Point, target: Point, range: number): boolean {
+  const distance = Math.hypot(target.x - attacker.x, target.y - attacker.y);
+  return distance > 0 && distance <= range;
 }
 
 function attackPower(kind: AttackKind, attackDamage: number, targetMaxHp: number) {
@@ -335,6 +357,35 @@ function starVolley(aim: Point, charge: ChargeLevel): Point[] {
   );
 }
 
+const BUBBLE_COUNT: Record<ChargeLevel, number> = { 0: 3, 1: 3, 2: 5 };
+
+function bubbleVolley(aim: Point, charge: ChargeLevel): BubbleLaunch[] {
+  const length = Math.hypot(aim.x, aim.y);
+  if (length === 0) return [];
+  const center = { x: aim.x / length, y: aim.y / length };
+  const count = BUBBLE_COUNT[charge];
+  return Array.from({ length: count }, (_, index) => ({
+    // Carga 2 abre em leque de uma vez; as outras saem em fila na mira.
+    direction: charge === 2 ? rotate(center, (index - (count - 1) / 2) * BUBBLE_SPREAD) : center,
+    delayMs: charge === 2 ? 0 : index * BUBBLE_STAGGER_MS,
+    sway: index % 2 === 0 ? 1 : -1,
+  }));
+}
+
+// Deslocamento lateral da bolha após percorrer `travelled` px. Zero na saída.
+function bubbleOffset(travelled: number, sway: number) {
+  return sway * BUBBLE_WOBBLE * Math.sin((travelled / BUBBLE_WAVELENGTH) * Math.PI * 2);
+}
+
+// Posição da bolha: avanço em linha reta mais a ondulação perpendicular.
+function bubblePosition(from: Point, direction: Point, travelled: number, sway: number): Point {
+  const offset = bubbleOffset(travelled, sway);
+  return {
+    x: from.x + direction.x * travelled - direction.y * offset,
+    y: from.y + direction.y * travelled + direction.x * offset,
+  };
+}
+
 // Gira o rumo unitário em direção ao alvo, no máximo `maxTurn` radianos.
 function steerToward(heading: Point, toTarget: Point | null, maxTurn: number): Point {
   if (!toTarget || Math.hypot(toTarget.x, toTarget.y) === 0) return heading;
@@ -463,6 +514,15 @@ export {
   BONE_SPREAD,
   boneStep,
   boneVolley,
+  BUBBLE_RADIUS,
+  BUBBLE_RANGE,
+  BUBBLE_SPEED,
+  BUBBLE_SPREAD,
+  BUBBLE_STAGGER_MS,
+  BUBBLE_WOBBLE,
+  bubbleOffset,
+  bubblePosition,
+  bubbleVolley,
   canAttack,
   COOLDOWN_MS,
   CRIT_CHANCE,
@@ -488,6 +548,7 @@ export {
   resolveDamage,
   rollCritical,
   selectAttack,
+  spinConnect,
   STAR_RADIUS,
   STAR_RANGE,
   STAR_SPEED,
@@ -507,6 +568,7 @@ export type {
   BoneFlight,
   BonePhase,
   BoneStep,
+  BubbleLaunch,
   CrackSize,
   HitResult,
   HitTag,

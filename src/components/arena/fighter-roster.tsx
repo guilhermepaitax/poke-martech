@@ -138,7 +138,7 @@ function FighterRoster({
   const randomCurrent = random[active];
 
   return (
-    <ul data-slot="fighter-roster" className="grid grid-cols-5 gap-2.5">
+    <ul data-slot="fighter-roster" className="grid grid-cols-6 gap-2">
       {fighters.map((fighter) => {
         const sides: ArenaSide[] = [];
         if (fighter.id === player?.id) sides.push("player");

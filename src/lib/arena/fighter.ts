@@ -1,9 +1,9 @@
 import type { AttackKind } from "./combat";
 import type { Facing } from "./movement";
 
-type FighterEnergy = "fire" | "grass" | "ground" | "colorless";
+type FighterEnergy = "fire" | "grass" | "ground" | "colorless" | "water";
 
-type RangedStyle = "beam" | "orb" | "bone" | "star";
+type RangedStyle = "beam" | "orb" | "bone" | "star" | "bubble";
 
 type FighterAction = "idle" | "walk" | "attack" | "shoot" | "hurt" | "defend";
 
@@ -45,6 +45,8 @@ type FighterTuning = {
   displaySize?: number;
   // Multiplica velocidade e duração da investida do corpo a corpo.
   lungeScale?: number;
+  // Corpo a corpo em giro: acerta em volta (360°) em vez do cone da mira.
+  meleeSpin?: boolean;
 };
 
 type FighterBanner = {

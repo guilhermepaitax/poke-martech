@@ -10,6 +10,12 @@ import {
   BONE_SPREAD,
   boneStep,
   boneVolley,
+  BUBBLE_SPREAD,
+  BUBBLE_STAGGER_MS,
+  BUBBLE_WOBBLE,
+  bubbleOffset,
+  bubblePosition,
+  bubbleVolley,
   canAttack,
   COOLDOWN_MS,
   CRIT_CHANCE,
@@ -30,6 +36,7 @@ import {
   resolveDamage,
   rollCritical,
   selectAttack,
+  spinConnect,
   STAR_SPREAD,
   starVolley,
   steerToward,
@@ -389,6 +396,62 @@ describe("starVolley", () => {
 
   it("não lança sem mira", () => {
     expect(starVolley({ x: 0, y: 0 }, 2)).toEqual([]);
+  });
+});
+
+describe("bubbleVolley", () => {
+  it("lança 3 bolhas em fila e um leque de 5 na carga 2", () => {
+    const line = bubbleVolley({ x: 3, y: 0 }, 0);
+    expect(line).toHaveLength(3);
+    line.forEach((bubble, index) => {
+      expect(bubble.direction).toEqual({ x: 1, y: 0 });
+      expect(bubble.delayMs).toBe(index * BUBBLE_STAGGER_MS);
+    });
+    expect(bubbleVolley({ x: 1, y: 0 }, 1)).toHaveLength(3);
+    const fan = bubbleVolley({ x: 0, y: 2 }, 2);
+    expect(fan).toHaveLength(5);
+    fan.forEach((bubble) => {
+      expect(bubble.delayMs).toBe(0);
+      expect(Math.hypot(bubble.direction.x, bubble.direction.y)).toBeCloseTo(1);
+    });
+    const first = fan[0]?.direction ?? { x: 0, y: 0 };
+    expect(Math.atan2(first.y, first.x) - Math.PI / 2).toBeCloseTo(-2 * BUBBLE_SPREAD);
+  });
+
+  it("alterna o sentido da ondulação", () => {
+    expect(bubbleVolley({ x: 1, y: 0 }, 0).map((bubble) => bubble.sway)).toEqual([1, -1, 1]);
+  });
+
+  it("não lança sem mira", () => {
+    expect(bubbleVolley({ x: 0, y: 0 }, 1)).toEqual([]);
+  });
+});
+
+describe("bubblePosition", () => {
+  it("sai da boca sem desvio e ondula de lado dentro da amplitude", () => {
+    const from = { x: 10, y: 20 };
+    expect(bubblePosition(from, { x: 1, y: 0 }, 0, 1)).toEqual({ x: 10, y: 20 });
+    for (let travelled = 0; travelled <= 600; travelled += 25) {
+      const point = bubblePosition(from, { x: 1, y: 0 }, travelled, -1);
+      expect(point.x).toBeCloseTo(10 + travelled);
+      expect(Math.abs(point.y - 20)).toBeLessThanOrEqual(BUBBLE_WOBBLE + 1e-9);
+    }
+  });
+
+  it("ondula em sentidos opostos conforme o sway", () => {
+    expect(bubbleOffset(40, 1)).toBeCloseTo(-bubbleOffset(40, -1));
+  });
+});
+
+describe("spinConnect", () => {
+  it("acerta em qualquer direção dentro do raio", () => {
+    expect(spinConnect({ x: 0, y: 0 }, { x: -50, y: 0 }, 100)).toBe(true);
+    expect(spinConnect({ x: 0, y: 0 }, { x: 0, y: 80 }, 100)).toBe(true);
+  });
+
+  it("erra fora do raio ou sobreposto", () => {
+    expect(spinConnect({ x: 0, y: 0 }, { x: 120, y: 0 }, 100)).toBe(false);
+    expect(spinConnect({ x: 0, y: 0 }, { x: 0, y: 0 }, 100)).toBe(false);
   });
 });
 

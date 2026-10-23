@@ -21,6 +21,14 @@ import {
   stepBones,
   type BoneShot,
 } from "@/game/arena/entities/bone";
+import {
+  clearBubbles,
+  launchBubble,
+  stepBubbles,
+  WATER_BUBBLE,
+  WATER_BUBBLE_CHARGED,
+  type BubbleShot,
+} from "@/game/arena/entities/bubble";
 import { clearCracks, spawnCracks } from "@/game/arena/entities/cracks";
 import {
   clearDamageNumbers,
@@ -75,6 +83,7 @@ import {
   BEAM_RANGE,
   beamImpact,
   boneVolley,
+  bubbleVolley,
   canAttack,
   COOLDOWN_MS,
   firstBlockHit,
@@ -87,6 +96,7 @@ import {
   orbVolley,
   resolveDamage,
   rollCritical,
+  spinConnect,
   starVolley,
   type AttackKind,
   type BeamEnd,
@@ -129,6 +139,10 @@ const BEAM_WIDTH: Record<ChargeLevel, number> = { 0: 1, 1: 1.5, 2: 2.1 };
 const ORB_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.8, 2: 1.2 };
 const STAR_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.45, 2: 1.15 };
 const BONE_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.5, 2: 1.15 };
+const BUBBLE_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.6, 2: 1.1 };
+// O giro alcança em volta, mas um pouco menos que o golpe direcional.
+const SPIN_REACH = 0.85;
+const SPIN_COLOR = 0x6cc4ff;
 const BONE_SPEED_SCALE: Record<ChargeLevel, number> = { 0: 1, 1: 1.15, 2: 1.1 };
 const SLASH_LOOK: Record<ChargeLevel, SlashLook> = {
   0: { color: 0xffffff, thickness: 1 },
@@ -168,6 +182,7 @@ type Combat = {
   orbs: OrbShot[];
   bones: BoneShot[];
   stars: StarShot[];
+  bubbles: BubbleShot[];
   overlap: Phaser.Physics.Arcade.Collider;
   blockOverlap: Phaser.Physics.Arcade.Collider;
   obstacles: Obstacle[];
@@ -197,6 +212,7 @@ function createCombat(
     orbs: [],
     bones: [],
     stars: [],
+    bubbles: [],
     obstacles,
     overlap: scene.physics.add.overlap(
       projectiles,
@@ -440,7 +456,12 @@ function resolveMelee(
   damage: number,
   charge: ChargeLevel,
 ) {
-  const range = MELEE_RANGE * MELEE_REACH[charge];
+  const spin = player.fighter.tuning.meleeSpin === true;
+  const range = MELEE_RANGE * MELEE_REACH[charge] * (spin ? SPIN_REACH : 1);
+  if (spin) {
+    const color = charge > 0 ? CHARGE_COLOR[charge] : SPIN_COLOR;
+    spawnShockwave(scene, combat.hitFx, player.sprite, color, range);
+  }
   const obstacles = liveObstacles(combat);
   const rects = obstacles.map(obstacleRect);
   const struck = firstBlockHit(
@@ -454,7 +475,7 @@ function resolveMelee(
     return;
   }
   const blocked = firstBlockHit(player.sprite, opponent.sprite, rects);
-  if (charge > 0) {
+  if (charge > 0 && !spin) {
     spawnShockwave(
       scene,
       combat.hitFx,
@@ -464,7 +485,10 @@ function resolveMelee(
     );
   }
   if (blocked && blocked.distance <= range) return;
-  if (!meleeConnect(player.sprite, opponent.sprite, aim, range)) return;
+  const connects = spin
+    ? spinConnect(player.sprite, opponent.sprite, range)
+    : meleeConnect(player.sprite, opponent.sprite, aim, range);
+  if (!connects) return;
   const hit = rollHit(damage, charge);
   const result = hurtFighter(
     scene,
@@ -511,14 +535,16 @@ function startMelee(
       blockRects(combat),
     )?.distance ?? distance,
   );
-  spawnSlashArc(
-    scene,
-    combat.hitFx,
-    { x: player.sprite.x + aim.x * reach, y: player.sprite.y + aim.y * reach },
-    aim,
-    MELEE_RANGE * MELEE_REACH[charge],
-    SLASH_LOOK[charge],
-  );
+  if (!player.fighter.tuning.meleeSpin) {
+    spawnSlashArc(
+      scene,
+      combat.hitFx,
+      { x: player.sprite.x + aim.x * reach, y: player.sprite.y + aim.y * reach },
+      aim,
+      MELEE_RANGE * MELEE_REACH[charge],
+      SLASH_LOOK[charge],
+    );
+  }
   dashWithTrail(scene, combat.hitFx, player, aim, lunge);
   scene.time.delayedCall(MELEE_RESOLVE_MS + (lunge.durationMs - LUNGE.durationMs), () => {
     if (!player.sprite.scene || !opponent.sprite.scene) return;
@@ -634,6 +660,57 @@ function fireStars(
   }
 }
 
+function fireBubbles(
+  scene: Phaser.Scene,
+  combat: Combat,
+  attacker: Player,
+  target: Player,
+  aim: Point,
+  damage: number,
+  charge: ChargeLevel,
+) {
+  const style = charge === 2 ? WATER_BUBBLE_CHARGED : WATER_BUBBLE;
+  const volley = bubbleVolley(aim, charge);
+  // O dano do golpe se divide entre as bolhas da rajada.
+  const share = Math.max(1, Math.round(damage / volley.length));
+  for (const bubble of volley) {
+    const launch = () => {
+      if (combat.over || !attacker.sprite.scene) return;
+      playArenaAudio(scene, "laser");
+      // Cada bolha sai da boca na posição atual: a rajada acompanha quem anda.
+      const muzzle = {
+        x: attacker.sprite.x + aim.x * MUZZLE_FORWARD,
+        y: attacker.sprite.y + aim.y * MUZZLE_DOWN,
+      };
+      launchBubble(scene, combat.bubbles, {
+        from: muzzle,
+        direction: bubble.direction,
+        sway: bubble.sway,
+        style,
+        scale: BUBBLE_SCALE[charge],
+        target: () => (target.sprite.scene ? { x: target.sprite.x, y: target.sprite.y } : null),
+        onArrive: (impact) => {
+          landRanged(
+            scene,
+            combat,
+            target,
+            impact,
+            impact.stop === "fighter",
+            share,
+            charge,
+            bubble.direction,
+            style.impact,
+            liveObstacles(combat),
+            false,
+          );
+        },
+      });
+    };
+    if (bubble.delayMs > 0) scene.time.delayedCall(bubble.delayMs, launch);
+    else launch();
+  }
+}
+
 function throwBones(
   scene: Phaser.Scene,
   combat: Combat,
@@ -675,13 +752,19 @@ function throwBones(
 }
 
 function stepCombat(scene: Phaser.Scene, combat: Combat, deltaMs: number) {
-  if (combat.orbs.length === 0 && combat.bones.length === 0 && combat.stars.length === 0) {
+  if (
+    combat.orbs.length === 0 &&
+    combat.bones.length === 0 &&
+    combat.stars.length === 0 &&
+    combat.bubbles.length === 0
+  ) {
     return;
   }
   const blocks = blockRects(combat);
   if (combat.orbs.length > 0) stepOrbs(scene, combat.orbs, deltaMs, blocks);
   if (combat.bones.length > 0) stepBones(scene, combat.bones, deltaMs, blocks);
   if (combat.stars.length > 0) stepStars(scene, combat.stars, deltaMs, blocks);
+  if (combat.bubbles.length > 0) stepBubbles(scene, combat.bubbles, deltaMs, blocks);
 }
 
 function tryAttack(
@@ -734,6 +817,10 @@ function tryAttack(
   const obstacles = liveObstacles(combat);
   if (attacker.fighter.ranged === "bone") {
     throwBones(scene, combat, attacker, target, muzzle, aim, damage, charge);
+    return true;
+  }
+  if (attacker.fighter.ranged === "bubble") {
+    fireBubbles(scene, combat, attacker, target, aim, damage, charge);
     return true;
   }
   if (attacker.fighter.ranged === "star") {
@@ -848,6 +935,7 @@ function destroyCombat(scene: Phaser.Scene, combat: Combat) {
   clearOrbs(scene, combat.orbs);
   clearBones(combat.bones);
   clearStars(scene, combat.stars);
+  clearBubbles(scene, combat.bubbles);
   combat.projectiles.destroy(true);
   combat.aim.destroy();
   clearBanner(scene, combat.banner);
