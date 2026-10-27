@@ -28,6 +28,10 @@ const FX_TEXTURES = {
   fishAlt: "fx-fish-alt",
   starfish: "fx-starfish",
   starfishAlt: "fx-starfish-alt",
+  flame: "fx-flame",
+  flameAlt: "fx-flame-alt",
+  toxicBubble: "fx-toxic-bubble",
+  poisonBadge: "fx-poison-badge",
 } as const;
 
 // Pixel art 12x12 das bolhas: `#` contorno, `.` miolo translúcido,
@@ -235,6 +239,66 @@ const STARFISH_ART_ALT = [
   "##     ##",
 ];
 
+// Chama 12x12 do Redemoinho de Fogo: `#` contorno, `.` laranja, `c` amarelo,
+// `w` núcleo branco. Dois quadros alternam a ponta (tremular em degraus).
+const FLAME_ART = [
+  "     #      ",
+  "    #.#     ",
+  "    #.#  #  ",
+  "   #..# #.# ",
+  "  #..c.##.# ",
+  "  #.cc..#.# ",
+  " #..cwc...# ",
+  " #.cwwc...# ",
+  " #.cwwcc..# ",
+  "  #.cccc.#  ",
+  "   #....#   ",
+  "    ####    ",
+];
+
+const FLAME_ART_ALT = [
+  "      #     ",
+  "     #.#    ",
+  "  #  #.#    ",
+  " #.# #..#   ",
+  " #.##.c..#  ",
+  " #.#..cc.#  ",
+  " #...cwc..# ",
+  " #...cwwc.# ",
+  " #..ccwwc.# ",
+  "  #.cccc.#  ",
+  "   #....#   ",
+  "    ####    ",
+];
+
+// Bolha tóxica 10x10 (Névoa de Veneno e status de veneno): `#` contorno,
+// `.` roxo, `o` sombra, `g` reflexo verde, `w` brilho.
+const TOXIC_BUBBLE_ART = [
+  "   ####   ",
+  "  #....#  ",
+  " #.gw...# ",
+  "#..g.....#",
+  "#........#",
+  "#.......o#",
+  "#......oo#",
+  " #...ooo# ",
+  "  #oooo#  ",
+  "   ####   ",
+];
+
+// Selo 9x9 de envenenado sobre a cabeça: gota verde com caveira roxa.
+const POISON_BADGE_ART = [
+  "    #    ",
+  "   #g#   ",
+  "  #ggg#  ",
+  " #g...g# ",
+  "#g.w.w.g#",
+  "#g.....g#",
+  "#gg.#.gg#",
+  " #ggggg# ",
+  "  #####  ",
+];
+
 type PixelPalette = Record<string, { color: number; alpha: number }>;
 
 const GLINT_PALETTE: PixelPalette = {
@@ -308,6 +372,28 @@ const SWIFT_CHARGED_PALETTE: PixelPalette = {
   w: { color: 0xfff0fb, alpha: 1 },
   o: { color: 0xff7ad9, alpha: 1 },
   c: { color: 0xffffff, alpha: 1 },
+};
+
+const FLAME_PALETTE: PixelPalette = {
+  "#": { color: 0x8a1a08, alpha: 1 },
+  ".": { color: 0xff6a1a, alpha: 1 },
+  c: { color: 0xffd23a, alpha: 1 },
+  w: { color: 0xfff6d0, alpha: 1 },
+};
+
+const TOXIC_BUBBLE_PALETTE: PixelPalette = {
+  "#": { color: 0x2a0a3a, alpha: 1 },
+  ".": { color: 0x9a3ad8, alpha: 0.9 },
+  o: { color: 0x5a1488, alpha: 0.9 },
+  g: { color: 0x8af03a, alpha: 1 },
+  w: { color: 0xffffff, alpha: 1 },
+};
+
+const POISON_BADGE_PALETTE: PixelPalette = {
+  "#": { color: 0x1a0626, alpha: 1 },
+  g: { color: 0x8af03a, alpha: 1 },
+  ".": { color: 0x6a1a9a, alpha: 1 },
+  w: { color: 0xffffff, alpha: 1 },
 };
 
 const POP_PALETTE: PixelPalette = {
@@ -435,6 +521,10 @@ function createFxTextures(scene: Phaser.Scene) {
     [FX_TEXTURES.fishAlt, FISH_ART_ALT, FISH_PALETTE],
     [FX_TEXTURES.starfish, STARFISH_ART, STARFISH_PALETTE],
     [FX_TEXTURES.starfishAlt, STARFISH_ART_ALT, STARFISH_PALETTE],
+    [FX_TEXTURES.flame, FLAME_ART, FLAME_PALETTE],
+    [FX_TEXTURES.flameAlt, FLAME_ART_ALT, FLAME_PALETTE],
+    [FX_TEXTURES.toxicBubble, TOXIC_BUBBLE_ART, TOXIC_BUBBLE_PALETTE],
+    [FX_TEXTURES.poisonBadge, POISON_BADGE_ART, POISON_BADGE_PALETTE],
   ];
   pixelArt.forEach(([key, art, palette]) => {
     bake(scene, key, art[0]?.length ?? 0, art.length, (graphics) => {

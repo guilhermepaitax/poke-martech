@@ -1,16 +1,18 @@
 "use client";
 
 import type { ArenaFighter } from "@/lib/arena/fighter";
+import type { ArenaDevice } from "@/lib/arena/snapshot";
 import {
   TUTORIAL_LESSONS,
   TUTORIAL_STEPS,
   type TutorialStep,
 } from "@/lib/arena/tutorial";
 import { RotateCcw, SkipForward, Swords } from "lucide-react";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
 import { ArenaActionButton } from "./arena-action-button";
 import { ArenaTitleCard } from "./arena-title-card";
+import { useGamepadMenu } from "./use-gamepad-menu";
 
 type Lesson = Exclude<TutorialStep, "done">;
 
@@ -22,10 +24,93 @@ function Key({ children }: { children: ReactNode }) {
   );
 }
 
+function padLessonCopy(
+  step: Lesson,
+  fighter: ArenaFighter,
+): { title: string; body: ReactNode } | null {
+  switch (step) {
+    case "move":
+      return {
+        title: "Mover",
+        body: <>Use o <Key>analógico esquerdo</Key> ou o direcional para andar pela arena.</>,
+      };
+    case "aim":
+      return {
+        title: "Mirar",
+        body: (
+          <>
+            Mova o <Key>analógico direito</Key>: a seta mostra para onde seus
+            golpes vão. Solto, ele mira sozinho no oponente.
+          </>
+        ),
+      };
+    case "melee":
+      return {
+        title: "Ataque 1",
+        body: (
+          <>
+            Chegue perto do oponente e aperte <Key>A</Key> para usar{" "}
+            <span className="font-bold">{fighter.attacks.melee.hudName}</span>.
+          </>
+        ),
+      };
+    case "fire":
+      return {
+        title: "Ataque 2",
+        body: (
+          <>
+            Aperte <Key>X</Key> para usar{" "}
+            <span className="font-bold">{fighter.attacks.fire.hudName}</span> e
+            acertar o boneco de longe.
+          </>
+        ),
+      };
+    case "charge":
+      return {
+        title: "Carregar",
+        body: (
+          <>
+            <Key>Segure A ou X</Key> até aparecer MÁXIMO e solte: o golpe causa
+            bem mais dano. Carregando, você anda mais devagar.
+          </>
+        ),
+      };
+    case "dash":
+      return {
+        title: "Dash",
+        body: (
+          <>
+            Aperte <Key>B</Key> andando para dar um dash rápido. Use para
+            desviar de golpes.
+          </>
+        ),
+      };
+    case "defend":
+      return {
+        title: "Defender",
+        body: (
+          <>
+            <Key>Segure LB</Key> para defender: você leva bem menos dano e não
+            fica atordoado. O boneco vai atirar em você, defenda um golpe! Cada
+            bloqueio gasta a barra de guarda; se ela quebrar, você fica
+            atordoado. Dica: aperte <Key>LB</Key> bem na hora do impacto para
+            dar um <span className="font-bold">parry</span>, que anula o golpe
+            e contra-ataca na hora.
+          </>
+        ),
+      };
+    case "pickup":
+      return null;
+  }
+}
+
 function lessonCopy(
   step: Lesson,
   fighter: ArenaFighter,
+  device: ArenaDevice,
 ): { title: string; body: ReactNode } {
+  const pad = device === "pad" ? padLessonCopy(step, fighter) : null;
+  if (pad) return pad;
   switch (step) {
     case "move":
       return {
@@ -119,6 +204,7 @@ function lessonCopy(
 function ArenaTutorial({
   step,
   fighter,
+  device,
   onSkip,
   onFight,
   onRepeat,
@@ -126,14 +212,18 @@ function ArenaTutorial({
 }: {
   step: TutorialStep;
   fighter: ArenaFighter;
+  device: ArenaDevice;
   onSkip: () => void;
   onFight: () => void;
   onRepeat: () => void;
   onExit: () => void;
 }) {
+  const doneRef = useRef<HTMLDivElement>(null);
+  useGamepadMenu(doneRef, { enabled: step === "done" });
   if (step === "done") {
     return (
       <div
+        ref={doneRef}
         data-slot="arena-tutorial-done"
         role="dialog"
         aria-modal="true"
@@ -166,7 +256,7 @@ function ArenaTutorial({
   }
 
   const index = TUTORIAL_STEPS.indexOf(step);
-  const copy = lessonCopy(step, fighter);
+  const copy = lessonCopy(step, fighter, device);
 
   return (
     <div

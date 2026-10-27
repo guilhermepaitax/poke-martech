@@ -23,8 +23,10 @@ import {
   type GuardState,
 } from "@/lib/arena/defense";
 import type { ArenaFighter } from "@/lib/arena/fighter";
-import { normalizeMove, type Facing } from "@/lib/arena/movement";
+import { clampMove } from "@/lib/arena/gamepad";
+import type { Facing } from "@/lib/arena/movement";
 import { buffScale, type Buff } from "@/lib/arena/pickups";
+import { FIRE_TORNADO_SLOW, SPECIAL_CLIP, type PoisonState } from "@/lib/arena/special";
 import { NEUTRAL_SCALE, type TerrainScale } from "@/lib/arena/terrain";
 import Phaser from "phaser";
 
@@ -56,6 +58,17 @@ type Player = {
   guard: GuardState;
   // Efeitos temporários dos consumíveis (velocidade, dano, vulnerabilidade).
   buffs: Buff[];
+  // Medidor do especial (0 a SPECIAL_MAX) e quando encheu (a CPU espera um pouco).
+  special: number;
+  specialFullAt: number;
+  // Efeitos dos especiais: lento (Redemoinho), paralisado (Trovão),
+  // intocável (Último Recurso) e envenenado (Pó de Veneno).
+  slowUntil: number;
+  stunnedUntil: number;
+  untouchableUntil: number;
+  poison: PoisonState | null;
+  // Guiando o furacão: parado, sem atacar, defender nem dar dash.
+  channelUntil: number;
   // Pés na água e o bônus de terreno que vale agora (nadador na água).
   inWater: boolean;
   terrain: TerrainScale;
@@ -115,12 +128,19 @@ function createPlayer(
     attacking: false,
     hurting: false,
     dash: null,
-    readyAt: { melee: 0, fire: 0 },
+    readyAt: { melee: 0, fire: 0, special: 0 },
     dashReadyAt: 0,
     guardUntil: 0,
     defending: false,
     guard: freshGuard(),
     buffs: [],
+    special: 0,
+    specialFullAt: 0,
+    slowUntil: 0,
+    stunnedUntil: 0,
+    untouchableUntil: 0,
+    poison: null,
+    channelUntil: 0,
     inWater: false,
     terrain: NEUTRAL_SCALE,
     animToken: 0,
@@ -152,11 +172,41 @@ function playLockedClip(player: Player, action: "attack" | "shoot" | "hurt") {
   });
 }
 
+function attackClip(player: Player, kind: AttackKind) {
+  if (kind === "special") return SPECIAL_CLIP[player.fighter.special];
+  return kind === "fire" ? "shoot" : "attack";
+}
+
 function playAttack(player: Player, kind: AttackKind) {
-  if (player.attacking || player.hurting) return false;
+  if (player.attacking || player.hurting || isStunned(player) || isChanneling(player)) return false;
   player.attacking = true;
-  playLockedClip(player, kind === "fire" ? "shoot" : "attack");
+  playLockedClip(player, attackClip(player, kind));
   return true;
+}
+
+function isChanneling(player: Player) {
+  return player.sprite.scene.time.now < player.channelUntil;
+}
+
+function endChannel(player: Player) {
+  player.channelUntil = 0;
+}
+
+function isStunned(player: Player) {
+  return player.sprite.scene.time.now < player.stunnedUntil;
+}
+
+// Paralisia do Trovão: para no lugar, sem andar, atacar nem defender.
+function stunPlayer(player: Player, durationMs: number) {
+  player.stunnedUntil = Math.max(player.stunnedUntil, player.sprite.scene.time.now + durationMs);
+  player.dash = null;
+  lowerDefense(player);
+  // A paralisia assume o lugar do hurt: o token novo descarta o fim do clipe anterior.
+  player.attacking = false;
+  player.hurting = false;
+  player.animToken += 1;
+  player.sprite.setVelocity(0, 0);
+  playPlayerClip(player, "hurt");
 }
 
 function playHurt(player: Player) {
@@ -177,6 +227,8 @@ function setDefending(player: Player, on: boolean, parryWindowMs?: number) {
     !player.attacking &&
     !player.hurting &&
     !isDashing(player) &&
+    !isStunned(player) &&
+    !isChanneling(player) &&
     canDefend(now, player.guard);
   if (next === player.defending) return false;
   if (!next) {
@@ -256,15 +308,22 @@ function updatePlayer(
     }
     return;
   }
-  if (player.hurting) {
+  if (player.hurting || isStunned(player)) {
     player.sprite.setVelocity(0, 0);
     return;
   }
-  const move = normalizeMove(x, y);
+  if (isChanneling(player)) {
+    player.sprite.setVelocity(0, 0);
+    if (!player.attacking) playPlayerClip(player, "idle");
+    return;
+  }
+  // Analógico pela metade anda mais devagar; teclado e CPU chegam com módulo 1.
+  const move = clampMove(x, y);
   const moving = move.x !== 0 || move.y !== 0;
   const now = player.sprite.scene.time.now;
   const guard = player.defending ? DEFEND_MOVE_SCALE : 1;
-  const pace = speed * guard * buffScale(player.buffs, "haste", now) * player.terrain.speed;
+  const slow = now < player.slowUntil ? FIRE_TORNADO_SLOW : 1;
+  const pace = speed * guard * slow * buffScale(player.buffs, "haste", now) * player.terrain.speed;
   player.sprite.setVelocity(move.x * pace, move.y * pace);
   // Durante o ataque desliza mantendo o clip do golpe até ele terminar.
   if (player.attacking) return;
@@ -290,9 +349,12 @@ function placePlayer(player: Player, x: number, y: number) {
 
 export {
   createPlayer,
+  endChannel,
   haltPlayer,
   isDashing,
+  isChanneling,
   isEvading,
+  isStunned,
   lowerDefense,
   placePlayer,
   playAttack,
@@ -301,6 +363,7 @@ export {
   setDefending,
   setPlayerHp,
   startDash,
+  stunPlayer,
   syncPlayerMarker,
   updatePlayer,
 };

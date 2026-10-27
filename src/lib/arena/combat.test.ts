@@ -6,6 +6,10 @@ import {
   applyHit,
   BEAM_RANGE,
   beamImpact,
+  BOLT_JAG,
+  BOLT_SPREAD,
+  boltPath,
+  boltVolley,
   BONE_RANGE,
   BONE_SPREAD,
   boneStep,
@@ -48,11 +52,15 @@ describe("selectAttack", () => {
   it("escolhe o ataque pela tecla", () => {
     expect(selectAttack("fire", { key: "1" })).toBe("melee");
     expect(selectAttack("melee", { key: "2" })).toBe("fire");
+    expect(selectAttack("melee", { key: "3" })).toBe("special");
   });
 
-  it("alterna com o scroll e ignora rolagem zero", () => {
+  it("cicla os três ataques com o scroll e ignora rolagem zero", () => {
     expect(selectAttack("melee", { wheel: 1 })).toBe("fire");
+    expect(selectAttack("fire", { wheel: 1 })).toBe("special");
+    expect(selectAttack("special", { wheel: 1 })).toBe("melee");
     expect(selectAttack("fire", { wheel: -1 })).toBe("melee");
+    expect(selectAttack("melee", { wheel: -1 })).toBe("special");
     expect(selectAttack("melee", { wheel: 0 })).toBe("melee");
   });
 
@@ -70,7 +78,7 @@ describe("cooldown", () => {
   });
 
   it("usa cooldowns, alcance e velocidade combinados", () => {
-    expect(COOLDOWN_MS).toEqual({ melee: 460, fire: 720 });
+    expect(COOLDOWN_MS).toEqual({ melee: 460, fire: 720, special: 600 });
     expect(MELEE_RANGE).toBe(124);
     expect(PROJECTILE_SPEED).toBe(480);
   });
@@ -136,13 +144,13 @@ describe("meleeConnect", () => {
 
 describe("attackPower", () => {
   it("escala o dano da carta por tipo de ataque", () => {
-    expect(DAMAGE_SCALE).toEqual({ melee: 0.4, fire: 0.18 });
+    expect(DAMAGE_SCALE).toEqual({ melee: 0.4, fire: 0.18, special: 0.7 });
     expect(attackPower("melee", 40, 200)).toBe(16);
     expect(attackPower("fire", 40, 200)).toBe(7);
   });
 
   it("limita o golpe a uma fração do HP máximo do alvo", () => {
-    expect(DAMAGE_CAP).toEqual({ melee: 0.16, fire: 0.08 });
+    expect(DAMAGE_CAP).toEqual({ melee: 0.16, fire: 0.08, special: 0.3 });
     expect(attackPower("melee", 120, 100)).toBe(16);
     expect(attackPower("fire", 120, 100)).toBe(8);
   });
@@ -396,6 +404,50 @@ describe("starVolley", () => {
 
   it("não lança sem mira", () => {
     expect(starVolley({ x: 0, y: 0 }, 2)).toEqual([]);
+  });
+});
+
+describe("boltVolley", () => {
+  it("solta um raio na mira e três em leque na carga 2", () => {
+    expect(boltVolley({ x: 2, y: 0 }, 0)).toEqual([{ x: 1, y: 0 }]);
+    expect(boltVolley({ x: 2, y: 0 }, 1)).toEqual([{ x: 1, y: 0 }]);
+    const fan = boltVolley({ x: 0, y: 3 }, 2);
+    expect(fan).toHaveLength(3);
+    const angles = fan.map((direction) => Math.atan2(direction.y, direction.x) - Math.PI / 2);
+    expect(angles[0]).toBeCloseTo(0);
+    expect(angles[1]).toBeCloseTo(-BOLT_SPREAD);
+    expect(angles[2]).toBeCloseTo(BOLT_SPREAD);
+  });
+
+  it("não solta sem mira", () => {
+    expect(boltVolley({ x: 0, y: 0 }, 2)).toEqual([]);
+  });
+});
+
+describe("boltPath", () => {
+  it("mantém as pontas e desvia de lado alternando, dentro do limite", () => {
+    const from = { x: 0, y: 0 };
+    const to = { x: 360, y: 0 };
+    const path = boltPath(from, to, () => 1);
+    expect(path[0]).toEqual(from);
+    expect(path.at(-1)).toEqual(to);
+    expect(path).toHaveLength(11);
+    const middle = path.slice(1, -1);
+    middle.forEach((point, index) => {
+      expect(Math.abs(point.y)).toBeLessThanOrEqual(BOLT_JAG + 1e-9);
+      if (index > 0) expect(Math.sign(point.y)).toBe(-Math.sign(middle[index - 1]?.y ?? 0));
+    });
+    for (let index = 1; index < path.length; index += 1) {
+      expect(path[index]?.x ?? 0).toBeGreaterThan(path[index - 1]?.x ?? 0);
+    }
+  });
+
+  it("vira um segmento reto quando é curto ou nulo", () => {
+    expect(boltPath({ x: 1, y: 1 }, { x: 1, y: 1 }, Math.random)).toHaveLength(2);
+    expect(boltPath({ x: 0, y: 0 }, { x: 20, y: 0 }, Math.random)).toEqual([
+      { x: 0, y: 0 },
+      { x: 20, y: 0 },
+    ]);
   });
 });
 

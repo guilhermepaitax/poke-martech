@@ -118,6 +118,7 @@ function ArenaScreen() {
         onActivate={picker.activate}
         onFight={() => chooseMap()}
         onTutorial={() => chooseMap("tutorial")}
+        onTest={() => chooseMap("test")}
         canFight={picker.canFight}
         difficulty={picker.difficulty}
         onDifficulty={picker.setDifficulty}

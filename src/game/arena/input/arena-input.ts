@@ -13,6 +13,7 @@ type ArenaKeys = {
   D: Phaser.Input.Keyboard.Key;
   one: Phaser.Input.Keyboard.Key;
   two: Phaser.Input.Keyboard.Key;
+  three: Phaser.Input.Keyboard.Key;
   space: Phaser.Input.Keyboard.Key;
   shift: Phaser.Input.Keyboard.Key;
 };
@@ -44,6 +45,7 @@ function bindArenaKeys(scene: Phaser.Scene) {
       D: Phaser.Input.Keyboard.KeyCodes.D,
       one: Phaser.Input.Keyboard.KeyCodes.ONE,
       two: Phaser.Input.Keyboard.KeyCodes.TWO,
+      three: Phaser.Input.Keyboard.KeyCodes.THREE,
       space: Phaser.Input.Keyboard.KeyCodes.SPACE,
       shift: Phaser.Input.Keyboard.KeyCodes.SHIFT,
     },

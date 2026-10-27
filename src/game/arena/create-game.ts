@@ -4,6 +4,7 @@ import { setPixelFont, setTitleFont } from "@/game/arena/entities/marker";
 import { ArenaScene } from "@/game/arena/scenes/arena-scene";
 import { arenaAudioContext } from "@/game/arena/unlock-audio";
 import type { ArenaDifficulty } from "@/lib/arena/cpu";
+import type { ArenaDevAction, ArenaDevSettings } from "@/lib/arena/dev-settings";
 import type { ArenaMatchup } from "@/lib/arena/fighter";
 import type { ArenaOutcome } from "@/lib/arena/outcome";
 import type { ArenaHudState, ArenaSnapshot } from "@/lib/arena/snapshot";
@@ -36,6 +37,7 @@ function createArenaGame(
   matchup: ArenaMatchup,
   difficulty: ArenaDifficulty,
   mode: ArenaMode = "match",
+  devSettings: ArenaDevSettings | null = null,
 ): Phaser.Game {
   const width = Math.max(parent.clientWidth, 1);
   const height = Math.max(parent.clientHeight, 1);
@@ -71,6 +73,7 @@ function createArenaGame(
         game.registry.set("matchup", matchup);
         game.registry.set("difficulty", difficulty);
         game.registry.set("mode", mode);
+        if (devSettings) game.registry.set("devSettings", devSettings);
       },
     },
     scene: ArenaScene,
@@ -89,6 +92,8 @@ type ArenaControls = {
   onTutorial: (listener: (action: TutorialAction) => void) => () => void;
   spawnTutorialPickup: () => void;
   setTutorialDummyAttacks: (on: boolean) => void;
+  setDevSettings: (settings: ArenaDevSettings) => void;
+  devAction: (action: ArenaDevAction) => void;
 };
 
 function arenaScene(game: Phaser.Game) {
@@ -132,6 +137,8 @@ function arenaControls(game: Phaser.Game): ArenaControls {
     spawnTutorialPickup: () => arenaScene(game)?.spawnTutorialPickup(),
     setTutorialDummyAttacks: (on) =>
       arenaScene(game)?.setTutorialDummyAttacks(on),
+    setDevSettings: (settings) => arenaScene(game)?.setDevSettings(settings),
+    devAction: (action) => arenaScene(game)?.devAction(action),
   };
 }
 

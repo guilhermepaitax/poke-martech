@@ -18,6 +18,8 @@ const ARENA_AUDIO = {
   explosion: { key: "arena-explosion", path: "/arena/audio/explosion.wav" },
   bone: { key: "arena-bone", path: "/arena/audio/bone.wav" },
   waterIn: { key: "arena-water-in", path: "/arena/audio/water-in.wav" },
+  fireTornadoHit: { key: "arena-fire-tornado-hit", path: "/arena/audio/fire-tornado-hit.wav" },
+  toxicMist: { key: "arena-toxic-mist", path: "/arena/audio/toxic-mist.wav" },
 } as const;
 
 type ArenaCue = keyof typeof ARENA_AUDIO;

@@ -18,6 +18,7 @@ describe("ARENA_FIGHTERS", () => {
       expect(fighter.hp).toBeGreaterThan(0);
       expect(fighter.attacks.melee.power).toBeGreaterThan(0);
       expect(fighter.attacks.fire.power).toBeGreaterThan(0);
+      expect(fighter.attacks.special.power).toBeGreaterThan(0);
       ACTIONS.forEach((action) => {
         const sheet = fighter.sprite.sheets[action];
         if (!sheet) {
@@ -30,6 +31,11 @@ describe("ARENA_FIGHTERS", () => {
       });
     },
   );
+
+  it("cada lutador tem um especial próprio", () => {
+    const styles = ARENA_FIGHTERS.map((fighter) => fighter.special);
+    expect(new Set(styles).size).toBe(styles.length);
+  });
 
   it("todo lutador de água nada", () => {
     ARENA_FIGHTERS.filter((fighter) => fighter.energy === "water").forEach((fighter) => {

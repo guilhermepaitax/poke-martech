@@ -11,6 +11,7 @@ const joaovee: ArenaFighter = {
   banner: { path: "/arena/banners/joaovee.webp", focus: "41% 45%" },
   energy: "colorless",
   ranged: "star",
+  special: "last-resort",
   hp: 65,
   attacks: {
     melee: {
@@ -25,6 +26,13 @@ const joaovee: ArenaFighter = {
       description:
         "Duas estrelas que curvam atrás do alvo. Segure: três estrelas maiores no nível 1, leque de cinco no nível 2.",
       power: 26,
+    },
+    special: {
+      name: "Último Recurso",
+      hudName: "RECURSO",
+      description:
+        "Some e reaparece quatro vezes em volta do alvo, golpeando de todos os lados. Intocável durante a sequência.",
+      power: 40,
     },
   },
   sprite: {

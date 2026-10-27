@@ -1,7 +1,8 @@
 import type { ChargeLevel } from "./charge";
 import type { AttackKind } from "./combat";
 
-type ArenaMode = "match" | "tutorial";
+// "test" é o modo teste de desenvolvimento: luta sem recompensa e com painel de ajustes.
+type ArenaMode = "match" | "tutorial" | "test";
 
 // O que a cena reporta ao jogador fazer algo durante o treino.
 type TutorialAction =
@@ -69,7 +70,7 @@ function advanceTutorial(step: TutorialStep, action: TutorialAction): TutorialSt
 }
 
 function isArenaMode(value: unknown): value is ArenaMode {
-  return value === "match" || value === "tutorial";
+  return value === "match" || value === "tutorial" || value === "test";
 }
 
 export { advanceTutorial, isArenaMode, TUTORIAL_LESSONS, TUTORIAL_STEPS };

@@ -21,7 +21,7 @@ function input(overrides: Partial<CpuInput> = {}): CpuInput {
     targetHp: 100,
     busy: false,
     now: 1000,
-    readyAt: { melee: 0, fire: 0 },
+    readyAt: { melee: 0, fire: 0, special: 0 },
     blockedAt: null,
     fireRange: CPU_FIRE_RANGE,
     ...overrides,
@@ -87,7 +87,7 @@ describe("decideCpu", () => {
       input({
         target: { x: CPU_FIRE_RANGE + 200, y: 0 },
         blockedAt: 40,
-        readyAt: { melee: 2000, fire: 2000 },
+        readyAt: { melee: 2000, fire: 2000, special: 0 },
       }),
     );
 
@@ -107,7 +107,7 @@ describe("decideCpu", () => {
     const decision = decideCpu(
       input({
         target: { x: CPU_MELEE_RANGE - 10, y: 0 },
-        readyAt: { melee: 2000, fire: 0 },
+        readyAt: { melee: 2000, fire: 0, special: 0 },
       }),
     );
 
@@ -115,7 +115,7 @@ describe("decideCpu", () => {
   });
 
   it("sem ataque pronto, aproxima até a distância de espera", () => {
-    const cooling = { melee: 2000, fire: 2000 };
+    const cooling = { melee: 2000, fire: 2000, special: 0 };
 
     expect(
       decideCpu(input({ target: { x: CPU_FIRE_RANGE - 10, y: 0 }, readyAt: cooling })),
@@ -127,7 +127,7 @@ describe("decideCpu", () => {
 
   it("cooldown libera quando o relógio alcança a marca", () => {
     const target = { x: CPU_MELEE_RANGE, y: 0 };
-    const readyAt = { melee: 1000, fire: 1000 };
+    const readyAt = { melee: 1000, fire: 1000, special: 1000 };
 
     expect(decideCpu(input({ target, readyAt, now: 999 })).action).not.toBe("attack");
     expect(decideCpu(input({ target, readyAt, now: 1000 })).action).toBe("attack");
@@ -271,5 +271,27 @@ describe("cpuParries", () => {
 
   it("difícil faz parry mais que o normal", () => {
     expect(CPU_PROFILES.normal.parryChance).toBeLessThan(CPU_PROFILES.hard.parryChance);
+  });
+});
+
+describe("decideCpu especial", () => {
+  it("solta o especial liberado com o alvo no alcance", () => {
+    const decision = decideCpu(
+      input({ target: { x: 200, y: 0 }, special: { ready: true, range: 300 } }),
+    );
+    expect(decision).toMatchObject({ action: "attack", kind: "special" });
+  });
+
+  it("segura o especial sem medidor, fora do alcance ou atrás de bloco", () => {
+    const target = { x: 200, y: 0 };
+    expect(decideCpu(input({ target, special: { ready: false, range: 300 } }))).not.toMatchObject({
+      kind: "special",
+    });
+    expect(decideCpu(input({ target, special: { ready: true, range: 100 } }))).not.toMatchObject({
+      kind: "special",
+    });
+    expect(
+      decideCpu(input({ target, blockedAt: 80, special: { ready: true, range: 300 } })),
+    ).not.toMatchObject({ kind: "special" });
   });
 });

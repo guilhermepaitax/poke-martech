@@ -313,5 +313,5 @@ function spawnShockwave(
   }
 }
 
-export { DASH_DISTANCE, dashWithTrail, EVADE, LUNGE, spawnShockwave, spawnSlashArc };
+export { DASH_DISTANCE, dashWithTrail, EVADE, LUNGE, spawnGhost, spawnShockwave, spawnSlashArc };
 export type { DashStyle, SlashLook };

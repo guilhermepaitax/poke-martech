@@ -11,6 +11,7 @@ const papaitaxone: ArenaFighter = {
   banner: { path: "/arena/banners/papaitaxone.webp", focus: "35% 25%" },
   energy: "ground",
   ranged: "bone",
+  special: "quake",
   hp: 75,
   attacks: {
     melee: {
@@ -25,6 +26,13 @@ const papaitaxone: ArenaFighter = {
       description:
         "Osso giratório que vai até o alcance máximo e volta, acertando na ida e na volta. Segure: osso maior no nível 1, dois ossos no nível 2.",
       power: 22,
+    },
+    special: {
+      name: "Terremoto",
+      hudName: "TERREMOTO",
+      description:
+        "Onda de choque que se espalha pelo chão em volta. Não dá para defender: só o dash escapa.",
+      power: 42,
     },
   },
   sprite: {

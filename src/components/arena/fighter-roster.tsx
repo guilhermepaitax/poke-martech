@@ -17,7 +17,9 @@ const SIDE_LABEL: Record<ArenaSide, string> = {
 function energyStyle(fighter: ArenaFighter | null, random = false) {
   if (random) return { "--energy": RANDOM_FIGHTER.color } as CSSProperties;
   if (!fighter) return undefined;
-  return { "--energy": fighterAppearance(fighter.energy).color } as CSSProperties;
+  return {
+    "--energy": fighterAppearance(fighter.energy).color,
+  } as CSSProperties;
 }
 
 function SideBadges({ sides }: { sides: readonly ArenaSide[] }) {
@@ -69,7 +71,9 @@ function ArenaSideSlot({
       )}
     >
       <span className="size-9 shrink-0 bg-(--arena-line) max-[420px]:hidden">
-        {banner ? <FighterPortrait banner={banner} className="block size-full" /> : null}
+        {banner ? (
+          <FighterPortrait banner={banner} className="block size-full" />
+        ) : null}
       </span>
       <span className="flex min-w-0 flex-col">
         <span className="text-[10px] font-semibold tracking-widest text-(--arena-ink-subtle) uppercase">
@@ -134,11 +138,13 @@ function FighterRoster({
   active: ArenaSide;
   onChoose: (id: string) => void;
 }) {
-  const randomSides = (["player", "opponent"] as const).filter((side) => random[side]);
+  const randomSides = (["player", "opponent"] as const).filter(
+    (side) => random[side],
+  );
   const randomCurrent = random[active];
 
   return (
-    <ul data-slot="fighter-roster" className="grid grid-cols-6 gap-2">
+    <ul data-slot="fighter-roster" className="grid grid-cols-5 gap-2">
       {fighters.map((fighter) => {
         const sides: ArenaSide[] = [];
         if (fighter.id === player?.id) sides.push("player");

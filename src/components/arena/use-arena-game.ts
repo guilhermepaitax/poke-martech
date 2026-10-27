@@ -1,8 +1,10 @@
 "use client";
 
 import type { ArenaControls } from "@/game/arena/create-game";
+import { padStartDown } from "@/game/arena/input/arena-gamepad";
 import { profileKeys } from "@/hooks/use-profile";
 import type { ArenaDifficulty } from "@/lib/arena/cpu";
+import type { ArenaDevAction, ArenaDevSettings } from "@/lib/arena/dev-settings";
 import type { ArenaMatchup } from "@/lib/arena/fighter";
 import { ARENA_WIN_REWARD } from "@/lib/arena/rewards";
 import type { ArenaHudState, ArenaSnapshot } from "@/lib/arena/snapshot";
@@ -39,9 +41,16 @@ function fitArena(game: ArenaGameInstance, parent: HTMLElement) {
   game.scale.resize(width, height);
 }
 
-function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty, mode: ArenaMode) {
+function useArenaGame(
+  matchup: ArenaMatchup,
+  difficulty: ArenaDifficulty,
+  mode: ArenaMode,
+  devSettings: ArenaDevSettings | null = null,
+) {
   const parentRef = useRef<HTMLDivElement>(null);
   const matchupRef = useRef(matchup);
+  // Ajustes do modo teste mudam ao vivo; não recriam o jogo.
+  const devSettingsRef = useRef(devSettings);
   const controlsRef = useRef<ArenaControls | null>(null);
   const matchRef = useRef<Promise<ArenaMatchStart | null> | null>(null);
   const matchTokenRef = useRef(0);
@@ -59,6 +68,11 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty, mode: 
   useEffect(() => {
     matchupRef.current = matchup;
   }, [matchup]);
+
+  useEffect(() => {
+    devSettingsRef.current = devSettings;
+    if (devSettings && status === "ready") controlsRef.current?.setDevSettings(devSettings);
+  }, [devSettings, status]);
 
   function beginMatch(level: ArenaDifficulty) {
     matchTokenRef.current += 1;
@@ -136,7 +150,13 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty, mode: 
         );
         await loadArenaFonts(parent);
         if (cancelled || parentRef.current !== parent) return;
-        const instance = createArenaGame(parent, matchupRef.current, difficulty, mode);
+        const instance = createArenaGame(
+          parent,
+          matchupRef.current,
+          difficulty,
+          mode,
+          devSettingsRef.current,
+        );
         if (cancelled) {
           instance.destroy(true, false);
           return;
@@ -146,6 +166,8 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty, mode: 
         controlsRef.current = controls;
         releaseOutcome = controls.onOutcome((outcome) => {
           setPhase(outcome);
+          // Modo teste não vale moedas nem conta derrota.
+          if (mode !== "match") return;
           void (outcome === "victory" ? claimReward() : recordDefeat());
         });
         releaseSnapshot = controls.onSnapshot(setSnapshot);
@@ -154,7 +176,7 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty, mode: 
           releaseTutorial = controls.onTutorial((action) => {
             setTutorialStep((step) => advanceTutorial(step, action));
           });
-        } else {
+        } else if (mode === "match") {
           beginMatch(difficulty);
         }
         fitArena(instance, parent);
@@ -199,21 +221,35 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty, mode: 
   useEffect(() => {
     if (phase !== "playing" && phase !== "paused") return;
     if (tutorialStep === "done") return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || event.repeat) return;
+    const toggle = () => {
       const controls = controlsRef.current;
-      if (!controls) return;
-      event.preventDefault();
+      if (!controls) return false;
       if (phase === "playing") {
         controls.pause();
         setPhase("paused");
-        return;
+        return true;
       }
       controls.resume();
       setPhase("playing");
+      return true;
     };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.repeat) return;
+      if (toggle()) event.preventDefault();
+    };
+    // Start do controle: começa "segurado" para não alternar de novo ao re-render.
+    let startHeld = padStartDown();
+    let frame = requestAnimationFrame(function pollStart() {
+      const down = padStartDown();
+      if (down && !startHeld) toggle();
+      startHeld = down;
+      frame = requestAnimationFrame(pollStart);
+    });
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      cancelAnimationFrame(frame);
+    };
   }, [phase, tutorialStep]);
 
   function resume() {
@@ -226,8 +262,12 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty, mode: 
     if (!controls) return;
     controls.restart();
     if (mode === "tutorial") setTutorialStep("move");
-    else beginMatch(difficulty);
+    else if (mode === "match") beginMatch(difficulty);
     setPhase("playing");
+  }
+
+  function devAction(action: ArenaDevAction) {
+    controlsRef.current?.devAction(action);
   }
 
   function retry() {
@@ -245,6 +285,7 @@ function useArenaGame(matchup: ArenaMatchup, difficulty: ArenaDifficulty, mode: 
     resume,
     restart,
     retry,
+    devAction,
   };
 }
 

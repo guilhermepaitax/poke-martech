@@ -1,18 +1,37 @@
-import { COOLDOWN_MS, type AttackKind } from "@/lib/arena/combat";
+import { attackPower, COOLDOWN_MS, type AttackKind } from "@/lib/arena/combat";
 import type { ArenaFighter } from "@/lib/arena/fighter";
+import { ARENA_FIGHTERS } from "@/lib/arena/fighters";
 import { cn } from "@/lib/utils";
-import { Dices, Swords, type LucideIcon } from "lucide-react";
+import { Dices, Sparkles, Swords, type LucideIcon } from "lucide-react";
 
 import { ArenaPanelSection } from "./arena-panel-section";
 import { fighterAppearance } from "./fighter-appearance";
 import { RANDOM_FIGHTER } from "./random-fighter";
 
 const HP_SCALE = 100;
-const ATTACK_ORDER: AttackKind[] = ["melee", "fire"];
+const ATTACK_ORDER: AttackKind[] = ["melee", "fire", "special"];
 const ATTACK_RANGE_LABEL: Record<AttackKind, string> = {
   melee: "Corpo a corpo",
   fire: "À distância",
+  special: "Especial",
 };
+
+// O especial não tem recarga: libera com o medidor cheio.
+function attackRule(kind: AttackKind) {
+  if (kind === "special") return "enche acertando e apanhando";
+  return `recarga ${formatCooldown(COOLDOWN_MS[kind])}`;
+}
+
+// Dano real por acerto (sem carga, crítico ou buff). O teto depende do HP de
+// quem apanha, então mostra a faixa contra todo o elenco.
+function damageLabel(fighter: ArenaFighter, kind: AttackKind) {
+  const hits = ARENA_FIGHTERS.map((target) =>
+    attackPower(kind, fighter.attacks[kind].power, target.hp),
+  );
+  const min = Math.min(...hits);
+  const max = Math.max(...hits);
+  return min === max ? `${min}` : `${min}–${max}`;
+}
 
 function formatCooldown(ms: number) {
   return `${(ms / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}s`;
@@ -44,13 +63,18 @@ function fighterView(fighter: ArenaFighter): StatsView {
     attacks: {
       melee: {
         name: fighter.attacks.melee.name,
-        power: `${fighter.attacks.melee.power}`,
+        power: damageLabel(fighter, "melee"),
         icon: Swords,
       },
       fire: {
         name: fighter.attacks.fire.name,
-        power: `${fighter.attacks.fire.power}`,
+        power: damageLabel(fighter, "fire"),
         icon: TypeIcon,
+      },
+      special: {
+        name: fighter.attacks.special.name,
+        power: damageLabel(fighter, "special"),
+        icon: Sparkles,
       },
     },
   };
@@ -69,7 +93,7 @@ function randomView(): StatsView {
     meter: stats.meter,
     meterLabel: "HP do lutador sorteado",
     random: true,
-    attacks: { melee: attack("melee"), fire: attack("fire") },
+    attacks: { melee: attack("melee"), fire: attack("fire"), special: attack("special") },
   };
 }
 
@@ -131,13 +155,12 @@ function FighterStats({ fighter }: { fighter: ArenaFighter | null }) {
                   <span className="truncate">{attack.name}</span>
                 </span>
                 <span className="text-xs text-(--arena-ink-subtle)">
-                  {ATTACK_RANGE_LABEL[kind]} · recarga{" "}
-                  {formatCooldown(COOLDOWN_MS[kind])}
+                  {ATTACK_RANGE_LABEL[kind]} · {attackRule(kind)}
                 </span>
               </div>
               <span className="flex shrink-0 flex-col items-end">
                 <span className="text-[10px] font-semibold tracking-wide text-(--arena-ink-subtle) uppercase">
-                  Poder
+                  Dano
                 </span>
                 <span className="font-arena-title text-lg leading-none tabular-nums">
                   {attack.power}

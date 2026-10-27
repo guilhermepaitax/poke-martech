@@ -16,7 +16,11 @@ function FighterBanner({
   className?: string;
 }) {
   return (
-    <div data-slot="fighter-banner" aria-hidden className={cn("overflow-hidden", className)}>
+    <div
+      data-slot="fighter-banner"
+      aria-hidden
+      className={cn("overflow-hidden", className)}
+    >
       {fighters.map((fighter, index) => (
         <Image
           key={fighter.id}
@@ -26,7 +30,7 @@ function FighterBanner({
           priority={index === 0}
           sizes="(min-width: 1152px) 1152px, 100vw"
           data-hidden={!random && fighter.id === focused?.id ? undefined : ""}
-          className="arena-banner object-cover object-[30%_center]"
+          className="arena-banner object-cover object-[50%_center]"
         />
       ))}
       <Image

@@ -1,10 +1,11 @@
 "use client";
 
 import type { ArenaDifficulty } from "@/lib/arena/cpu";
+import { DEV_MODE_ENABLED } from "@/lib/arena/dev-settings";
 import type { ArenaFighter } from "@/lib/arena/fighter";
 import type { ArenaSide } from "@/lib/arena/selection";
-import { GraduationCap, Map as MapIcon, Shuffle } from "lucide-react";
-import type { CSSProperties } from "react";
+import { FlaskConical, GraduationCap, Map as MapIcon, Shuffle } from "lucide-react";
+import { useRef, type CSSProperties } from "react";
 
 import { ArenaActionButton } from "./arena-action-button";
 import { ArenaDifficultyPicker } from "./arena-difficulty";
@@ -14,6 +15,7 @@ import { FighterBanner } from "./fighter-banner";
 import { ArenaMatchupSlots, FighterRoster } from "./fighter-roster";
 import { FighterStats } from "./fighter-stats";
 import { RANDOM_FIGHTER } from "./random-fighter";
+import { useGamepadMenu } from "./use-gamepad-menu";
 
 const SIDE_LABEL: Record<ArenaSide, string> = {
   player: "Você",
@@ -31,6 +33,7 @@ function ArenaPicker({
   onActivate,
   onFight,
   onTutorial,
+  onTest,
   canFight,
   difficulty,
   onDifficulty,
@@ -45,10 +48,20 @@ function ArenaPicker({
   onActivate: (side: ArenaSide) => void;
   onFight: () => void;
   onTutorial: () => void;
+  onTest: () => void;
   canFight: boolean;
   difficulty: ArenaDifficulty;
   onDifficulty: (value: ArenaDifficulty) => void;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  // LB/RB trocam o lado (você/oponente); Start vai para a escolha da arena.
+  useGamepadMenu(rootRef, {
+    initial: '[data-slot="fighter-tile"][data-current]',
+    onShoulder: (button) => onActivate(button === "LB" ? "player" : "opponent"),
+    onStart: () => {
+      if (canFight) onFight();
+    },
+  });
   const focusedRandom = random[active];
   const appearance = focused ? fighterAppearance(focused.energy) : null;
   const TypeIcon = focusedRandom ? Shuffle : appearance?.icon;
@@ -57,6 +70,7 @@ function ArenaPicker({
 
   return (
     <div
+      ref={rootRef}
       data-slot="arena-picker"
       style={style}
       className="arena-picker relative isolate overflow-hidden rounded-[28px] lg:grid lg:min-h-[40rem] lg:grid-cols-[minmax(0,1fr)_30rem]"
@@ -65,7 +79,7 @@ function ArenaPicker({
         fighters={fighters}
         focused={focused}
         random={focusedRandom}
-        className="absolute inset-x-0 top-0 -z-10 aspect-[4/3] sm:aspect-video lg:inset-0 lg:aspect-auto"
+        className="absolute inset-x-0 top-0 -z-10 aspect-4/3 sm:aspect-video lg:inset-0 lg:aspect-auto"
       />
 
       <div className="flex aspect-[4/3] flex-col items-start gap-2 p-5 sm:aspect-video sm:p-8 lg:aspect-auto">
@@ -144,6 +158,16 @@ function ArenaPicker({
             <GraduationCap aria-hidden className="size-4" />
             Tutorial
           </ArenaActionButton>
+          {DEV_MODE_ENABLED ? (
+            <ArenaActionButton
+              variant="secondary"
+              onClick={onTest}
+              disabled={!canFight}
+            >
+              <FlaskConical aria-hidden className="size-4" />
+              Modo teste (dev)
+            </ArenaActionButton>
+          ) : null}
         </div>
       </aside>
     </div>

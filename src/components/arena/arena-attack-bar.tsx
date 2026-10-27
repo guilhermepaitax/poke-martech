@@ -2,22 +2,34 @@
 
 import type { ArenaFighter } from "@/lib/arena/fighter";
 import type {
+  ArenaDevice,
   ArenaHudState,
   HudCharge,
   HudCooldown,
   HudGuard,
   HudSlot,
+  HudSpecial,
 } from "@/lib/arena/snapshot";
-import { ChevronsRight, HandFist, Hourglass, Shield } from "lucide-react";
+import { ChevronsRight, HandFist, Hourglass, Shield, Sparkles } from "lucide-react";
 import { useState, type CSSProperties } from "react";
 
 import { fighterAppearance } from "./fighter-appearance";
 
-const SLOT_KEY: Record<HudSlot, string> = {
-  melee: "1",
-  fire: "2",
-  dash: "ESPAÇO",
-  defend: "SHIFT",
+const SLOT_KEY: Record<ArenaDevice, Record<HudSlot, string>> = {
+  pointer: {
+    melee: "1",
+    fire: "2",
+    special: "3",
+    dash: "ESPAÇO",
+    defend: "SHIFT",
+  },
+  pad: {
+    melee: "A",
+    fire: "X",
+    special: "Y",
+    dash: "B",
+    defend: "LB",
+  },
 };
 
 const SLOT_NAME: Partial<Record<HudSlot, string>> = {
@@ -31,6 +43,7 @@ function SlotIcon({ fighter, slot }: { fighter: ArenaFighter; slot: HudSlot }) {
   if (slot === "melee") return <HandFist aria-hidden className={ICON_CLASS} />;
   if (slot === "dash") return <ChevronsRight aria-hidden className={ICON_CLASS} />;
   if (slot === "defend") return <Shield aria-hidden className={ICON_CLASS} />;
+  if (slot === "special") return <Sparkles aria-hidden className={ICON_CLASS} />;
   const RangedIcon = fighterAppearance(fighter.energy).rangedIcon;
   return <RangedIcon aria-hidden className={ICON_CLASS} />;
 }
@@ -42,18 +55,22 @@ function slotName(fighter: ArenaFighter, slot: HudSlot) {
 
 function ArenaSlot({
   slot,
+  device,
   fighter,
   cooldown,
   selected,
   charge,
   guard,
+  special,
 }: {
   slot: HudSlot;
+  device: ArenaDevice;
   fighter: ArenaFighter;
   cooldown: HudCooldown;
   selected: boolean;
   charge: HudCharge | null;
   guard: HudGuard | null;
+  special: HudSpecial | null;
 }) {
   const [doneCycle, setDoneCycle] = useState(0);
   const cooling = cooldown.remainingMs > 0 && doneCycle !== cooldown.cycle;
@@ -70,10 +87,12 @@ function ArenaSlot({
         data-cooling={cooling ? "" : undefined}
         data-charge={charge ? charge.level : undefined}
         data-defending={guard?.defending ? "" : undefined}
+        data-special-ready={special?.ready ? "" : undefined}
+        data-special-empty={special && !special.ready && !selected ? "" : undefined}
         className="arena-slot relative flex size-12 flex-col items-center justify-center overflow-hidden sm:h-[4.5rem] sm:w-24"
       >
         <span className="arena-slot-keycap absolute top-0 left-0 hidden px-1.5 text-[9px] font-bold leading-4 sm:block">
-          <span className="arena-slot-unskew block">{SLOT_KEY[slot]}</span>
+          <span className="arena-slot-unskew block">{SLOT_KEY[device][slot]}</span>
         </span>
         <span className="arena-slot-unskew flex flex-1 items-center justify-center">
           <SlotIcon fighter={fighter} slot={slot} />
@@ -82,7 +101,7 @@ function ArenaSlot({
           <span className="arena-slot-unskew hidden whitespace-nowrap uppercase tracking-wide sm:inline">
             {slotName(fighter, slot)}
           </span>
-          <span className="arena-slot-unskew opacity-80 sm:hidden">{SLOT_KEY[slot]}</span>
+          <span className="arena-slot-unskew opacity-80 sm:hidden">{SLOT_KEY[device][slot]}</span>
         </span>
         {cooling ? (
           <span key={cooldown.cycle} className="absolute inset-0" style={cooldownStyle}>
@@ -97,6 +116,11 @@ function ArenaSlot({
         ) : null}
         {doneCycle === cooldown.cycle && cooldown.cycle > 0 ? (
           <span key={`ready-${cooldown.cycle}`} className="arena-slot-flash absolute inset-0" />
+        ) : null}
+        {special?.ready ? (
+          <span className="absolute top-1 right-1 rounded-sm bg-[#5cf2ff] px-1 text-[9px] font-bold leading-3 text-background">
+            PRONTO
+          </span>
         ) : null}
         {charge?.level === 2 ? (
           <span className="absolute top-1 right-1 rounded-sm bg-energy-psychic px-1 text-[9px] font-bold leading-3 text-background">
@@ -117,6 +141,14 @@ function ArenaSlot({
             />
           </span>
         ) : null}
+        {special ? (
+          <span className="absolute inset-x-1 top-full mt-1.5 h-1 overflow-hidden bg-black/60">
+            <span
+              className="arena-special-fill block h-full"
+              style={{ transform: `scaleX(${special.ratio})` }}
+            />
+          </span>
+        ) : null}
         {guard ? (
           <span className="absolute inset-x-1 top-full mt-1.5 h-1 overflow-hidden bg-black/60">
             <span
@@ -132,7 +164,7 @@ function ArenaSlot({
 
 function ArenaAttackBar({ fighter, hud }: { fighter: ArenaFighter; hud: ArenaHudState | null }) {
   if (!hud) return null;
-  const slots: HudSlot[] = ["melee", "fire", "dash", "defend"];
+  const slots: HudSlot[] = ["melee", "fire", "special", "dash", "defend"];
 
   return (
     <div
@@ -145,11 +177,13 @@ function ArenaAttackBar({ fighter, hud }: { fighter: ArenaFighter; hud: ArenaHud
           <ArenaSlot
             key={slot}
             slot={slot}
+            device={hud.device}
             fighter={fighter}
             cooldown={hud.cooldowns[slot]}
             selected={slot === hud.kind}
             charge={slot === hud.kind ? hud.charge : null}
             guard={slot === "defend" ? hud.guard : null}
+            special={slot === "special" ? hud.special : null}
           />
         ))}
       </div>

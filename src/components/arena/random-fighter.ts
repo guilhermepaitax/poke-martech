@@ -19,6 +19,7 @@ const RANDOM_FIGHTER = {
     attacks: {
       melee: { name: "Golpe 1", power: "??" },
       fire: { name: "Golpe 2", power: "??" },
+      special: { name: "Especial", power: "??" },
     },
   },
 } as const;

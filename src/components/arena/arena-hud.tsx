@@ -61,6 +61,39 @@ function ArenaChargeMeter({ charge }: { charge: HudCharge | null }) {
   );
 }
 
+// Medidor do especial dos dois lados: o jogador vê quando a CPU está pronta.
+function ArenaSpecialMeter({
+  fighter,
+  ratio,
+  opponent,
+}: {
+  fighter: ArenaFighter;
+  ratio: number;
+  opponent: boolean;
+}) {
+  const ready = ratio >= 1;
+  return (
+    <div
+      role="meter"
+      aria-label={`Especial de ${fighter.name}`}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(ratio * 100)}
+      data-ready={ready ? "" : undefined}
+      title={fighter.attacks.special.name}
+      className={cn(
+        "arena-special-meter relative h-2 w-10 shrink-0 overflow-hidden sm:w-16",
+        opponent ? "-scale-x-100" : null,
+      )}
+    >
+      <span
+        className="arena-special-fill absolute inset-0"
+        style={{ transform: `scaleX(${ratio})` }}
+      />
+    </div>
+  );
+}
+
 function formatClock(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
@@ -143,6 +176,16 @@ function ArenaHudFighter({
             <span className="text-(--arena-ink)">{state.hp}</span>/{state.maxHp}
           </span>
           {opponent ? null : <ArenaChargeMeter charge={charge} />}
+          <ArenaSpecialMeter fighter={fighter} ratio={state.special} opponent={opponent} />
+          {state.poisoned ? (
+            <span
+              data-slot="arena-poison"
+              title="Envenenado: perde vida a cada meio segundo"
+              className="arena-poison-chip shrink-0 px-1.5 font-arena-title text-[10px] leading-4 uppercase"
+            >
+              Veneno
+            </span>
+          ) : null}
           {waterBoost ? (
             <span
               data-slot="arena-water-boost"

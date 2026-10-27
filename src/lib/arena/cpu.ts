@@ -27,6 +27,8 @@ type CpuProfile = {
   defendMs: number;
   // Fração das defesas que sai no tempo do parry.
   parryChance: number;
+  // Espera depois de o medidor encher antes de soltar o especial.
+  specialDelayMs: number;
 };
 
 const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
@@ -39,6 +41,7 @@ const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
     defendChance: 0.15,
     defendMs: 350,
     parryChance: 0,
+    specialDelayMs: 1500,
   },
   normal: {
     speed: 260,
@@ -49,6 +52,7 @@ const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
     defendChance: 0.35,
     defendMs: 450,
     parryChance: 0.12,
+    specialDelayMs: 600,
   },
   hard: {
     speed: 320,
@@ -59,6 +63,7 @@ const CPU_PROFILES: Record<ArenaDifficulty, CpuProfile> = {
     defendChance: 0.6,
     defendMs: 550,
     parryChance: 0.2,
+    specialDelayMs: 0,
   },
 };
 
@@ -88,6 +93,8 @@ type CpuInput = {
   fireRange: number;
   pickups?: readonly CpuPickup[];
   pickupReach?: number;
+  // Especial liberado (medidor cheio e espera do perfil cumprida) e até onde usa.
+  special?: { ready: boolean; range: number };
 };
 
 type CpuDecision =
@@ -123,6 +130,16 @@ function decideCpu(input: CpuInput): CpuDecision {
   const distance = Math.hypot(dx, dy);
   const aim = normalizeMove(dx, dy);
   const aimed = aim.x !== 0 || aim.y !== 0;
+  const wall = input.blockedAt !== null && input.blockedAt < distance ? input.blockedAt : null;
+  if (
+    aimed &&
+    input.special?.ready &&
+    distance <= input.special.range &&
+    wall === null &&
+    canAttack(input.now, input.readyAt.special)
+  ) {
+    return { action: "attack", kind: "special", aim };
+  }
   if (
     aimed &&
     distance <= CPU_MELEE_RANGE &&
@@ -135,7 +152,6 @@ function decideCpu(input: CpuInput): CpuDecision {
     const move = normalizeMove(pickup.x - input.self.x, pickup.y - input.self.y);
     if (move.x !== 0 || move.y !== 0) return { action: "chase", move };
   }
-  const wall = input.blockedAt !== null && input.blockedAt < distance ? input.blockedAt : null;
   if (aimed && wall !== null) {
     if (wall <= CPU_MELEE_RANGE && canAttack(input.now, input.readyAt.melee)) {
       return { action: "attack", kind: "melee", aim };
@@ -165,6 +181,7 @@ type CpuThreat = {
 function cpuDefends(rng: () => number, profile: CpuProfile, threat: CpuThreat, free: boolean) {
   if (!free || profile.defendChance <= 0) return false;
   if (threat.kind === "melee" && threat.distance > CPU_DEFEND_MELEE_RANGE) return false;
+  // Especial é sempre ameaça, de perto ou de longe.
   return rng() < profile.defendChance;
 }
 

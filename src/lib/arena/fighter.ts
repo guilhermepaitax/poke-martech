@@ -3,9 +3,12 @@ import type { ArenaMap } from "./map";
 import type { Facing } from "./movement";
 import type { Mobility } from "./terrain";
 
-type FighterEnergy = "fire" | "grass" | "ground" | "colorless" | "water";
+type FighterEnergy = "fire" | "grass" | "ground" | "colorless" | "water" | "lightning";
 
-type RangedStyle = "beam" | "orb" | "bone" | "star" | "bubble";
+type RangedStyle = "beam" | "orb" | "bone" | "star" | "bubble" | "bolt";
+
+// Mecânica do ataque especial (3º ataque), uma por lutador.
+type SpecialStyle = "fire-tornado" | "toxic-mist" | "quake" | "last-resort" | "surf" | "thunder";
 
 type FighterAction = "idle" | "walk" | "attack" | "shoot" | "hurt" | "defend";
 
@@ -49,6 +52,8 @@ type FighterTuning = {
   lungeScale?: number;
   // Corpo a corpo em giro: acerta em volta (360°) em vez do cone da mira.
   meleeSpin?: boolean;
+  // Corpo a corpo elétrico: o acerto solta faíscas em zigue-zague no alvo.
+  meleeShock?: boolean;
 };
 
 type FighterBanner = {
@@ -72,6 +77,7 @@ type ArenaFighter = {
   banner: FighterBanner;
   energy: FighterEnergy;
   ranged: RangedStyle;
+  special: SpecialStyle;
   // Terrenos extras que alcança (água para quem nada). Sem valor, só terra.
   mobility?: readonly Mobility[];
   hp: number;
@@ -120,4 +126,5 @@ export type {
   FighterSprite,
   FighterTuning,
   RangedStyle,
+  SpecialStyle,
 };

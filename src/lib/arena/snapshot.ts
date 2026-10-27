@@ -4,6 +4,10 @@ import type { AttackKind } from "./combat";
 type FighterSnapshot = {
   hp: number;
   maxHp: number;
+  // Medidor do especial, de 0 a 1.
+  special: number;
+  // Envenenado (Névoa de Veneno).
+  poisoned: boolean;
 };
 
 type ArenaSnapshot = {
@@ -14,6 +18,12 @@ type ArenaSnapshot = {
 };
 
 type HudSlot = AttackKind | "dash" | "defend";
+
+type HudSpecial = {
+  // Medidor do especial, de 0 a 1 (em degraus).
+  ratio: number;
+  ready: boolean;
+};
 
 type HudCooldown = {
   remainingMs: number;
@@ -38,11 +48,17 @@ type ArenaHudState = {
   cooldowns: Record<HudSlot, HudCooldown>;
   charge: HudCharge | null;
   guard: HudGuard;
+  special: HudSpecial;
   // Nadador dentro da água: mais rápido e com mais dano.
   waterBoost: boolean;
+  // Último input usado: troca os rótulos das teclas no HUD e no tutorial.
+  device: ArenaDevice;
 };
 
+type ArenaDevice = "pointer" | "pad";
+
 export type {
+  ArenaDevice,
   ArenaHudState,
   ArenaSnapshot,
   FighterSnapshot,
@@ -50,4 +66,5 @@ export type {
   HudCooldown,
   HudGuard,
   HudSlot,
+  HudSpecial,
 };

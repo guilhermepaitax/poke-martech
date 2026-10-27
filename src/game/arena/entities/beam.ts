@@ -426,5 +426,5 @@ function clearBeams(scene: Phaser.Scene, bucket: BeamShot[]) {
   bucket.length = 0;
 }
 
-export { castBeam, clearBeams, FIRE_BEAM, FIRE_BEAM_CHARGED, WATER_BEAM };
+export { BEAM_PIXEL, castBeam, clearBeams, FIRE_BEAM, FIRE_BEAM_CHARGED, pixelDisc, pixelGrid, WATER_BEAM };
 export type { BeamShot, BeamStyle };

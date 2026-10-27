@@ -1,9 +1,10 @@
-import { blockRects, tryAttack, type Combat } from "@/game/arena/entities/combat";
+import { blockRects, canCastSpecial, tryAttack, type Combat } from "@/game/arena/entities/combat";
 import type { Pickup } from "@/game/arena/entities/pickup";
-import { isDashing, setDefending, updatePlayer, type Player } from "@/game/arena/entities/player";
+import { isChanneling, isDashing, setDefending, updatePlayer, type Player } from "@/game/arena/entities/player";
 import { firstBlockHit, type Point } from "@/lib/arena/combat";
 import { cpuDefends, cpuParries, decideCpu, type CpuProfile } from "@/lib/arena/cpu";
 import { PARRY_WINDOW_MS } from "@/lib/arena/defense";
+import { SPECIAL_RANGE, specialReady } from "@/lib/arena/special";
 import { facingFromAim, normalizeMove, type MoveVector } from "@/lib/arena/movement";
 import { nextWaypoint, type NavGrid } from "@/lib/arena/navigation";
 import type Phaser from "phaser";
@@ -21,6 +22,11 @@ type CpuGuard = {
 
 const guards = new WeakMap<Player, CpuGuard>();
 
+// Modo teste desliga partes da CPU (andar, atacar, defender).
+type CpuLimits = { move: boolean; attack: boolean; defend: boolean };
+
+const CPU_FREE: CpuLimits = { move: true, attack: true, defend: true };
+
 function guardOf(cpu: Player) {
   let guard = guards.get(cpu);
   if (!guard) {
@@ -31,12 +37,22 @@ function guardOf(cpu: Player) {
 }
 
 // Reage ao início de cada golpe do jogador: às vezes segura a defesa um pouco.
-function updateCpuGuard(scene: Phaser.Scene, combat: Combat, cpu: Player, target: Player, profile: CpuProfile) {
+function updateCpuGuard(
+  scene: Phaser.Scene,
+  combat: Combat,
+  cpu: Player,
+  target: Player,
+  profile: CpuProfile,
+  canDefend: boolean,
+) {
   const now = scene.time.now;
   const guard = guardOf(cpu);
   const started = target.attacking && !guard.targetAttacking;
   guard.targetAttacking = target.attacking;
-  if (started) {
+  if (!canDefend) {
+    guard.raiseAt = 0;
+    guard.defendUntil = 0;
+  } else if (started) {
     const free = !cpu.attacking && !cpu.hurting && !isDashing(cpu);
     const distance = Math.hypot(target.sprite.x - cpu.sprite.x, target.sprite.y - cpu.sprite.y);
     if (cpuDefends(Math.random, profile, { kind: combat.kind, distance }, free)) {
@@ -89,10 +105,16 @@ function updateCpu(
   profile: CpuProfile,
   pickups: readonly Pickup[] = [],
   nav: NavGrid | null = null,
+  limits: CpuLimits = CPU_FREE,
 ) {
   const self = { x: cpu.sprite.x, y: cpu.sprite.y };
   const enemy = { x: target.sprite.x, y: target.sprite.y };
-  if (updateCpuGuard(scene, combat, cpu, target, profile)) {
+  // Guiando o furacão: fica parada (o furacão persegue o jogador sozinho).
+  if (isChanneling(cpu)) {
+    updatePlayer(cpu, 0, 0);
+    return;
+  }
+  if (updateCpuGuard(scene, combat, cpu, target, profile, limits.defend)) {
     cpu.facing = facingFromAim(enemy.x - self.x, enemy.y - self.y, cpu.facing);
     updatePlayer(cpu, 0, 0);
     return;
@@ -118,23 +140,32 @@ function updateCpu(
     fireRange: profile.fireRange,
     pickups: goals,
     pickupReach: profile.pickupReach,
+    special: {
+      ready:
+        specialReady(cpu.special) &&
+        scene.time.now >= cpu.specialFullAt + profile.specialDelayMs &&
+        canCastSpecial(combat, cpu, target),
+      range: SPECIAL_RANGE[cpu.fighter.special],
+    },
   });
   if (!busy && cpu.hp > 0) {
     cpu.facing = facingFromAim(enemy.x - self.x, enemy.y - self.y, cpu.facing);
   }
-  if (decision.action === "attack") {
+  if (decision.action === "attack" && limits.attack) {
     tryAttack(scene, combat, cpu, target, decision.kind, decision.aim, profile);
     return;
   }
-  if (decision.action === "chase") {
+  if (decision.action === "chase" && limits.move) {
     const goal = chaseGoal(self, decision.move, enemy, goals);
     const body = cpu.sprite.body;
     const feet = body ? { x: body.center.x, y: body.center.y } : self;
     const move = steer(nav, feet, decision.move, goal);
-    updatePlayer(cpu, move.x, move.y, profile.speed);
+    const heading = normalizeMove(move.x, move.y);
+    updatePlayer(cpu, heading.x, heading.y, profile.speed);
     return;
   }
   updatePlayer(cpu, 0, 0);
 }
 
 export { updateCpu };
+export type { CpuLimits };

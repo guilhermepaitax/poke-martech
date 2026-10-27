@@ -11,6 +11,7 @@ const calvossauro: ArenaFighter = {
   banner: { path: "/arena/banners/calvossauro.webp", focus: "40% 70%" },
   energy: "grass",
   ranged: "orb",
+  special: "toxic-mist",
   hp: 80,
   attacks: {
     melee: {
@@ -25,6 +26,13 @@ const calvossauro: ArenaFighter = {
       description:
         "Bola de energia verde que viaja até o alvo. Segure: maior no nível 1, três bolas no nível 2.",
       power: 25,
+    },
+    special: {
+      name: "Névoa de Veneno",
+      hudName: "NÉVOA",
+      description:
+        "Borrifa uma névoa tóxica que avança crescendo e fica no ar por um segundo. Quem encostar fica envenenado.",
+      power: 40,
     },
   },
   sprite: {

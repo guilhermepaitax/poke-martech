@@ -11,6 +11,7 @@ const douguitoryu: ArenaFighter = {
   banner: { path: "/arena/banners/douguitoryu.webp", focus: "34% 45%" },
   energy: "water",
   ranged: "bubble",
+  special: "surf",
   mobility: ["swim"],
   hp: 70,
   attacks: {
@@ -27,6 +28,13 @@ const douguitoryu: ArenaFighter = {
       description:
         "Rajada de três bolhas que ondulam até o alvo. Segure: bolhas maiores no nível 1, leque de cinco no nível 2.",
       power: 24,
+    },
+    special: {
+      name: "Surfar",
+      hudName: "SURFAR",
+      description:
+        "Onda larga que varre a arena na mira e arrasta quem pegar pela frente.",
+      power: 38,
     },
   },
   sprite: {

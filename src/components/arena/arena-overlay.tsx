@@ -2,11 +2,13 @@
 
 import type { ArenaMatchup } from "@/lib/arena/fighter";
 import { Play, RotateCcw, Swords } from "lucide-react";
+import { useRef } from "react";
 
 import { ArenaActionButton } from "./arena-action-button";
 import { ArenaRewardPanel } from "./arena-reward-panel";
 import { ArenaTitleCard, type ArenaTitleTone } from "./arena-title-card";
 import type { ArenaPhase, ArenaReward } from "./use-arena-game";
+import { useGamepadMenu } from "./use-gamepad-menu";
 
 const TITLES: Record<
   Exclude<ArenaPhase, "playing">,
@@ -32,14 +34,18 @@ function ArenaOverlay({
   onRestart: () => void;
   onExit: () => void;
 }) {
-  if (phase === "playing") return null;
+  const rootRef = useRef<HTMLDivElement>(null);
   const paused = phase === "paused";
+  // B no pause volta para a luta, igual ao Esc/Start.
+  useGamepadMenu(rootRef, { enabled: phase !== "playing", onBack: paused ? onResume : undefined });
+  if (phase === "playing") return null;
   const copy = TITLES[phase];
   const featured = phase === "defeat" ? matchup.opponent : matchup.player;
-  const kicker = paused ? "Esc continua a partida" : `${featured.name} venceu`;
+  const kicker = paused ? "Esc ou Start continua a partida" : `${featured.name} venceu`;
 
   return (
     <div
+      ref={rootRef}
       data-slot="arena-overlay"
       data-phase={phase}
       role="dialog"

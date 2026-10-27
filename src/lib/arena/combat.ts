@@ -1,8 +1,8 @@
 import type { ChargeLevel } from "./charge";
 
-type AttackKind = "melee" | "fire";
+type AttackKind = "melee" | "fire" | "special";
 
-type AttackKey = "1" | "2";
+type AttackKey = "1" | "2" | "3";
 
 type Point = {
   x: number;
@@ -88,6 +88,8 @@ type ResolvedHit = {
 
 const MELEE_COOLDOWN_MS = 460;
 const FIRE_COOLDOWN_MS = 720;
+// O medidor é o limite real do especial; a recarga só evita disparo duplo.
+const SPECIAL_COOLDOWN_MS = 600;
 const MELEE_RANGE = 124;
 // Quem avança para o corpo a corpo leva menos dano à distância durante o golpe.
 const MELEE_GUARD_MS = 260;
@@ -121,6 +123,14 @@ const BUBBLE_SPREAD = Math.PI / 10;
 const BUBBLE_STAGGER_MS = 80;
 const BUBBLE_WOBBLE = 14;
 const BUBBLE_WAVELENGTH = 150;
+// Raio do Choque do Trovão: estala na mão por `BOLT_WINDUP_MS` e cai na hora
+// em zigue-zague. A mira é travada no começo do estalo, então dá para esquivar.
+const BOLT_RANGE = 520;
+const BOLT_RADIUS = 10;
+const BOLT_SPREAD = Math.PI / 9;
+const BOLT_WINDUP_MS = 120;
+const BOLT_JAG = 16;
+const BOLT_SEGMENT = 36;
 const CRACK_RADIUS_MIN = 36;
 const CRACK_RADIUS_MAX = 140;
 const CRACK_BRANCH_MIN = 5;
@@ -134,17 +144,23 @@ const FALLBACK_ATTACK_DAMAGE = 30;
 const DAMAGE_SCALE: Record<AttackKind, number> = {
   melee: 0.4,
   fire: 0.18,
+  special: 0.7,
 };
 
 const DAMAGE_CAP: Record<AttackKind, number> = {
   melee: 0.16,
   fire: 0.08,
+  special: 0.3,
 };
 
 const COOLDOWN_MS: Record<AttackKind, number> = {
   melee: MELEE_COOLDOWN_MS,
   fire: FIRE_COOLDOWN_MS,
+  special: SPECIAL_COOLDOWN_MS,
 };
+
+// Ordem dos slots: tecla 1, 2, 3 e o ciclo do scroll.
+const ATTACK_ORDER: readonly AttackKind[] = ["melee", "fire", "special"];
 
 function selectAttack(
   current: AttackKind,
@@ -152,8 +168,10 @@ function selectAttack(
 ): AttackKind {
   if (input.key === "1") return "melee";
   if (input.key === "2") return "fire";
+  if (input.key === "3") return "special";
   if (typeof input.wheel === "number" && input.wheel !== 0) {
-    return current === "melee" ? "fire" : "melee";
+    const step = input.wheel > 0 ? 1 : ATTACK_ORDER.length - 1;
+    return ATTACK_ORDER[(ATTACK_ORDER.indexOf(current) + step) % ATTACK_ORDER.length] ?? current;
   }
   return current;
 }
@@ -386,6 +404,35 @@ function bubblePosition(from: Point, direction: Point, travelled: number, sway: 
   };
 }
 
+function boltVolley(aim: Point, charge: ChargeLevel): Point[] {
+  const length = Math.hypot(aim.x, aim.y);
+  if (length === 0) return [];
+  const center = { x: aim.x / length, y: aim.y / length };
+  if (charge < 2) return [center];
+  return [center, rotate(center, -BOLT_SPREAD), rotate(center, BOLT_SPREAD)];
+}
+
+// Pontos do zigue-zague entre `from` e `to`. As pontas ficam fixas e cada
+// vértice do meio desvia de lado, alternando o sentido, até `jag` px.
+function boltPath(from: Point, to: Point, random: () => number, jag = BOLT_JAG): Point[] {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.hypot(dx, dy);
+  if (length === 0) return [from, to];
+  const nx = -dy / length;
+  const ny = dx / length;
+  const segments = Math.max(1, Math.round(length / BOLT_SEGMENT));
+  const points: Point[] = [{ x: from.x, y: from.y }];
+  for (let index = 1; index < segments; index += 1) {
+    const t = index / segments;
+    const side = index % 2 === 0 ? 1 : -1;
+    const offset = side * jag * (0.35 + 0.65 * random());
+    points.push({ x: from.x + dx * t + nx * offset, y: from.y + dy * t + ny * offset });
+  }
+  points.push({ x: to.x, y: to.y });
+  return points;
+}
+
 // Gira o rumo unitário em direção ao alvo, no máximo `maxTurn` radianos.
 function steerToward(heading: Point, toTarget: Point | null, maxTurn: number): Point {
   if (!toTarget || Math.hypot(toTarget.x, toTarget.y) === 0) return heading;
@@ -501,12 +548,20 @@ function impactTier(damage: number, critical = false): ImpactTier {
 
 export {
   AIM_LENGTH,
+  ATTACK_ORDER,
   aimTip,
   attackPower,
   applyHit,
   BEAM_RANGE,
   BEAM_TARGET_RADIUS,
   beamImpact,
+  BOLT_JAG,
+  BOLT_RADIUS,
+  BOLT_RANGE,
+  BOLT_SPREAD,
+  BOLT_WINDUP_MS,
+  boltPath,
+  boltVolley,
   BONE_CATCH_RADIUS,
   BONE_RADIUS,
   BONE_RANGE,

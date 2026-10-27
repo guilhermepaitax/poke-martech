@@ -54,6 +54,7 @@ describe("isArenaMode", () => {
   it("aceita só os modos conhecidos", () => {
     expect(isArenaMode("tutorial")).toBe(true);
     expect(isArenaMode("match")).toBe(true);
+    expect(isArenaMode("test")).toBe(true);
     expect(isArenaMode("treino")).toBe(false);
     expect(isArenaMode(undefined)).toBe(false);
   });

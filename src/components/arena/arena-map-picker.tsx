@@ -5,13 +5,14 @@ import type { ArenaMap, MapTrait } from "@/lib/arena/map";
 import { RANDOM_MAP_ID, type ArenaSide } from "@/lib/arena/selection";
 import type { ArenaMode } from "@/lib/arena/tutorial";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Droplets, GraduationCap, Mountain, Shuffle, Swords, Zap, type LucideIcon } from "lucide-react";
+import { ArrowLeft, Droplets, FlaskConical, GraduationCap, Mountain, Shuffle, Swords, Zap, type LucideIcon } from "lucide-react";
 import Image from "next/image";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
 import { ArenaActionButton } from "./arena-action-button";
 import { ArenaPanelSection } from "./arena-panel-section";
 import { ArenaMatchupSlots } from "./fighter-roster";
+import { useGamepadMenu } from "./use-gamepad-menu";
 
 const RANDOM_MAP = {
   name: "Aleatório",
@@ -117,14 +118,25 @@ function ArenaMapPicker({
   onBack: (side?: ArenaSide) => void;
   onFight: () => void;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  // B volta para os lutadores; Start luta direto.
+  useGamepadMenu(rootRef, {
+    initial: '[data-slot="arena-map-tile"][data-current]',
+    onBack: () => onBack(),
+    onStart: () => {
+      if (map || random) onFight();
+    },
+  });
   const name = random ? RANDOM_MAP.name : map?.name;
   const title = random ? RANDOM_MAP.title : map?.title;
   const description = random ? RANDOM_MAP.description : map?.description;
   const traits = random ? [] : (map?.traits ?? []);
   const tutorial = mode === "tutorial";
+  const test = mode === "test";
 
   return (
     <div
+      ref={rootRef}
       data-slot="arena-map-picker"
       className="arena-picker relative isolate overflow-hidden rounded-[28px] lg:grid lg:min-h-[40rem] lg:grid-cols-[minmax(0,1fr)_30rem]"
     >
@@ -215,8 +227,14 @@ function ArenaMapPicker({
               disabled={!map && !random}
               className="arena-cta flex h-14 w-full items-center justify-center gap-3 font-arena-title text-2xl uppercase focus-visible:outline-none"
             >
-              {tutorial ? <GraduationCap aria-hidden className="size-6" /> : <Swords aria-hidden className="size-6" />}
-              {tutorial ? "Treinar" : "Lutar"}
+              {tutorial ? (
+                <GraduationCap aria-hidden className="size-6" />
+              ) : test ? (
+                <FlaskConical aria-hidden className="size-6" />
+              ) : (
+                <Swords aria-hidden className="size-6" />
+              )}
+              {tutorial ? "Treinar" : test ? "Testar" : "Lutar"}
             </button>
           </div>
           <ArenaActionButton variant="secondary" onClick={() => onBack()}>

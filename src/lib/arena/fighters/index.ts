@@ -1,6 +1,7 @@
 import type { ArenaFighter } from "@/lib/arena/fighter";
 
 import { antoniomander } from "./antoniomander";
+import { bellotabuzz } from "./bellotabuzz";
 import { calvossauro } from "./calvossauro";
 import { douguitoryu } from "./douguitoryu";
 import { joaovee } from "./joaovee";
@@ -12,6 +13,7 @@ const ARENA_FIGHTERS: readonly ArenaFighter[] = [
   papaitaxone,
   joaovee,
   douguitoryu,
+  bellotabuzz,
 ];
 
 function findFighter(id: string | null) {

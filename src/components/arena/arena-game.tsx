@@ -6,10 +6,12 @@ import type { ArenaMode } from "@/lib/arena/tutorial";
 
 import { ArenaActionButton } from "./arena-action-button";
 import { ArenaAttackBar } from "./arena-attack-bar";
+import { ArenaDevPanel } from "./arena-dev-panel";
 import { ArenaHud } from "./arena-hud";
 import { ArenaOverlay } from "./arena-overlay";
 import { ArenaTitleCard } from "./arena-title-card";
 import { ArenaTutorial } from "./arena-tutorial";
+import { useArenaDevSettings } from "./use-arena-dev-settings";
 import { useArenaGame } from "./use-arena-game";
 
 function ArenaGame({
@@ -26,8 +28,10 @@ function ArenaGame({
   // Sai do treino direto para a luta valendo (pular ou "Lutar agora").
   onTutorialEnd?: () => void;
 }) {
-  const { parentRef, phase, status, snapshot, hud, reward, tutorialStep, resume, restart, retry } =
-    useArenaGame(matchup, difficulty, mode);
+  const dev = useArenaDevSettings();
+  const testing = mode === "test";
+  const { parentRef, phase, status, snapshot, hud, reward, tutorialStep, resume, restart, retry, devAction } =
+    useArenaGame(matchup, difficulty, mode, testing ? dev.settings : null);
 
   return (
     <div
@@ -50,10 +54,14 @@ function ArenaGame({
             waterBoost={hud?.waterBoost ?? false}
           />
           <ArenaAttackBar fighter={matchup.player} hud={hud} />
+          {testing ? (
+            <ArenaDevPanel settings={dev.settings} onToggle={dev.toggle} onAction={devAction} />
+          ) : null}
           {mode === "tutorial" ? (
             <ArenaTutorial
               step={tutorialStep}
               fighter={matchup.player}
+              device={hud?.device ?? "pointer"}
               onSkip={onTutorialEnd}
               onFight={onTutorialEnd}
               onRepeat={restart}

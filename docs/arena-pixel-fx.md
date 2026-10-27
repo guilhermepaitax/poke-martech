@@ -2,7 +2,7 @@
 
 Todo efeito de ataque da arena (projétil, feixe, impacto) segue o visual dos sprites PMD: pixels grandes, nítidos, sem brilho suave. Vale para qualquer lutador novo — já criar o ataque assim.
 
-Referências prontas: bolha (`bubble.ts`), bola de energia (`orb.ts`), estrela (`star.ts`), osso (`bone.ts`) e feixe (`beam.ts`), todos em `src/game/arena/entities/`.
+Referências prontas: bolha (`bubble.ts`), bola de energia (`orb.ts`), estrela (`star.ts`), osso (`bone.ts`), feixe (`beam.ts`) e raio (`bolt.ts`), todos em `src/game/arena/entities/`. Especiais: furacão de fogo em funil de faixas espirais com rastro (`fire-tornado.ts`), névoa tóxica (`toxic-mist.ts`), status de veneno (`poison-fx.ts`, artes `TOXIC_BUBBLE_ART` 10x10 e `POISON_BADGE_ART` 9x9), anel de terremoto (`quake.ts`), onda (`surf.ts`), raio do céu (`thunder.ts`) e teleporte (`last-resort.ts`); efeitos que duram vários quadros implementam `SpecialFx` (`special-fx.ts`) e avançam pelo delta em `stepCombat`.
 
 ## Regras
 
